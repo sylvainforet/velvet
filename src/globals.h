@@ -53,7 +53,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #define inline __inline
 extern struct tString_st;
 extern struct readSet_st;
-extern struct splayTable_st;
+extern struct kmerTable_st;
 extern struct annotation_st;
 extern struct roadmap_st;
 extern struct insertionMarker_st;
@@ -90,7 +90,7 @@ typedef uint32_t ArrayIdx;
 
 // Atomic word
 typedef struct kmer_st Kmer;
-typedef int64_t KmerKey;
+typedef uint64_t KmerKey;
 
 // Just a sequence string, but with just two bits per character
 typedef struct tString_st TightString;
@@ -102,7 +102,7 @@ typedef struct sequenceReader_st SequenceReader;
 // Hash table structures
 typedef struct kmerOccurence_st KmerOccurence;
 typedef struct kmerOccurenceTable_st KmerOccurenceTable;
-typedef struct splayTable_st SplayTable;
+typedef struct kmerTable_st KmerTable;
 
 // Graph construction structures
 typedef struct annotationList_st AnnotationList;

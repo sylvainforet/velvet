@@ -72,7 +72,7 @@ static void printUsage()
 int main(int argc, char **argv)
 {
 	ReadSet *allSequences;
-	SplayTable *splayTable;
+	KmerTable *kmerTable;
 	int hashLength;
 	char *directory, *filename, *seqFilename, *buf;
 	boolean double_strand = true;
@@ -146,17 +146,17 @@ int main(int argc, char **argv)
 	strcat(seqFilename, "/Sequences");
 	parseDataAndReadFiles(seqFilename, argc - 2, &(argv[2]), &double_strand);
 
-	splayTable = newSplayTable(hashLength, double_strand);
+	kmerTable = newKmerTable(hashLength, double_strand);
 
 	allSequences = importReadSet(seqFilename);
 	velvetLog("%i sequences in total.\n", allSequences->readCount);
 
 	strcpy(filename, directory);
 	strcat(filename, "/Roadmaps");
-	inputSequenceArrayIntoSplayTableAndArchive(allSequences,
-						   splayTable, filename, seqFilename);
+	inputSequenceArrayIntoKmerTableAndArchive(allSequences,
+						   kmerTable, filename, seqFilename);
 
-	destroySplayTable(splayTable);
+	destroyKmerTable(kmerTable);
 	if (dir)
 		closedir(dir);
 	free(filename);
