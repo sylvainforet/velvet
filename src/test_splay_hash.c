@@ -129,7 +129,7 @@ static void inputSequenceIntoKmerTable(TightString * tString, KmerTable * kmerTa
 	currentIndex = kmerTable->lastIndex;
 
 	// Neglect any string shorter than WORDLENGTH :
-	if (GETlENGTH(TsTRING) < KMERtABLE->wordlength) {
+	if (getLength(tString) < kmerTable->WORDLENGTH) {
 		return;
 	}
 	// Fill in the initial word :

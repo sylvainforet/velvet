@@ -6,11 +6,12 @@
  * Hash table with direct addressing and quadratic probing
  * Adapted from Glib's GHash table
  * http://www.gtk.org
+ * This version has `in-line' nodes, no tombstones and resizes in place
  */
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
+#include <string.h>
 
 #include "globals.h"
 #include "kmerHashTable.h"
@@ -18,7 +19,7 @@
 #include "utility.h"
 
 
-#define HASH_TABLE_MIN_SHIFT 3  /* 1 << 3 == 8 buckets */
+#define HASH_TABLE_MIN_SHIFT 16  /* 1 << 3 == 8 buckets */
 
 static const uint64_t primeMod[] =
 {
@@ -84,7 +85,6 @@ struct kmerHashTable_st
 	uint64_t mask;
 
 	Coordinate nNodes;
-	Coordinate nOccupied;
 };
 
 static void
@@ -116,11 +116,13 @@ hashTableFindClosestShift (Coordinate n)
 	return i;
 }
 
-/* Thomas Wang abd Robert Juenkins bit mixing functions
+/* Thomas Wang (64 bits) and Robert Juenkins (32 bits) bit mixing functions
  * I have a feeling that the 64 bit version is not quite right ...
+ *
  * 1 is OR'ed to the key to denote that it is not an empty node
  */
-static inline KmerKey kmerHashFunc(Kmer * kmer)
+static inline KmerKey
+kmerHashFunc(Kmer * kmer)
 {
 #if KMER_LONGLONGS
 	KmerKey key = kmer->longlongs[0];
@@ -134,11 +136,11 @@ static inline KmerKey kmerHashFunc(Kmer * kmer)
 	key ^= kmer->longlongs[2];
 #endif
 
-	key = (~key) + (key << 21); // key = (key << 21) - key - 1;
+	key = (~key) + (key << 21);
 	key = key ^ (key >> 24);
-	key = (key + (key << 3)) + (key << 8); // key * 265
+	key = (key + (key << 3)) + (key << 8);
 	key = key ^ (key >> 14);
-	key = (key + (key << 2)) + (key << 4); // key * 21
+	key = (key + (key << 2)) + (key << 4);
 	key = key ^ (key >> 28);
 	key = key + (key << 31);
 
@@ -176,46 +178,73 @@ hashTableSetShiftFromSize (KmerHashTable *hTable, Coordinate size)
 static void
 hashTableResize (KmerHashTable *hTable)
 {
-	KmerHashNode *newNodes;
-	Coordinate oldSize;
+	const Coordinate oldSize = hTable->size;
 	Coordinate i;
+	boolean *touched;
 
-	oldSize = hTable->size;
+#define IS_TOUCHED(i)  ((touched[(i) / 8] >> ((i) % 8)) & 1)
+#define SET_TOUCHED(i) (touched[(i) / 8] |= (1 << ((i) % 8)))
+
 	hashTableSetShiftFromSize(hTable, hTable->nNodes * 2);
-
-	newNodes = callocOrExit(hTable->size, KmerHashNode);
+	hTable->nodes = reallocOrExit(hTable->nodes, hTable->size, KmerHashNode);
+	memset(hTable->nodes + oldSize, 0, (hTable->size - oldSize) * sizeof(KmerHashNode));
+	touched = callocOrExit(oldSize / 8 + 1, boolean);
 
 	for (i = 0; i < oldSize; i++)
 	{
-		KmerHashNode *node = &hTable->nodes[i];
-		KmerHashNode *newNode;
+		KmerHashNode *node;
+		KmerHashNode *nextNode;
+		KmerHashNode tmpNode;
 		KmerKey hashVal;
-		Coordinate step = 0;
+		Coordinate step;
 
-		if (node->keyHash < 1)
+		if (IS_TOUCHED(i))
 			continue;
-
+		node = &hTable->nodes[i];
+		if (node->keyHash == 0)
+			continue;
 		hashVal = node->keyHash % hTable->mod;
-		newNode = &newNodes[hashVal];
-
-		while (newNode->keyHash)
+		if (hashVal == i)
 		{
-			step++;
-			hashVal += step;
-			hashVal &= hTable->mask;
-			newNode  = &newNodes[hashVal];
+			SET_TOUCHED(i);
+			continue;
 		}
-		*newNode = *node;
-	}
+		tmpNode = *node;
+		nextNode = &hTable->nodes[hashVal];
+		node->keyHash = 0;
+		step = 0;
+		while (nextNode->keyHash)
+		{
+			/* Hit an untouched element */
+			if (hashVal < oldSize && !IS_TOUCHED(hashVal))
+			{
+				KmerHashNode tmpp;
 
-	free(hTable->nodes);
-	hTable->nodes = newNodes;
-	hTable->nOccupied = hTable->nNodes;
+				tmpp = tmpNode;
+				tmpNode = *nextNode;
+				*nextNode = tmpp;
+				SET_TOUCHED(hashVal);
+				hashVal = tmpNode.keyHash % hTable->mod;
+				step = 0;
+			}
+			else
+			{
+				step++;
+				hashVal += step;
+				hashVal &= hTable->mask;
+			}
+			nextNode = &hTable->nodes[hashVal];
+		}
+		*nextNode = tmpNode;
+	}
+	free(touched);
+#undef IS_TOUCHED
+#undef SET_TOUCHED
 }
 
 static inline void hashTableMaybeResize (KmerHashTable *hTable)
 {
-	Coordinate nOccupied = hTable->nOccupied;
+	Coordinate nOccupied = hTable->nNodes;
 	Coordinate size = hTable->size;
 
 	if ((size > hTable->nNodes * 4 && size > 1 << HASH_TABLE_MIN_SHIFT) ||
@@ -229,7 +258,6 @@ KmerHashTable *newKmerHashTable(void)
 
 	hTable = mallocOrExit(1, KmerHashTable);
 	hTable->nNodes = 0;
-	hTable->nOccupied = 0;
 	hashTableSetShift(hTable, HASH_TABLE_MIN_SHIFT);
 	hTable->nodes = callocOrExit(hTable->size, KmerHashNode);
 
@@ -305,7 +333,6 @@ boolean findOrInsertOccurenceInKmerHashTable(KmerHashTable *hTable, Kmer *kmer,
 
 	node->seqID = *seqID;
 	node->position = *position;
-	hTable->nOccupied++;
 	hashTableMaybeResize(hTable);
 
 	return false;
