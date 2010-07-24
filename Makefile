@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall -pg
 DEBUG = -g
 LDFLAGS = -lm
 OPT = -O3
@@ -18,13 +18,13 @@ Z_LIB_FILES=$(Z_LIB_DIR)/*.o
 # Sparc/Solaris users: uncomment the following line
 # CFLAGS = -Wall -m64
 
-OBJ = obj/tightString.o obj/run.o obj/kmerHashTable.o obj/kmerTable.o obj/graph.o obj/run2.o obj/fibHeap.o obj/fib.o obj/concatenatedGraph.o obj/passageMarker.o obj/graphStats.o obj/correctedGraph.o obj/dfib.o obj/dfibHeap.o obj/recycleBin.o obj/readSet.o obj/shortReadPairs.o obj/locallyCorrectedGraph.o obj/graphReConstruction.o obj/roadMap.o obj/preGraph.o obj/preGraphConstruction.o obj/concatenatedPreGraph.o obj/readCoherentGraph.o obj/utility.o obj/kmer.o obj/scaffold.o obj/kmerOccurenceTable.o obj/allocArray.o
+OBJ = obj/tightString.o obj/run.o obj/kmerHashTable.o obj/kmerTable.o obj/graph.o obj/run2.o obj/fibHeap.o obj/fib.o obj/concatenatedGraph.o obj/passageMarker.o obj/graphStats.o obj/correctedGraph.o obj/dfib.o obj/dfibHeap.o obj/recycleBin.o obj/readSet.o obj/shortReadPairs.o obj/locallyCorrectedGraph.o obj/graphReConstruction.o obj/roadMap.o obj/preGraph.o obj/preGraphConstruction.o obj/concatenatedPreGraph.o obj/readCoherentGraph.o obj/utility.o obj/kmer.o obj/scaffold.o obj/kmerOccurenceTable.o obj/allocArray.o obj/test_splay_hash.o obj/splay.o obj/crc.o
 OBJDBG = $(subst obj,obj/dbg,$(OBJ))
 
 default : cleanobj zlib obj velveth velvetg doc
 
 clean :
-	-rm obj/*.o obj/dbg/*.o ./velvet* 
+	-rm obj/*.o obj/dbg/*.o ./velvet* ./test_splay_hash
 	cd $(Z_LIB_DIR) && make clean
 	-rm -f doc/manual_src/Manual.toc doc/manual_src/Manual.aux doc/manual_src/Manual.out doc/manual_src/Manual.log
 	-rm -f doc/manual_src/Columbus_manual.aux doc/manual_src/Columbus_manual.out doc/manual_src/Columbus_manual.log
@@ -37,6 +37,9 @@ zlib :
 
 velveth : obj 
 	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o velveth obj/tightString.o obj/run.o obj/recycleBin.o obj/kmerHashTable.o obj/kmerTable.o obj/readSet.o obj/utility.o obj/kmer.o obj/kmerOccurenceTable.o $(Z_LIB_FILES)
+
+test_splay_hash : obj 
+	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o test_splay_hash obj/tightString.o obj/recycleBin.o obj/kmerHashTable.o obj/splay.o obj/readSet.o obj/utility.o obj/kmer.o obj/kmerOccurenceTable.o obj/test_splay_hash.o obj/crc.o $(Z_LIB_FILES)
 
 
 velvetg : obj

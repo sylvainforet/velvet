@@ -192,7 +192,7 @@ hashTableResize (KmerHashTable *hTable)
 		KmerKey hashVal;
 		Coordinate step = 0;
 
-		if (node->keyHash <= 1)
+		if (node->keyHash < 1)
 			continue;
 
 		hashVal = node->keyHash % hTable->mod;
