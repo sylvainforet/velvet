@@ -30,24 +30,11 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #define false 0
 #endif
 
-#ifdef __GNUC__
-#define ATTRIBUTE_PACKED  __attribute__ ((packed))
-#else
-#define ATTRIBUTE_PACKED
-#endif
-
-#define VERSION_NUMBER 1
-#define RELEASE_NUMBER 1
-#define UPDATE_NUMBER 02
+#define VERSION_NUMBER 0
+#define RELEASE_NUMBER 7
+#define UPDATE_NUMBER 62 
 
 #define MAXLINE 5000 
-
-#define LONG 2 * CATEGORIES
-#define LONG_PAIRED 2 * CATEGORIES + 1
-#define REFERENCE 2 * CATEGORIES + 2
-
-/* NULL value for ArrayIdx */
-#define NULL_IDX 0
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
 #define inline __inline
@@ -70,8 +57,6 @@ extern struct fibheap;
 extern struct fibheap_el;
 extern struct dfibheap;
 extern struct dfibheap_el;
-extern struct kmerOccurence_st;
-extern struct kmerOccurenceTable_st;
 #endif
 
 // Namespace sizes
@@ -79,26 +64,17 @@ extern struct kmerOccurenceTable_st;
 typedef int8_t boolean;
 typedef int8_t Nucleotide;
 typedef uint8_t Descriptor;
-#ifdef BIGASSEMBLY
-typedef int64_t IDnum;
-#else
 typedef int32_t IDnum;
-#endif
 typedef int64_t Coordinate;
-#ifdef LONGSEQUENCES
-typedef int32_t ShortLength;
-#else
 typedef int16_t ShortLength;
-#endif
 typedef double Time;
 typedef uint8_t Quality;
 typedef double Probability;
 typedef int8_t Category;
-typedef uint32_t ArrayIdx;
 
 // Atomic word
 typedef struct kmer_st Kmer;
-typedef uint64_t KmerKey;
+typedef int64_t KmerKey;
 
 // Just a sequence string, but with just two bits per character
 typedef struct tString_st TightString;
@@ -108,8 +84,6 @@ typedef struct readSet_st ReadSet;
 typedef struct sequenceReader_st SequenceReader;
 
 // Hash table structures
-typedef struct kmerOccurence_st KmerOccurence;
-typedef struct kmerOccurenceTable_st KmerOccurenceTable;
 typedef struct splayTable_st SplayTable;
 
 // Graph construction structures
@@ -120,8 +94,7 @@ typedef struct roadMapArray_st RoadMapArray;
 typedef struct insertionMarker_st InsertionMarker;
 
 // Pre-Graph elements
-typedef struct preMarker_st PreMarker;
-typedef ArrayIdx PreArcI;
+typedef struct preArc_st PreArc;
 typedef struct preNode_st PreNode;
 typedef struct preGraph_st PreGraph;
 
@@ -130,7 +103,7 @@ typedef struct arc_st Arc;
 typedef struct node_st Node;
 typedef struct graph_st Graph;
 typedef struct shortReadMarker_st ShortReadMarker;
-typedef ArrayIdx PassageMarkerI;
+typedef struct passage_st PassageMarker;
 typedef struct passageList_st PassageMarkerList;
 typedef struct readStart_st ReadStart;
 typedef struct gapMarker_st GapMarker;

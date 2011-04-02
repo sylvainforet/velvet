@@ -59,8 +59,8 @@ static int SELF_LOOP_CUTOFF;
 static Graph *graph;
 static Node *start;
 
-static PassageMarkerI fastPath;
-static PassageMarkerI slowPath;
+static PassageMarker *fastPath;
+static PassageMarker *slowPath;
 
 static double **Fmatrix;
 //End of global variables;
@@ -86,10 +86,10 @@ static boolean isPreviousToNode(Node * previous, Node * target)
 	Node *previousNode = NULL;
 	Time targetTime = getNodeTime(target);
 
-	//velvetLog("Testing if %li is previous to %li\n", getNodeID(previous), getNodeID(target));
+	//printf("Testing if %li is previous to %li\n", getNodeID(previous), getNodeID(target));
 
 	while (true) {
-		//velvetLog("CCC %li %f\n", getNodeID(currentNode), getNodeTime(currentNode));
+		//printf("CCC %li %f\n", getNodeID(currentNode), getNodeTime(currentNode));
 
 		if (currentNode == previous)
 			return true;
@@ -99,9 +99,9 @@ static boolean isPreviousToNode(Node * previous, Node * target)
 
 		if (getNodeID(currentNode) > nodeCount(graph)
 		    || getNodeID(currentNode) < -nodeCount(graph)) {
-			velvetLog("Node ID??? %li %li\n",
-			       (long) getNodeID(currentNode),
-			       (long) getNodeID(previousNode));
+			printf("Node ID??? %d %d\n",
+			       getNodeID(currentNode),
+			       getNodeID(previousNode));
 		}
 
 		if (getNodeTime(currentNode) != targetTime)
@@ -113,13 +113,13 @@ static boolean isPreviousToNode(Node * previous, Node * target)
 }
 
 static boolean
-extractSequence(PassageMarkerI path, TightString * sequence)
+extractSequence(PassageMarker * path, TightString * sequence)
 {
-	PassageMarkerI marker;
+	PassageMarker *marker;
 	Coordinate seqLength = 0;
 	Coordinate writeIndex = 0;
 
-	//velvetLog("Extracting sequence %li ... ", pathLength);
+	//printf("Extracting sequence %li ... ", pathLength);
 
 	//Measure length
 	for (marker = getNextInSequence(path); !isTerminal(marker);
@@ -201,9 +201,9 @@ compareSequences(TightString * sequence1, TightString * sequence2)
 
 static void destroyPaths()
 {
-	PassageMarkerI marker;
+	PassageMarker *marker;
 
-	while (slowPath != NULL_IDX) {
+	while (slowPath != NULL) {
 		marker = slowPath;
 		getNodeTime(getNode(marker));
 		getNodeTime(getTwinNode(getNode(marker)));
@@ -212,7 +212,7 @@ static void destroyPaths()
 		destroyPassageMarker(marker);
 	}
 
-	while (fastPath != NULL_IDX) {
+	while (fastPath != NULL) {
 		marker = fastPath;
 		getNodeTime(getNode(marker));
 		getNodeTime(getTwinNode(getNode(marker)));
@@ -223,7 +223,7 @@ static void destroyPaths()
 
 static void cleanUpRedundancy_local()
 {
-	PassageMarkerI current;
+	PassageMarker *current;
 
 	for (current = getNextInSequence(slowPath); !isTerminal(current);
 	     current = getNextInSequence(current))
@@ -237,17 +237,17 @@ static void comparePaths_local(Node * destination, Node * origin)
 	IDnum slowLength, fastLength;
 	Node *fastNode, *slowNode;
 	IDnum i;
-	PassageMarkerI marker;
+	PassageMarker *marker;
 
 	//Measure lengths
 	slowLength = fastLength = 0;
 	fastNode = destination;
 	slowNode = origin;
 
-	//velvetLog("Looking into separate paths\n");
+	//puts("Looking into separate paths");
 
 	while (fastNode != slowNode) {
-		//velvetLog("Fast node %li Slow node %li\n", getNodeID(fastNode), getNodeID(slowNode));
+		//printf("Fast node %li Slow node %li\n", getNodeID(fastNode), getNodeID(slowNode));
 
 		if (getNodeTime(fastNode) > getNodeTime(slowNode)) {
 			fastLength++;
@@ -274,7 +274,7 @@ static void comparePaths_local(Node * destination, Node * origin)
 
 		if (slowLength > MAXNODELENGTH
 		    || fastLength > MAXNODELENGTH) {
-			//velvetLog("Paths too fragmented %li %li\n", slowLength, fastLength);
+			//printf("Paths too fragmented %li %li\n", slowLength, fastLength);
 			return;
 		}
 	}
@@ -317,17 +317,17 @@ static void comparePaths_local(Node * destination, Node * origin)
 	//Extract sequences
 	if (!extractSequence(fastPath, fastSequence)
 	    || !extractSequence(slowPath, slowSequence)) {
-		//velvetLog("Paths too long\n");
+		//puts("Paths too long");
 		destroyPaths();
 		return;
 	}
 	//Compare sequences
 	if (compareSequences(fastSequence, slowSequence)) {
-		//velvetLog("Correcting discrepancy\n");
+		//puts("Correcting discrepancy");
 		cleanUpRedundancy_local();
 		return;
 	}
-	//velvetLog("\tFinished comparing paths, changes made\n");
+	//puts("\tFinished comparing paths, changes made");
 	destroyPaths();
 }
 
@@ -338,7 +338,7 @@ static void tourBusArc_local(Node * origin, Arc * arc, Time originTime)
 	IDnum nodeIndex = getNodeID(destination) + nodeCount(graph);
 	Node *oldPrevious = previous[nodeIndex];
 
-	//velvetLog("Trying arc from %li -> %li\n", getNodeID(origin), getNodeID(destination)); 
+	//printf("Trying arc from %li -> %li\n", getNodeID(origin), getNodeID(destination)); 
 
 	if (oldPrevious == origin)
 		return;
@@ -350,14 +350,14 @@ static void tourBusArc_local(Node * origin, Arc * arc, Time originTime)
 	destinationTime = times[nodeIndex];
 
 	if (destinationTime == -1) {
-		//velvetLog("New destination\n");
+		//puts("New destination");
 		setNodeTime(destination, totalTime);
 		dheapNodes[nodeIndex] =
 		    insertNodeIntoDHeap(dheap, totalTime, destination);
 		previous[nodeIndex] = origin;
 		return;
 	} else if (destinationTime > totalTime) {
-		//velvetLog("Previously visited from slower node %li\n", getNodeID(getNodePrevious(destination))); 
+		//printf("Previously visited from slower node %li\n", getNodeID(getNodePrevious(destination))); 
 		if (dheapNodes[nodeIndex] == NULL) {
 			return;
 		}
@@ -369,7 +369,7 @@ static void tourBusArc_local(Node * origin, Arc * arc, Time originTime)
 		comparePaths_local(destination, oldPrevious);
 		return;
 	} else {
-		//velvetLog("Previously visited by faster node %li\n", getNodeID(getNodePrevious(destination))); 
+		//printf("Previously visited by faster node %li\n", getNodeID(getNodePrevious(destination))); 
 		comparePaths_local(destination, origin);
 	}
 }
@@ -380,7 +380,7 @@ static void tourBusNode_local(Node * node)
 	Node *destination;
 	Time nodeTime = getNodeTime(node);
 
-	//velvetLog("Node %li %f %i %p\n", getNodeID(node),
+	//printf("Node %li %f %i %p\n", getNodeID(node),
 	//       times[getNodeID(node) + nodeCount(graph)], simpleArcCount(node),
 	//       node);
 
@@ -427,7 +427,7 @@ static void clipTipsVeryHardLocally()
 	Node *current, *twin;
 	boolean modified = true;
 
-	//velvetLog("Clipping short tips off graph HARD\n");
+	//puts("Clipping short tips off graph HARD");
 
 	while (modified) {
 		modified = false;
@@ -443,13 +443,13 @@ static void clipTipsVeryHardLocally()
 			if (getUniqueness(current))
 				continue;
 
-			//velvetLog("Checking node HARD %li %i\n", getNodeID(current), simpleArcCount(current));
+			//printf("Checking node HARD %li %i\n", getNodeID(current), simpleArcCount(current));
 
 			twin = getTwinNode(current);
 
 			if (isLocalDeadEnd(current)
 			    || isLocalTwinDeadEnd(current)) {
-				//velvetLog("Found tip at node %li\n", getNodeID(current));
+				//printf("Found tip at node %li\n", getNodeID(current));
 				handicapNode(current);
 				modified = true;
 			}
@@ -462,7 +462,7 @@ static void tourBus_local(Node * startingPoint)
 	Node *currentNode = startingPoint;
 	IDnum nodeID = getNodeID(startingPoint) + nodeCount(graph);
 
-	//velvetLog("Tour bus from node %li...\n", getNodeID(startingPoint));
+	//printf("Tour bus from node %li...\n", getNodeID(startingPoint));
 
 	times[nodeID] = 0;
 	previous[nodeID] = currentNode;
@@ -486,8 +486,12 @@ void prepareGraphForLocalCorrections(Graph * argGraph)
 	SELF_LOOP_CUTOFF = WORDLENGTH;
 	// Done with global params
 
-	velvetLog("Preparing to correct graph with cutoff %f\n",
+	// Original
+	/*
+	printf("Preparing to correct graph with cutoff %f\n",
 	       MAXDIVERGENCE);
+	*/
+	// Original
 
 	// Allocating memory
 	times = mallocOrExit(2 * nodes + 1, Time);
@@ -518,7 +522,7 @@ void correctGraphLocally(Node * argStart)
 	NodeList *nodeList;
 
 	start = argStart;
-	//velvetLog("Correcting graph from node %li\n", getNodeID(start));
+	//printf("Correcting graph from node %li\n", getNodeID(start));
 
 	clipTipsVeryHardLocally();
 
@@ -536,7 +540,12 @@ void correctGraphLocally(Node * argStart)
 
 void deactivateLocalCorrectionSettings()
 {
-	velvetLog("Deactivating local correction settings\n");
+	// Original
+	/*
+	puts("Deactivating local correction settings");
+	*/
+	// Original
+
 	IDnum index;
 
 	for (index = 0; index <= MAXREADLENGTH; index++) {

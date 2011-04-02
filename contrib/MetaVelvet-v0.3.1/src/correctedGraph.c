@@ -49,7 +49,7 @@ struct tkt_st {
 	Ticket *next;
 	IDnum id_a;
 	IDnum id_b;
-} ATTRIBUTE_PACKED;
+};
 
 //Global variables used throughout this procedure(internal use only !)
 static int MAXREADLENGTH = 100;
@@ -72,8 +72,8 @@ static int WORDLENGTH;
 static Graph *graph;
 static IDnum dbgCounter;
 
-static PassageMarkerI fastPath;
-static PassageMarkerI slowPath;
+static PassageMarker *fastPath;
+static PassageMarker *slowPath;
 
 static IDnum *eligibleStartingPoints;
 
@@ -89,8 +89,7 @@ static Ticket **todo;
 static Ticket *done;
 static boolean *progressStatus;
 
-static IDnum *sequenceLengths;
-static Category *sequenceCategories;
+static Coordinate *sequenceLengths;
 
 //End of global variables;
 
@@ -148,7 +147,7 @@ static boolean isPreviousToNode(Node * previous, Node * target)
 	Node *previousNode = NULL;
 	Time targetTime = getNodeTime(target);
 
-	//velvetLog("Testing if %ld is previous to %ld\n", getNodeID(previous), getNodeID(target));
+	//printf("Testing if %ld is previous to %ld\n", getNodeID(previous), getNodeID(target));
 
 	while (true) {
 		if (currentNode == previous)
@@ -177,7 +176,7 @@ static void concatenateCommonTodoLists(Node * nodeA, Node * nodeB)
 	IDnum indexA, indexB;
 	IDnum nodes = nodeCount(graph);
 
-	//velvetLog("Merging todo list %ld into %ld\n", getNodeID(nodeB),
+	//printf("Merging todo list %ld into %ld\n", getNodeID(nodeB),
 	//       getNodeID(nodeA));
 
 	if (*listB == NULL)
@@ -290,7 +289,7 @@ static void concatenateTodoListIntoActive(Node * nodeB)
 	IDnum activeID = getNodeID(activeNode);
 	IDnum indexB, indexA;
 
-	//velvetLog("Merging todo list %ld into active node %ld\n",
+	//printf("Merging todo list %ld into active node %ld\n",
 	//       getNodeID(nodeB), getNodeID(activeNode));
 
 	if (*listB == NULL)
@@ -479,7 +478,7 @@ static void determineEligibleStartingPoints()
 	IDnum counter = 0;
 	FibHeap *heap = newFibHeap();
 
-	velvetLog("Determining eligible starting points\n");
+	puts("Determining eligible starting points");
 
 	for (nodeIndex = 1; nodeIndex <= nodeCount(graph); nodeIndex++) {
 		node = getNodeInGraph(graph, nodeIndex);
@@ -509,7 +508,7 @@ static void determineEligibleStartingPoints()
 		eligibleStartingPoints[counter++] = getNodeID(node);
 
 	destroyHeap(heap);
-	velvetLog("Done listing starting nodes\n");
+	puts("Done listing starting nodes");
 }
 
 static Node *nextStartingPoint()
@@ -530,13 +529,13 @@ static Node *nextStartingPoint()
 }
 
 static boolean
-extractSequence(PassageMarkerI path, TightString * sequence)
+extractSequence(PassageMarker * path, TightString * sequence)
 {
-	PassageMarkerI marker;
+	PassageMarker *marker;
 	Coordinate seqLength = 0;
 	Coordinate writeIndex = 0;
 
-	//velvetLog("Extracting sequence %ld ... ", pathLength);
+	//printf("Extracting sequence %ld ... ", pathLength);
 
 	//Measure length
 	for (marker = getNextInSequence(path); !isTerminal(marker);
@@ -662,7 +661,7 @@ static void mapSlowOntoFast()
 			slowToFastMapping[--slowIndex] = fastIndex - 1;
 
 		else {
-			velvetLog("Error\n");
+			puts("Error");
 			fflush(stdout);
 			abort();
 		}
@@ -718,11 +717,11 @@ static void remapNodeArcsOntoNeighbour(Node * source, Node * target)
 }
 
 static void remapNodeMarkersOntoNeighbour(Node * source,
-					  PassageMarkerI sourceMarker,
+					  PassageMarker * sourceMarker,
 					  Node * target,
-					  PassageMarkerI targetMarker)
+					  PassageMarker * targetMarker)
 {
-	PassageMarkerI marker;
+	PassageMarker *marker;
 	Coordinate offset;
 	IDnum sourceLength, index;
 	ShortReadMarker *sourceArray, *shortMarker;
@@ -740,7 +739,7 @@ static void remapNodeMarkersOntoNeighbour(Node * source,
 	Coordinate realTargetLength = getNodeLength(target);
 	Coordinate realSourceLength = getNodeLength(source);
 
-	while (getMarker(source) != NULL_IDX) {
+	while (getMarker(source) != NULL) {
 		marker = getMarker(source);
 		extractPassageMarker(marker);
 		transposePassageMarker(marker, target);
@@ -883,12 +882,12 @@ static void remapBackOfNodeArcsOntoNeighbour(Node * source, Node * target)
 
 static Coordinate
 remapBackOfNodeMarkersOntoNeighbour(Node * source,
-				    PassageMarkerI sourceMarker,
+				    PassageMarker * sourceMarker,
 				    Node * target,
-				    PassageMarkerI targetMarker,
+				    PassageMarker * targetMarker,
 				    boolean slowToFast)
 {
-	PassageMarkerI marker, newMarker, previousMarker, nextMarker;
+	PassageMarker *marker, *newMarker, *previousMarker, *nextMarker;
 	Coordinate halfwayPoint, halfwayPointOffset, breakpoint,
 	    newStartOffset, newFinishOffset;
 	Category cat;
@@ -934,7 +933,7 @@ remapBackOfNodeMarkersOntoNeighbour(Node * source,
 	halfwayPointOffset = realSourceLength - halfwayPoint;
 
 	// Complete markers
-	for (marker = getMarker(source); marker != NULL_IDX;
+	for (marker = getMarker(source); marker != NULL;
 	     marker = nextMarker) {
 		nextMarker = getNextInNode(marker);
 
@@ -1251,8 +1250,8 @@ static void foldSymmetricalNode(Node * node)
 	Node *twinNode = getTwinNode(node);
 	Node *tmp, *destination;
 	Arc *arc;
-	PassageMarkerI oldMarker = getMarker(node);
-	PassageMarkerI currentMarker, newMarker, previousMarker;
+	PassageMarker *oldMarker = getMarker(node);
+	PassageMarker *currentMarker, *newMarker, *previousMarker;
 	Coordinate halfwayPoint;
 	IDnum totalMult;
 
@@ -1263,10 +1262,10 @@ static void foldSymmetricalNode(Node * node)
 		node = tmp;
 	}
 	// Destroy link to old markers 
-	setMarker(node, NULL_IDX);
+	setMarker(node, NULL);
 
 	// Reinsert markers properly
-	while (oldMarker != NULL_IDX) {
+	while (oldMarker != NULL) {
 		currentMarker = oldMarker;
 		oldMarker = getNextInNode(currentMarker);
 		previousMarker = getPreviousInSequence(currentMarker);
@@ -1379,22 +1378,22 @@ static void remapNodeTimesOntoNeighbour(Node * source, Node * target)
 }
 
 static void remapNodeTimesOntoForwardMiddlePath(Node * source,
-						PassageMarkerI path)
+						PassageMarker * path)
 {
-	PassageMarkerI marker;
+	PassageMarker *marker;
 	Node *target;
 	Time nodeTime = getNodeTime(source);
 	Node *previousNode = getNodePrevious(source);
 	Time targetTime;
 
-	//velvetLog("Remapping times from %ld to %ld\n", getNodeID(previousNode), getNodeID(source));
+	//printf("Remapping times from %ld to %ld\n", getNodeID(previousNode), getNodeID(source));
 
 	for (marker = path; getNode(marker) != source;
 	     marker = getNextInSequence(marker)) {
 		target = getNode(marker);
 		targetTime = getNodeTime(target);
 
-		//velvetLog("Through %ld\n", getNodeID(target));
+		//printf("Through %ld\n", getNodeID(target));
 
 		if (targetTime == -1
 		    || targetTime > nodeTime
@@ -1412,16 +1411,16 @@ static void remapNodeTimesOntoForwardMiddlePath(Node * source,
 }
 
 static void remapNodeTimesOntoTwinMiddlePath(Node * source,
-					     PassageMarkerI path)
+					     PassageMarker * path)
 {
-	PassageMarkerI marker;
+	PassageMarker *marker;
 	Node *target;
 	Node *previousNode = getTwinNode(source);
 	Time targetTime;
-	PassageMarkerI limit = getTwinMarker(getPreviousInSequence(path));
+	PassageMarker *limit = getTwinMarker(getPreviousInSequence(path));
 	Time nodeTime = getNodeTime(getNode(limit));
 
-	//velvetLog("Remapping times from twins %ld to %ld\n", getNodeID(previousNode), getNodeID(getNode(limit)));
+	//printf("Remapping times from twins %ld to %ld\n", getNodeID(previousNode), getNodeID(getNode(limit)));
 
 	// Revving up
 	marker = path;
@@ -1435,7 +1434,7 @@ static void remapNodeTimesOntoTwinMiddlePath(Node * source,
 		target = getNode(marker);
 		targetTime = getNodeTime(target);
 
-		//velvetLog("Through %ld\n", getNodeID(target));
+		//printf("Through %ld\n", getNodeID(target));
 
 		if (targetTime == -1
 		    || targetTime > nodeTime
@@ -1473,11 +1472,11 @@ remapNodeFibHeapReferencesOntoNode(Node * source, Node * target)
 }
 
 static void remapNodeOntoNeighbour(Node * source,
-				   PassageMarkerI sourceMarker,
+				   PassageMarker * sourceMarker,
 				   Node * target,
-				   PassageMarkerI targetMarker)
+				   PassageMarker * targetMarker)
 {
-	//velvetLog("Remapping node %ld onto middle path %ld\n", getNodeID(source), getNodeID(target));
+	//printf("Remapping node %ld onto middle path %ld\n", getNodeID(source), getNodeID(target));
 	remapNodeMarkersOntoNeighbour(source, sourceMarker, target,
 				      targetMarker);
 
@@ -1497,13 +1496,15 @@ static void remapNodeOntoNeighbour(Node * source,
 }
 
 static void remapBackOfNodeDescriptorOntoNeighbour(Node * source,
-						   PassageMarkerI sourceMarker,
+						   PassageMarker *
+						   sourceMarker,
 						   Node * target,
-						   PassageMarkerI targetMarker,
+						   PassageMarker *
+						   targetMarker,
 						   boolean slowToFast,
 						   Coordinate offset)
 {
-	//velvetLog("Splitting node descriptor %ld // %ld\n", getNodeLength(source), offset);
+	//printf("Splitting node descriptor %ld // %ld\n", getNodeLength(source), offset);
 
 	if (slowToFast)
 		splitNodeDescriptor(source, NULL, offset);
@@ -1557,12 +1558,12 @@ static void remapBackOfNodeTimesOntoNeighbour(Node * source, Node * target)
 }
 
 static void
-remapBackOfNodeOntoNeighbour(Node * source, PassageMarkerI sourceMarker,
-			     Node * target, PassageMarkerI targetMarker,
+remapBackOfNodeOntoNeighbour(Node * source, PassageMarker * sourceMarker,
+			     Node * target, PassageMarker * targetMarker,
 			     boolean slowToFast)
 {
 	Coordinate offset;
-	//velvetLog("Remapping node %ld onto middle path\n", getNodeID(node));
+	//printf("Remapping node %ld onto middle path\n", getNodeID(node));
 
 	offset =
 	    remapBackOfNodeMarkersOntoNeighbour(source, sourceMarker,
@@ -1581,10 +1582,12 @@ remapBackOfNodeOntoNeighbour(Node * source, PassageMarkerI sourceMarker,
 		startingNode = getTwinNode(target);
 }
 
-static void remapEmptyPathArcsOntoMiddlePathSimple(PassageMarkerI emptyPath,
-						   PassageMarkerI targetPath)
+static void remapEmptyPathArcsOntoMiddlePathSimple(PassageMarker *
+						   emptyPath,
+						   PassageMarker *
+						   targetPath)
 {
-	PassageMarkerI pathMarker;
+	PassageMarker *pathMarker;
 	Node *start = getNode(getPreviousInSequence(emptyPath));
 	Node *finish = getNode(emptyPath);
 	Node *previousNode = start;
@@ -1604,13 +1607,15 @@ static void remapEmptyPathArcsOntoMiddlePathSimple(PassageMarkerI emptyPath,
 	destroyArc(originalArc, graph);
 }
 
-static void remapEmptyPathMarkersOntoMiddlePathSimple(PassageMarkerI emptyPath,
-						      PassageMarkerI targetPath)
+static void remapEmptyPathMarkersOntoMiddlePathSimple(PassageMarker *
+						      emptyPath,
+						      PassageMarker *
+						      targetPath)
 {
-	PassageMarkerI marker, newMarker, previousMarker, pathMarker;
+	PassageMarker *marker, *newMarker, *previousMarker, *pathMarker;
 	Node *start = getNode(getPreviousInSequence(emptyPath));
 	Node *finish = getNode(emptyPath);
-	PassageMarkerI oldMarker = getMarker(finish);
+	PassageMarker *oldMarker = getMarker(finish);
 	Coordinate markerStart;
 	IDnum intersectionLength, twinIntersectionLength;
 	ShortReadMarker *intersectionReads =
@@ -1619,14 +1624,14 @@ static void remapEmptyPathMarkersOntoMiddlePathSimple(PassageMarkerI emptyPath,
 	    commonNodeReads(getTwinNode(start), getTwinNode(finish), graph,
 			    &twinIntersectionLength);
 
-	//velvetLog("SIMPLE %ld\t%ld\t%i\t%i\n", markerCount(finish),
+	//printf("SIMPLE %ld\t%ld\t%i\t%i\n", markerCount(finish),
 	//       getNodeID(finish), arcCount(finish),
 	//       arcCount(getTwinNode(finish)));
 
 	// Destroy link to old nodes
-	setMarker(finish, NULL_IDX);
+	setMarker(finish, NULL);
 
-	while (oldMarker != NULL_IDX) {
+	while (oldMarker != NULL) {
 		marker = oldMarker;
 		oldMarker = getNextInNode(marker);
 		newMarker = getPreviousInSequence(marker);
@@ -1684,17 +1689,17 @@ static void remapEmptyPathMarkersOntoMiddlePathSimple(PassageMarkerI emptyPath,
 	free(twinIntersectionReads);
 }
 
-static boolean markerFollowsPath(PassageMarkerI marker,
-				 PassageMarkerI start,
-				 PassageMarkerI finish, Node * stopNode)
+static boolean markerFollowsPath(PassageMarker * marker,
+				 PassageMarker * start,
+				 PassageMarker * finish, Node * stopNode)
 {
-	PassageMarkerI current, path;
+	PassageMarker *current, *path;
 
 	path = start;
 	current = marker;
 
 	while (true) {
-		if (current == NULL_IDX || path == finish || path == NULL_IDX)
+		if (current == NULL || path == finish || path == NULL)
 			return true;
 
 		if (getNode(current) != getNode(path))
@@ -1705,16 +1710,16 @@ static boolean markerFollowsPath(PassageMarkerI marker,
 	}
 }
 
-static PassageMarkerList *getAnchors(PassageMarkerI marker, Node * nodeA,
+static PassageMarkerList *getAnchors(PassageMarker * marker, Node * nodeA,
 				     Node * nodeB)
 {
-	PassageMarkerI current, next;
+	PassageMarker *current, *next;
 	Node *twinA = getTwinNode(nodeA);
 	Node *twinB = getTwinNode(nodeB);
 	PassageMarkerList *result = NULL;
 
 	current = marker;
-	while (current != NULL_IDX) {
+	while (current != NULL) {
 		next = getNextInSequence(current);
 		if (getNode(current) == nodeA && getNode(next) == nodeB) {
 			result = newPassageMarkerList(next, result);
@@ -1741,10 +1746,12 @@ static void destroyPassageMarkerList(PassageMarkerList ** list)
 	}
 }
 
-static void remapEmptyPathMarkersOntoMiddlePathDevious(PassageMarkerI emptyPath,
-						       PassageMarkerI targetPath)
+static void remapEmptyPathMarkersOntoMiddlePathDevious(PassageMarker *
+						       emptyPath,
+						       PassageMarker *
+						       targetPath)
 {
-	PassageMarkerI marker, newMarker, previousMarker, pathMarker;
+	PassageMarker *marker, *newMarker, *previousMarker, *pathMarker;
 	Node *start = getNode(getPreviousInSequence(emptyPath));
 	Node *finish = getNode(emptyPath);
 	PassageMarkerList *anchors = getAnchors(targetPath, start, finish);
@@ -1752,11 +1759,11 @@ static void remapEmptyPathMarkersOntoMiddlePathDevious(PassageMarkerI emptyPath,
 	boolean untouchable = false;
 	Coordinate markerStart;
 
-	velvetLog("DEVIOUS %li\t%li\t%li\t%li\n", (long) markerCount(finish),
-	       (long) getNodeID(finish), (long) arcCount(finish),
-	       (long) arcCount(getTwinNode(finish)));
+	printf("DEVIOUS %d\t%d\t%i\t%i\n", markerCount(finish),
+	       getNodeID(finish), arcCount(finish),
+	       arcCount(getTwinNode(finish)));
 
-	for (marker = getMarker(finish); marker != NULL_IDX;
+	for (marker = getMarker(finish); marker != NULL;
 	     marker = getNextInNode(marker)) {
 		newMarker = getPreviousInSequence(marker);
 
@@ -1805,15 +1812,15 @@ static void remapEmptyPathMarkersOntoMiddlePathDevious(PassageMarkerI emptyPath,
 	destroyPassageMarkerList(&anchors);
 }
 
-static boolean markerLeadsToArc(PassageMarkerI marker, Node * nodeA,
+static boolean markerLeadsToArc(PassageMarker * marker, Node * nodeA,
 				Node * nodeB)
 {
-	PassageMarkerI current, next;
+	PassageMarker *current, *next;
 	Node *twinA = getTwinNode(nodeA);
 	Node *twinB = getTwinNode(nodeB);
 
 	current = marker;
-	while (current != NULL_IDX) {
+	while (current != NULL) {
 		next = getNextInSequence(current);
 		if (getNode(current) == nodeA && getNode(next) == nodeB)
 			return true;
@@ -1826,8 +1833,8 @@ static boolean markerLeadsToArc(PassageMarkerI marker, Node * nodeA,
 }
 
 static void
-remapEmptyPathOntoMiddlePath(PassageMarkerI emptyPath,
-			     PassageMarkerI targetPath)
+remapEmptyPathOntoMiddlePath(PassageMarker * emptyPath,
+			     PassageMarker * targetPath)
 {
 	Node *start = getNode(getPreviousInSequence(emptyPath));
 	Node *finish = getNode(emptyPath);
@@ -1851,9 +1858,9 @@ remapEmptyPathOntoMiddlePath(PassageMarkerI emptyPath,
 		remapNodeTimesOntoTwinMiddlePath(finish, targetPath);
 }
 
-static void reduceSlowNodes(PassageMarkerI slowMarker, Node * finish)
+static void reduceSlowNodes(PassageMarker * slowMarker, Node * finish)
 {
-	PassageMarkerI marker;
+	PassageMarker *marker;
 
 	for (marker = slowMarker; getNode(marker) != finish;
 	     marker = getNextInSequence(marker)) {
@@ -1863,9 +1870,9 @@ static void reduceSlowNodes(PassageMarkerI slowMarker, Node * finish)
 
 static void destroyPaths()
 {
-	PassageMarkerI marker;
+	PassageMarker *marker;
 
-	while (slowPath != NULL_IDX) {
+	while (slowPath != NULL) {
 		marker = slowPath;
 		getNodeTime(getNode(marker));
 		getNodeTime(getTwinNode(getNode(marker)));
@@ -1874,7 +1881,7 @@ static void destroyPaths()
 		destroyPassageMarker(marker);
 	}
 
-	while (fastPath != NULL_IDX) {
+	while (fastPath != NULL) {
 		marker = fastPath;
 		getNodeTime(getNode(marker));
 		getNodeTime(getTwinNode(getNode(marker)));
@@ -1885,7 +1892,7 @@ static void destroyPaths()
 
 static Coordinate mapDistancesOntoPaths()
 {
-	PassageMarkerI marker;
+	PassageMarker *marker;
 	Coordinate totalDistance = 0;
 
 	marker = slowPath;
@@ -1908,11 +1915,11 @@ static Coordinate mapDistancesOntoPaths()
 	return totalDistance;
 }
 
-static boolean markerLeadsToNode(PassageMarkerI marker, Node * node)
+static boolean markerLeadsToNode(PassageMarker * marker, Node * node)
 {
-	PassageMarkerI currentMarker;
+	PassageMarker *currentMarker;
 
-	for (currentMarker = marker; currentMarker != NULL_IDX;
+	for (currentMarker = marker; currentMarker != NULL;
 	     currentMarker = getNextInSequence(currentMarker))
 		if (getNode(currentMarker) == node)
 			return true;
@@ -1990,13 +1997,13 @@ static void transferNodeData(Node * source, Node * target)
 static void concatenateNodesAndVaccinate(Node * nodeA, Node * nodeB,
 					 Graph * graph)
 {
-	PassageMarkerI marker, tmpMarker;
+	PassageMarker *marker, *tmpMarker;
 	Node *twinA = getTwinNode(nodeA);
 	Node *twinB = getTwinNode(nodeB);
 	Arc *arc;
 	Category cat;
 
-	//velvetLog("Concatenating nodes %ld and %ld\n", getNodeID(nodeA), getNodeID(nodeB));
+	//printf("Concatenating nodes %ld and %ld\n", getNodeID(nodeA), getNodeID(nodeB));
 	// Arc management:
 	// Freeing useless arcs
 	while (getArc(nodeA) != NULL)
@@ -2013,14 +2020,14 @@ static void concatenateNodesAndVaccinate(Node * nodeA, Node * nodeB,
 	}
 
 	// Passage marker management in node A:
-	for (marker = getMarker(nodeA); marker != NULL_IDX;
+	for (marker = getMarker(nodeA); marker != NULL;
 	     marker = getNextInNode(marker))
 		if (isTerminal(marker))
 			incrementFinishOffset(marker,
 					      getNodeLength(nodeB));
 
 	// Swapping new born passageMarkers from B to A
-	for (marker = getMarker(nodeB); marker != NULL_IDX; marker = tmpMarker) {
+	for (marker = getMarker(nodeB); marker != NULL; marker = tmpMarker) {
 		tmpMarker = getNextInNode(marker);
 
 		if (isInitial(marker)) {
@@ -2081,12 +2088,12 @@ static void simplifyNode(Node * node)
 
 }
 
-static void concatenatePathNodes(PassageMarkerI pathStart)
+static void concatenatePathNodes(PassageMarker * pathStart)
 {
-	PassageMarkerI pathMarker;
+	PassageMarker *pathMarker;
 
-	//velvetLog("Removing null loops\n");
-	for (pathMarker = pathStart; pathMarker != NULL_IDX;
+	//puts("Removing null loops");
+	for (pathMarker = pathStart; pathMarker != NULL;
 	     pathMarker = getNextInSequence(pathMarker)) {
 		simplifyNode(getNode(pathMarker));
 	}
@@ -2097,19 +2104,19 @@ static void concatenatePathNodes(PassageMarkerI pathStart)
 
 static void cleanUpRedundancy()
 {
-	PassageMarkerI slowMarker = getNextInSequence(slowPath);
-	PassageMarkerI fastMarker = getNextInSequence(fastPath);
+	PassageMarker *slowMarker = getNextInSequence(slowPath);
+	PassageMarker *fastMarker = getNextInSequence(fastPath);
 	Coordinate slowLength, fastLength;
 	Coordinate fastConstraint = 0;
 	Coordinate slowConstraint = 0;
 	Coordinate finalLength;
 	Node *slowNode, *fastNode;
 
-	//velvetLog("Correcting new redundancy\n");
+	//puts("Correcting new redundancy");
 	mapSlowOntoFast();
 	finalLength = mapDistancesOntoPaths();
 
-	while (slowMarker != NULL_IDX && fastMarker != NULL_IDX) {
+	while (slowMarker != NULL && fastMarker != NULL) {
 		if (isTerminal(slowMarker))
 			slowLength = finalLength;
 		else {
@@ -2130,16 +2137,16 @@ static void cleanUpRedundancy()
 		if (slowNode == fastNode) {
 			if (fastLength > slowLength)
 				slowConstraint = fastLength;
-			else if (fastLength < slowLength)
-				fastConstraint = slowLength;
+			else if (fastLength < slowLength);
+			fastConstraint = slowLength;
 
 			slowMarker = getNextInSequence(slowMarker);
 			fastMarker = getNextInSequence(fastMarker);
 		} else if (slowNode == getTwinNode(fastNode)) {
 			if (fastLength > slowLength)
 				slowConstraint = fastLength;
-			else if (fastLength < slowLength)
-				fastConstraint = slowLength;
+			else if (fastLength < slowLength);
+			fastConstraint = slowLength;
 
 			slowMarker = getNextInSequence(slowMarker);
 			fastMarker = getNextInSequence(fastMarker);
@@ -2175,43 +2182,30 @@ static void cleanUpRedundancy()
 		fflush(stdout);
 	}
 
-	//velvetLog("Done with path\n");
+	//puts("Done with path");
 
 	while (!isInitial(slowPath))
 		slowPath = getPreviousInSequence(slowPath);
 	while (!isInitial(fastPath))
 		fastPath = getPreviousInSequence(fastPath);
 
-	//velvetLog("Concatenation\n");
+	//puts("Concatenation");
 
 	// Freeing up memory  
-	if (slowMarker != NULL_IDX)
+	if (slowMarker != NULL)
 		concatenatePathNodes(slowPath);
 	else
 		concatenatePathNodes(fastPath);
 
-	//velvetLog("Vaccinatting\n");
+	//puts("Vaccinatting");
 
 	destroyPaths();
 
 	// Cleaning up silly structures
 	//vaccinatePath(&returnValue);
 
-	//velvetLog("Clean up done\n");
+	//puts("Clean up done");
 	//fflush(stdout);
-}
-
-static boolean pathContainsReference(PassageMarkerI path) {
-	PassageMarkerI marker, marker2;
-
-	for (marker = getNextInSequence(path); !isTerminal(marker);
-	     marker = getNextInSequence(marker))
-		for (marker2 = getMarker(getNode(marker)); marker2; marker2 = getNextInNode(marker2))
-			if (marker2 != marker && sequenceCategories[getAbsolutePassMarkerSeqID(marker)] == REFERENCE)
-				return true;
-
-	return false;
-
 }
 
 static void comparePaths(Node * destination, Node * origin)
@@ -2219,7 +2213,7 @@ static void comparePaths(Node * destination, Node * origin)
 	IDnum slowLength, fastLength;
 	Node *fastNode, *slowNode;
 	IDnum i;
-	PassageMarkerI marker;
+	PassageMarker *marker;
 
 	//Measure lengths
 	slowLength = fastLength = 0;
@@ -2290,11 +2284,6 @@ static void comparePaths(Node * destination, Node * origin)
 		slowPath = marker;
 	}
 
-	// Avoid merging parallel Reference sequences
-	if (pathContainsReference(fastPath) && pathContainsReference(slowPath)) {
-		destroyPaths();
-		return;
-	}
 	//Extract sequences
 	if (!extractSequence(fastPath, fastSequence)
 	    || !extractSequence(slowPath, slowSequence)) {
@@ -2306,7 +2295,7 @@ static void comparePaths(Node * destination, Node * origin)
 		cleanUpRedundancy();
 		return;
 	}
-	//velvetLog("\tFinished comparing paths, changes made\n");
+	//puts("\tFinished comparing paths, changes made");
 	destroyPaths();
 }
 
@@ -2334,7 +2323,7 @@ static void tourBusArc(Node * origin, Arc * arc, Time originTime)
 		return;
 	} else if (destinationTime > totalTime) {
 		if (dheapNodes[nodeIndex] == NULL) {
-			//velvetLog("Already expanded though\n");
+			//puts("Already expanded though");
 			return;
 		}
 
@@ -2365,7 +2354,7 @@ static void initializeTodoLists()
 	Ticket *currentTicket, *tmp;
 	Node *destination;
 
-	velvetLog("Initializing todo lists\n");
+	puts("Initializing todo lists");
 
 	for (index = -nodes; index <= nodes; index++) {
 		node = getNodeInGraph(graph, index);
@@ -2403,7 +2392,7 @@ static void initializeTodoLists()
 		}
 	}
 
-	velvetLog("Done with initilization\n");
+	puts("Done with initilization");
 }
 
 static void tourBusNode(Node * node)
@@ -2414,8 +2403,8 @@ static void tourBusNode(Node * node)
 	IDnum id;
 
 	dbgCounter++;
-	if (dbgCounter % 10000 == 0) {
-		velvetLog("%li nodes visited\n", (long) dbgCounter);
+	if (dbgCounter % 1000 == 0) {
+		printf("%d nodes visited\n", dbgCounter);
 		fflush(stdout);
 	}
 
@@ -2460,15 +2449,105 @@ static Coordinate getTipLength(Node * node)
 	return length;
 }
 
+static boolean isMinorityChoice(Node * node)
+{
+	Node *current = getTwinNode(node);
+	Arc *arc;
+	Arc *activeArc = NULL;
+	IDnum mult = 0;
+
+	// Finding first tangle
+	while (current != NULL && simpleArcCount(getTwinNode(current)) < 2
+	       && simpleArcCount(current) < 2) {
+		activeArc = getArc(current);
+		current = getDestination(activeArc);
+	}
+
+	// If isolated snippet:
+	if (current == NULL)
+		return true;
+
+	// Joined tips  
+	if (simpleArcCount(getTwinNode(current)) < 2)
+		return false;
+
+	// If unique event
+	if (getMultiplicity(activeArc) == 1)
+		return true;
+
+	// Computing max arc
+	for (arc = getArc(getTwinNode(current)); arc != NULL;
+	     arc = getNextArc(arc))
+		if (getMultiplicity(arc) > mult)
+			mult = getMultiplicity(arc);
+
+	// Testing for minority
+	return mult >= getMultiplicity(activeArc);
+}
+
+void clipTips(Graph * graph)
+{
+	IDnum index;
+	Node *current, *twin;
+	boolean modified = true;
+	int Wordlength = getWordLength(graph);
+	PassageMarker *marker;
+
+	puts("Clipping short tips off graph");
+
+	while (modified) {
+		modified = false;
+		for (index = 1; index <= nodeCount(graph); index++) {
+			current = getNodeInGraph(graph, index);
+
+			if (current == NULL)
+				continue;
+
+			twin = getTwinNode(current);
+
+			if (getArc(current) == NULL
+			    && getTipLength(current) < 2 * Wordlength
+			    && isMinorityChoice(current)) {
+				while ((marker = getMarker(current))) {
+					if (!isInitial(marker)
+					    && !isTerminal(marker))
+						disconnectNextPassageMarker
+						    (getPreviousInSequence
+						     (marker), graph);
+					destroyPassageMarker(marker);
+				}
+				destroyNode(current, graph);
+				modified = true;
+			} else if (getArc(twin) == NULL
+				   && getTipLength(twin) < 2 * Wordlength
+				   && isMinorityChoice(twin)) {
+				while ((marker = getMarker(current))) {
+					if (!isInitial(marker)
+					    && !isTerminal(marker))
+						disconnectNextPassageMarker
+						    (getPreviousInSequence
+						     (marker), graph);
+					destroyPassageMarker(marker);
+				}
+				destroyNode(twin, graph);
+				modified = true;
+			}
+		}
+	}
+
+	concatenateGraph(graph);
+	printf("%d nodes left\n", nodeCount(graph));
+}
+
 void clipTipsHard(Graph * graph)
 {
 	IDnum index;
 	Node *current, *twin;
 	boolean modified = true;
 	int Wordlength = getWordLength(graph);
-	PassageMarkerI marker;
+	PassageMarker *marker;
 
-	velvetLog("Clipping short tips off graph, drastic\n");
+	puts("Clipping short tips off graph, drastic");
 
 	while (modified) {
 		modified = false;
@@ -2510,7 +2589,7 @@ void clipTipsHard(Graph * graph)
 	}
 
 	concatenateGraph(graph);
-	velvetLog("%li nodes left\n", (long) nodeCount(graph));
+	printf("%d nodes left\n", nodeCount(graph));
 }
 
 static void tourBus(Node * startingPoint)
@@ -2518,7 +2597,7 @@ static void tourBus(Node * startingPoint)
 	Node *currentNode = startingPoint;
 	IDnum nodeID = getNodeID(startingPoint) + nodeCount(graph);
 
-	//velvetLog("Tour bus from node %ld...\n", (long) getNodeID(startingPoint));
+	//printf("Tour bus from node %ld...\n", getNodeID(startingPoint));
 
 	times[nodeID] = 0;
 	previous[nodeID] = currentNode;
@@ -2531,7 +2610,7 @@ static void tourBus(Node * startingPoint)
 	}
 }
 
-void correctGraph(Graph * argGraph, IDnum * argSequenceLengths, Category * argSequenceCategories)
+void correctGraph(Graph * argGraph, Coordinate * argSequenceLengths)
 {
 	IDnum nodes;
 	IDnum index;
@@ -2540,12 +2619,12 @@ void correctGraph(Graph * argGraph, IDnum * argSequenceLengths, Category * argSe
 	graph = argGraph;
 	WORDLENGTH = getWordLength(graph);
 	sequenceLengths = argSequenceLengths;
-	sequenceCategories = argSequenceCategories;
 	dbgCounter = 0;
 	// Done with global params
 
-	velvetLog("Correcting graph with cutoff %f\n", MAXDIVERGENCE);
+	printf("Correcting graph with cutoff %f\n", MAXDIVERGENCE);
 
+	//clipTips(graph);
 	nodes = nodeCount(graph);
 
 	// Allocating memory
@@ -2580,7 +2659,7 @@ void correctGraph(Graph * argGraph, IDnum * argSequenceLengths, Category * argSe
 	activateArcLookupTable(graph);
 
 	while ((startingNode = nextStartingPoint()) != NULL) {
-		//velvetLog("Going through the cycle...\n");
+		//puts("Going through the cycle...");
 		tourBus(startingNode);
 		updateNodeStatus(startingNode);
 	}
@@ -2618,11 +2697,8 @@ void correctGraph(Graph * argGraph, IDnum * argSequenceLengths, Category * argSe
 void setMaxReadLength(int value)
 {
 	if (value < 0) {
-		velvetLog("Negative branch length %i!\n", value);
-		velvetLog("Exiting...\n");
-#ifdef DEBUG 
-		abort();
-#endif 
+		printf("Negative branch length %i!\n", value);
+		puts("Exiting...");
 		exit(1);
 	}
 	MAXREADLENGTH = value;
@@ -2632,11 +2708,8 @@ void setMaxReadLength(int value)
 void setMaxGaps(int value)
 {
 	if (value < 0) {
-		velvetLog("Negative max gap count %i!\n", value);
-		velvetLog("Exiting...\n");
-#ifdef DEBUG 
-		abort();
-#endif 
+		printf("Negative max gap count %i!\n", value);
+		puts("Exiting...");
 		exit(1);
 	}
 	MAXGAPS = value;
@@ -2645,12 +2718,9 @@ void setMaxGaps(int value)
 void setMaxDivergence(double value)
 {
 	if (value < 0 || value > 1) {
-		velvetLog("Divergence rate %lf out of bounds [0,1]!\n",
+		printf("Divergence rate %lf out of bounds [0,1]!\n",
 		       value);
-		velvetLog("Exiting...\n");
-#ifdef DEBUG 
-		abort();
-#endif 
+		puts("Exiting...");
 		exit(1);
 	}
 	MAXDIVERGENCE = value;
