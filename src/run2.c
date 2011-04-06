@@ -111,9 +111,9 @@ int main(int argc, char **argv)
 	int clean = 0;
 	boolean shadows[CATEGORIES];
 	// Hap Loop params
-	double maxHapCov = -1;
-	double maxDipCov = -1;
-	double hapLoopMaxDivergence = -1;
+	Time maxHapCov = -1;
+	Time maxDipCov = -1;
+	Time hapLoopMaxDivergence = -1;
 	IDnum hapLoopMaxGaps = -1;
 	IDnum hapLoopBranchLength = -1;
 	boolean doHapLoop = false;

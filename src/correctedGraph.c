@@ -2299,6 +2299,7 @@ static void comparePaths(Node * destination, Node * origin)
 		cleanUpRedundancy();
 		return;
 	}
+
 	//velvetLog("\tFinished comparing paths, changes made\n");
 	destroyPaths();
 }
@@ -2708,13 +2709,11 @@ hapLoopNode(Node *origin)
 	Node *dest;
 	Node *twinDest;
 	Time tmpTime;
-	IDnum covA;
-	IDnum covB;
 	IDnum nodes;
 
 	if (origin == NULL ||
-	    getTotalCoverage(origin) > MAX_DIP_COV ||
-	    simpleArcCount(origin) != -2 ||
+	    getTotalCoverage(origin) / getNodeLength(origin) > MAX_DIP_COV ||
+	    simpleArcCount(origin) != 2 ||
 	    arcCount(origin) != 2)
 		return;
 
@@ -2726,9 +2725,6 @@ hapLoopNode(Node *origin)
 	twinA = getTwinNode(hapA);
 	twinB = getTwinNode(hapB);
 
-	covA = getTotalCoverage(hapA);
-	covB = getTotalCoverage(hapB);
-
 	// TODO cleanup! some of these tests are useless
 	if (hapA == origin ||
 	    hapB == origin ||
@@ -2738,13 +2734,13 @@ hapLoopNode(Node *origin)
 	    twinB == origin ||
 	    twinA == twin ||
 	    twinB == twin ||
-	    covA > MAX_HAP_COV ||
-	    covB > MAX_HAP_COV ||
+	    getTotalCoverage(hapA) / getNodeLength(hapA) > MAX_HAP_COV ||
+	    getTotalCoverage(hapB) / getNodeLength(hapB) > MAX_HAP_COV ||
 	    hapB == getTwinNode(hapA) ||
 	    arcCount(hapA) != 1 ||
 	    arcCount(hapB) != 1 ||
-	    arcCount(twinA) != -1 ||
-	    arcCount(twinB) != -1 ||
+	    arcCount(twinA) != 1 ||
+	    arcCount(twinB) != 1 ||
 	    getDestination(getArc(twinA)) != twin ||
 	    getDestination(getArc(twinB)) != twin)
 		return;
@@ -2760,7 +2756,7 @@ hapLoopNode(Node *origin)
 	    dest == hapB ||
 	    dest == twinA ||
 	    dest == twinB ||
-	    getTotalCoverage(dest) > MAX_DIP_COV ||
+	    getTotalCoverage(dest) / getNodeLength(dest) > MAX_DIP_COV ||
 	    simpleArcCount(twinDest) != 2 ||
 	    arcCount(twinDest) != 2)
 		return;
@@ -2812,6 +2808,7 @@ void correctHapLoopGraph(Time maxHapCov,
 	MAX_HAP_COV = maxHapCov;
 	MAX_DIP_COV = maxDipCov;
 	MAXREADLENGTH = maxLength;
+	MAXGAPS = maxGaps;
 	hapLoopResolution = true;
 
 	clipWeakArcs();
