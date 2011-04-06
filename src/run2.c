@@ -62,6 +62,7 @@ static void printUsage()
 	puts("\t-very_clean <yes|no>\t\t: remove all the intermediary files (no recalculation possible) (default: no)");
 	puts("\t-paired_exp_fraction <double>\t: remove all the paired end connections which less than the specified fraction of the expected count (default: 0.1)");
 	puts("\t-shortMatePaired* <yes|no>\t: for mate-pair libraries, indicate that the library might be contaminated with paired-end reads (default no)");
+	puts("\t-hap_loop <max branch length (int)>,<max haploid cov (float)>,<max diploid cov (float)>,<max divergence (float)>,<max gaps (int)>\t: arguments for the haplotypic loop resolution");
 	puts("");
 	puts("Output:");
 	puts("\tdirectory/contigs.fa\t\t: fasta file of contigs longer than twice hash length");
@@ -109,6 +110,13 @@ int main(int argc, char **argv)
 	boolean exportFilteredNodes = false;
 	int clean = 0;
 	boolean shadows[CATEGORIES];
+	// Hap Loop params
+	double maxHapCov = -1;
+	double maxDipCov = -1;
+	double hapLoopMaxDivergence = -1;
+	Coordinate hapLoopMaxGaps = -1;
+	Coordinate hapLoopBranchLength = -1;
+	boolean doHapLoop = false;
 
 	setProgramName("velvetg");
 
@@ -320,6 +328,25 @@ int main(int argc, char **argv)
 				exit(1);
 			}
 			shadows[cat - 1] = (strcmp(argv[arg_index], "yes") == 0);
+		} else if (strcmp(arg, "hap_loop") == 0) {
+			sscanf(argv[arg_index], "%lli,%lf,%lf,%lf,%i",
+				&longlong_var, &maxHapCov, &maxDipCov, &hapLoopMaxDivergence, &arg_int);
+			hapLoopBranchLength = (Coordinate) longlong_var;
+			hapLoopMaxGaps = (Coordinate) arg_int;
+			if (hapLoopBranchLength < 0 ||
+			    maxHapCov < 0 ||
+			    maxDipCov < 0 ||
+			    hapLoopMaxDivergence < 0 ||
+			    hapLoopMaxGaps < 0) {
+				velvetLog("Invalid value for hap_loop parameters: `%s' -> (%li, %lf, %lf, %lf %li)\n",
+				argv[arg_index], hapLoopBranchLength, maxHapCov, maxDipCov,
+				hapLoopMaxDivergence, hapLoopMaxGaps);
+#ifdef DEBUG
+				abort();
+#endif
+				exit(1);
+			}
+			doHapLoop = true;
 		} else if (strcmp(arg, "--help") == 0) {
 			printUsage();
 			return 0;
@@ -369,7 +396,13 @@ int main(int argc, char **argv)
 				   roadmapFilename, readTracking, accelerationBits);
 		sequenceLengths =
 		    getSequenceLengths(sequences, getWordLength(graph));
-		correctGraph(graph, sequenceLengths, sequences->categories);
+		correctGraph(graph, sequenceLengths, sequences->categories, doHapLoop);
+		if (doHapLoop)
+			correctHapLoopGraph(maxHapCov,
+					    maxDipCov,
+					    hapLoopMaxDivergence,
+					    hapLoopMaxGaps,
+					    hapLoopBranchLength);
 		exportGraph(graphFilename, graph, sequences->tSequences);
 	} else if ((file = fopen(roadmapFilename, "r")) != NULL) {
 		fclose(file);
@@ -388,7 +421,13 @@ int main(int argc, char **argv)
 				   roadmapFilename, readTracking, accelerationBits);
 		sequenceLengths =
 		    getSequenceLengths(sequences, getWordLength(graph));
-		correctGraph(graph, sequenceLengths, sequences->categories);
+		correctGraph(graph, sequenceLengths, sequences->categories, doHapLoop);
+		if (doHapLoop)
+			correctHapLoopGraph(maxHapCov,
+					    maxDipCov,
+					    hapLoopMaxDivergence,
+					    hapLoopMaxGaps,
+					    hapLoopBranchLength);
 		exportGraph(graphFilename, graph, sequences->tSequences);
 	} else {
 		velvetLog("No Roadmap file to build upon! Please run velveth (see manual)\n");

@@ -54,7 +54,7 @@ struct tkt_st {
 //Global variables used throughout this procedure(internal use only !)
 static int MAXREADLENGTH = 100;
 static int MAXNODELENGTH = 200;
-static double MAXDIVERGENCE = 0.2;
+static Time MAXDIVERGENCE = 0.2;
 static int MAXGAPS = 3;
 
 static Time *times;
@@ -77,7 +77,7 @@ static PassageMarkerI slowPath;
 
 static IDnum *eligibleStartingPoints;
 
-static double **Fmatrix;
+static Time **Fmatrix;
 static Coordinate *slowToFastMapping;
 static Coordinate *fastToSlowMapping;
 
@@ -90,6 +90,8 @@ static boolean *progressStatus;
 
 static IDnum *sequenceLengths;
 static Category *sequenceCategories;
+
+static boolean hapLoopResolution = false;
 
 //End of global variables;
 
@@ -2514,11 +2516,13 @@ static void tourBus(Node * startingPoint)
 	}
 }
 
-void correctGraph(Graph * argGraph, IDnum * argSequenceLengths, Category * argSequenceCategories)
+void correctGraph(Graph * argGraph,
+		  IDnum * argSequenceLengths,
+		  Category * argSequenceCategories,
+		  boolean keepMem)
 {
 	IDnum nodes;
 	IDnum index;
-	double *FmatrixMem;
 
 	//Setting global params
 	graph = argGraph;
@@ -2537,7 +2541,7 @@ void correctGraph(Graph * argGraph, IDnum * argSequenceLengths, Category * argSe
 	previous = mallocOrExit(2 * nodes + 1, Node *);
 	dheapNodes = mallocOrExit(2 * nodes + 1, DFibHeapNode *);
 
-	for (index = 0; index < (2 * nodeCount(graph) + 1); index++) {
+	for (index = 0; index < (2 * nodes + 1); index++) {
 		times[index] = -1;
 		previous[index] = NULL;
 		dheapNodes[index] = NULL;
@@ -2549,10 +2553,10 @@ void correctGraph(Graph * argGraph, IDnum * argSequenceLengths, Category * argSe
 	slowSequence = newTightString(MAXREADLENGTH);
 	fastToSlowMapping = callocOrExit(MAXREADLENGTH + 1, Coordinate);
 	slowToFastMapping = callocOrExit(MAXREADLENGTH + 1, Coordinate);
-	Fmatrix = mallocOrExit(MAXREADLENGTH + 1, double *);
-	FmatrixMem = callocOrExit((MAXREADLENGTH + 1) * (MAXREADLENGTH + 1), double *);
-	for (index = 0; index < MAXREADLENGTH + 1; index++)
-		Fmatrix[index] = FmatrixMem + index * (MAXREADLENGTH + 1);
+	Fmatrix = mallocOrExit(MAXREADLENGTH + 1, Time *);
+	Fmatrix[0] = callocOrExit((MAXREADLENGTH + 1) * (MAXREADLENGTH + 1), Time *);
+	for (index = 1; index < MAXREADLENGTH + 1; index++)
+		Fmatrix[index] = Fmatrix[0] + index * (MAXREADLENGTH + 1);
 
 	eligibleStartingPoints = mallocOrExit(2 * nodes + 1, IDnum);
 	progressStatus = callocOrExit(2 * nodes + 1, boolean);
@@ -2570,14 +2574,18 @@ void correctGraph(Graph * argGraph, IDnum * argSequenceLengths, Category * argSe
 		updateNodeStatus(startingNode);
 	}
 
-	deactivateArcLookupTable(graph);
 	concatenateGraph(graph);
-
 	clipTipsHard(graph);
 
 	//Deallocating globals
-	free(times);
-	free(previous);
+	if (!keepMem)
+	{
+		free(times);
+		free(previous);
+		deactivateArcLookupTable(graph);
+		free(sequenceLengths);
+		free(progressStatus);
+	}
 	free(dheapNodes);
 	destroyDHeap(dheap);
 
@@ -2585,17 +2593,15 @@ void correctGraph(Graph * argGraph, IDnum * argSequenceLengths, Category * argSe
 	destroyTightString(slowSequence);
 	free(fastToSlowMapping);
 	free(slowToFastMapping);
+	free(Fmatrix[0]);
 	free(Fmatrix);
-	free(FmatrixMem);
 
 	free(eligibleStartingPoints);
-	free(progressStatus);
 	free(todoLists);
 
 	if (ticketMemory != NULL)
 		destroyRecycleBin(ticketMemory);
 
-	free(sequenceLengths);
 	//Done deallocating
 }
 
@@ -2638,4 +2644,219 @@ void setMaxDivergence(double value)
 		exit(1);
 	}
 	MAXDIVERGENCE = value;
+}
+
+//////////////////// Haplotype Loops Merging
+
+static IDnum ARC_MIN_MULTIPLICITY = 2; // TODO this should be a parameter
+static Time MAX_HAP_COV = -1;
+static Time MAX_DIP_COV = -1;
+
+static void
+clipWeakArcs(void)
+{
+	IDnum index;
+	IDnum nodes = nodeCount(graph);
+
+	velvetLog("Clipping weak arcs with cutoff %d\n", ARC_MIN_MULTIPLICITY);
+
+	// TODO remove low coverage nodes first?
+	for (index = -nodes; index <= nodes; index++) {
+		Node *node;
+		Arc *arc;
+
+		node = getNodeInGraph(graph, index);
+
+		if (node == NULL)
+			continue;
+
+		arc = getArc(node);
+		while (arc) {
+			Arc *nextArc;
+
+			nextArc = getNextArc(arc);
+			if (getMultiplicity(arc) < ARC_MIN_MULTIPLICITY)
+				destroyArc (arc, graph);
+			arc = nextArc;
+		}
+	}
+
+	concatenateGraph(graph);
+	clipTipsHard(graph);
+}
+
+static void
+hapLoopNode(Node *origin)
+{
+	Arc *arcA;
+	Arc *arcB;
+	Arc *destArcA;
+	Arc *destArcB;
+	Node *twin;
+	Node *hapA;
+	Node *hapB;
+	Node *twinA;
+	Node *twinB;
+	Node *dest;
+	Node *twinDest;
+	Time tmpTime;
+	IDnum covA;
+	IDnum covB;
+	IDnum nodes;
+
+	if (origin == NULL ||
+	    getTotalCoverage(origin) > MAX_DIP_COV ||
+	    simpleArcCount(origin) != -2 ||
+	    arcCount(origin) != 2)
+		return;
+
+	twin = getTwinNode(origin);
+	arcA = getArc(origin);
+	arcB = getNextArc(arcA);
+	hapA = getDestination(arcA);
+	hapB = getDestination(arcB);
+	twinA = getTwinNode(hapA);
+	twinB = getTwinNode(hapB);
+
+	covA = getTotalCoverage(hapA);
+	covB = getTotalCoverage(hapB);
+
+	// TODO cleanup! some of these tests are useless
+	if (hapA == origin ||
+	    hapB == origin ||
+	    hapA == twin ||
+	    hapB == twin ||
+	    twinA == origin ||
+	    twinB == origin ||
+	    twinA == twin ||
+	    twinB == twin ||
+	    covA > MAX_HAP_COV ||
+	    covB > MAX_HAP_COV ||
+	    hapB == getTwinNode(hapA) ||
+	    arcCount(hapA) != 1 ||
+	    arcCount(hapB) != 1 ||
+	    arcCount(twinA) != -1 ||
+	    arcCount(twinB) != -1 ||
+	    getDestination(getArc(twinA)) != twin ||
+	    getDestination(getArc(twinB)) != twin)
+		return;
+
+	dest = getDestination(getArc(hapA));
+	twinDest = getTwinNode(dest);
+
+	// TODO cleanup! some of these tests are useless
+	if (dest != getDestination(getArc(hapB)) ||
+	    dest == origin ||
+	    dest == twin ||
+	    dest == hapA ||
+	    dest == hapB ||
+	    dest == twinA ||
+	    dest == twinB ||
+	    getTotalCoverage(dest) > MAX_DIP_COV ||
+	    simpleArcCount(twinDest) != 2 ||
+	    arcCount(twinDest) != 2)
+		return;
+
+	destArcA = getArc(twinDest);
+	destArcB = getNextArc(destArcA);
+
+	if ((getDestination(destArcA) != twinA && getDestination(destArcA) != twinB) ||
+	    (getDestination(destArcB) != twinB && getDestination(destArcB) != twinB) ||
+	    getDestination(destArcA) == getDestination(destArcB))
+		return;
+
+	// Now the topology is OK
+
+	// Setup the previous array
+
+	nodes = nodeCount(graph);
+	previous[getNodeID(origin) + nodes] = origin;
+	previous[getNodeID(hapA) + nodes] = origin;
+	previous[getNodeID(hapB) + nodes] = origin;
+	previous[getNodeID(dest) + nodes] = hapA;
+
+	setNodeTime(origin, 0);
+	setNodeTime(hapA, ((Time)getNodeLength(origin)) / ((Time)getMultiplicity(arcA)));
+	setNodeTime(hapB, ((Time)getNodeLength(origin)) / ((Time)getMultiplicity(arcB)));
+	setNodeTime(dest, getNodeTime(hapA) +
+			  ((Time)getNodeLength(hapA)) / ((Time)getMultiplicity(getArc(hapA))));
+	tmpTime = getNodeTime(hapB);
+	tmpTime += ((Time)getNodeLength(hapB)) / ((Time)getMultiplicity(getArc(hapB)));
+
+	if (tmpTime > getNodeTime(dest))
+		comparePaths(dest, hapB);
+	else {
+		setNodeTime(dest, tmpTime);
+		previous[getNodeID(dest) + nodes] = hapB;
+		comparePaths(dest, hapA);
+	}
+}
+
+void correctHapLoopGraph(Time maxHapCov,
+			 Time maxDipCov,
+			 Time maxDivergence,
+			 Time maxGaps,
+			 IDnum maxLength)
+{
+	IDnum nodes;
+	IDnum index;
+
+	MAX_HAP_COV = maxHapCov;
+	MAX_DIP_COV = maxDipCov;
+	MAXREADLENGTH = maxLength;
+	hapLoopResolution = true;
+
+	clipWeakArcs();
+
+	velvetLog("Correcting haploid loops\n");
+
+	nodes = nodeCount(graph);
+
+	for (index = 0; index < (2 * nodes + 1); index++) {
+		times[index] = -1;
+		previous[index] = NULL;
+	}
+
+	fastSequence = newTightString(MAXREADLENGTH);
+	slowSequence = newTightString(MAXREADLENGTH);
+	fastToSlowMapping = callocOrExit(MAXREADLENGTH + 1, Coordinate);
+	slowToFastMapping = callocOrExit(MAXREADLENGTH + 1, Coordinate);
+	Fmatrix = mallocOrExit(MAXREADLENGTH + 1, Time *);
+	Fmatrix[0] = callocOrExit((MAXREADLENGTH + 1) * (MAXREADLENGTH + 1), Time *);
+	for (index = 1; index < MAXREADLENGTH + 1; index++)
+		Fmatrix[index] = Fmatrix[0] + index * (MAXREADLENGTH + 1);
+
+	//Done with memory 
+
+	resetNodeStatus(graph);
+
+	for (index = -nodes; index <= nodes; index++) {
+		Node *node;
+
+		node = getNodeInGraph(graph, index);
+		if (node == NULL || getNodeStatus(node))
+			continue;
+
+		setSingleNodeStatus(node, true);
+		hapLoopNode(node);
+	}
+
+	concatenateGraph(graph);
+	clipTipsHard(graph);
+
+	//Deallocating globals
+	free(times);
+	free(previous);
+	free(progressStatus);
+	deactivateArcLookupTable(graph);
+
+	destroyTightString(fastSequence);
+	destroyTightString(slowSequence);
+	free(fastToSlowMapping);
+	free(slowToFastMapping);
+	free(Fmatrix[0]);
+	free(Fmatrix);
+
+	free(sequenceLengths);
+	//Done deallocating
 }
