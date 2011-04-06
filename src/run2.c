@@ -328,7 +328,7 @@ int main(int argc, char **argv)
 				exit(1);
 			}
 			shadows[cat - 1] = (strcmp(argv[arg_index], "yes") == 0);
-		} else if (strcmp(arg, "hap_loop") == 0) {
+		} else if (strcmp(arg, "-hap_loop") == 0) {
 			sscanf(argv[arg_index], "%lli,%lf,%lf,%lf,%i",
 				&longlong_var, &maxHapCov, &maxDipCov, &hapLoopMaxDivergence, &arg_int);
 			hapLoopBranchLength = (IDnum) longlong_var;
