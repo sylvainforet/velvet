@@ -24,7 +24,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 void clipTipsHard(Graph * graph);
 
 void correctGraph(Graph * graph, IDnum * sequenceLengths, Category * sequenceCategories, boolean keepMem);
-void correctHapLoopGraph(Time maxHapCov, Time maxDipCov, Time maxDivergence, Time maxGaps, IDnum maxLength);
+void correctHapLoopGraph(Time maxHapCov, Time maxDipCov, Time maxDivergence, IDnum maxGaps, IDnum maxLength);
 
 // Black arts:
 void setMaxReadLength(int value);

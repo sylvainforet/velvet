@@ -682,12 +682,13 @@ static void remapNodeArcsOntoTarget(Node * source, Node * target)
 {
 	Arc *arc;
 
-	if (source == activeNode) {
-		activeNode = target;
-		todo =
-		    &todoLists[getNodeID(activeNode) + nodeCount(graph)];
+	if (!hapLoopResolution) {
+		if (source == activeNode) {
+			activeNode = target;
+			todo = &todoLists[getNodeID(activeNode) + nodeCount(graph)];
+		}
+		concatenateTodoLists(target, source);
 	}
-	concatenateTodoLists(target, source);
 
 	arc = getArc(source);
 	while (arc != NULL) {
@@ -1482,9 +1483,11 @@ static void remapNodeOntoNeighbour(Node * source,
 	remapNodeTimesOntoNeighbour(source, target);
 	remapNodeArcsOntoNeighbour(source, target);
 
-	remapNodeFibHeapReferencesOntoNode(getTwinNode(source),
-					   getTwinNode(target));
-	remapNodeFibHeapReferencesOntoNode(source, target);
+	if (!hapLoopResolution) {
+		remapNodeFibHeapReferencesOntoNode(getTwinNode(source),
+						   getTwinNode(target));
+		remapNodeFibHeapReferencesOntoNode(source, target);
+	}
 
 	if (startingNode == source)
 		startingNode = target;
@@ -1572,8 +1575,9 @@ remapBackOfNodeOntoNeighbour(Node * source, PassageMarkerI sourceMarker,
 	remapBackOfNodeTimesOntoNeighbour(source, target);
 	remapBackOfNodeArcsOntoNeighbour(source, target);
 
-	remapNodeFibHeapReferencesOntoNode(getTwinNode(source),
-					   getTwinNode(target));
+	if (!hapLoopResolution)
+		remapNodeFibHeapReferencesOntoNode(getTwinNode(source),
+						   getTwinNode(target));
 
 	if (getTwinNode(source) == startingNode)
 		startingNode = getTwinNode(target);
@@ -1948,8 +1952,10 @@ static void transferNodeData(Node * source, Node * target)
 	}
 
 	// Fib Heap refs
-	remapNodeFibHeapReferencesOntoNode(source, target);
-	remapNodeFibHeapReferencesOntoNode(twinSource, twinTarget);
+	if (!hapLoopResolution) {
+		remapNodeFibHeapReferencesOntoNode(source, target);
+		remapNodeFibHeapReferencesOntoNode(twinSource, twinTarget);
+	}
 
 	// Starting point
 	if (startingNode == source)
@@ -1963,17 +1969,17 @@ static void transferNodeData(Node * source, Node * target)
 		fastPath = getNextInSequence(fastPath);
 
 	// Next node 
-	if (source == activeNode) {
-		activeNode = target;
-		todo =
-		    &todoLists[getNodeID(activeNode) + nodeCount(graph)];
-	}
-	concatenateTodoLists(target, source);
+	if (!hapLoopResolution) {
+		if (source == activeNode) {
+			activeNode = target;
+			todo = &todoLists[getNodeID(activeNode) + nodeCount(graph)];
+		}
+		concatenateTodoLists(target, source);
 
-	if (twinSource == activeNode) {
-		activeNode = twinTarget;
-		todo =
-		    &todoLists[getNodeID(activeNode) + nodeCount(graph)];
+		if (twinSource == activeNode) {
+			activeNode = twinTarget;
+			todo = &todoLists[getNodeID(activeNode) + nodeCount(graph)];
+		}
 	}
 }
 
@@ -2182,12 +2188,7 @@ static void cleanUpRedundancy()
 	else
 		concatenatePathNodes(fastPath);
 
-	//velvetLog("Vaccinatting\n");
-
 	destroyPaths();
-
-	// Cleaning up silly structures
-	//vaccinatePath(&returnValue);
 
 	//velvetLog("Clean up done\n");
 	//fflush(stdout);
@@ -2802,7 +2803,7 @@ hapLoopNode(Node *origin)
 void correctHapLoopGraph(Time maxHapCov,
 			 Time maxDipCov,
 			 Time maxDivergence,
-			 Time maxGaps,
+			 IDnum maxGaps,
 			 IDnum maxLength)
 {
 	IDnum nodes;

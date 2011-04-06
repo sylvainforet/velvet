@@ -114,8 +114,8 @@ int main(int argc, char **argv)
 	double maxHapCov = -1;
 	double maxDipCov = -1;
 	double hapLoopMaxDivergence = -1;
-	Coordinate hapLoopMaxGaps = -1;
-	Coordinate hapLoopBranchLength = -1;
+	IDnum hapLoopMaxGaps = -1;
+	IDnum hapLoopBranchLength = -1;
 	boolean doHapLoop = false;
 
 	setProgramName("velvetg");
@@ -331,14 +331,14 @@ int main(int argc, char **argv)
 		} else if (strcmp(arg, "hap_loop") == 0) {
 			sscanf(argv[arg_index], "%lli,%lf,%lf,%lf,%i",
 				&longlong_var, &maxHapCov, &maxDipCov, &hapLoopMaxDivergence, &arg_int);
-			hapLoopBranchLength = (Coordinate) longlong_var;
-			hapLoopMaxGaps = (Coordinate) arg_int;
+			hapLoopBranchLength = (IDnum) longlong_var;
+			hapLoopMaxGaps = (IDnum) arg_int;
 			if (hapLoopBranchLength < 0 ||
 			    maxHapCov < 0 ||
 			    maxDipCov < 0 ||
 			    hapLoopMaxDivergence < 0 ||
 			    hapLoopMaxGaps < 0) {
-				velvetLog("Invalid value for hap_loop parameters: `%s' -> (%li, %lf, %lf, %lf %li)\n",
+				velvetLog("Invalid value for hap_loop parameters: `%s' -> (%i, %lf, %lf, %lf %i)\n",
 				argv[arg_index], hapLoopBranchLength, maxHapCov, maxDipCov,
 				hapLoopMaxDivergence, hapLoopMaxGaps);
 #ifdef DEBUG
