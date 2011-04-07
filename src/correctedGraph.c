@@ -2764,8 +2764,10 @@ hapLoopNode(Node *origin)
 	destArcA = getArc(twinDest);
 	destArcB = getNextArc(destArcA);
 
-	if ((getDestination(destArcA) != twinA && getDestination(destArcA) != twinB) ||
-	    (getDestination(destArcB) != twinB && getDestination(destArcB) != twinB) ||
+	printf("%d %d %d %d\n", getNodeID(twinA), getNodeID(twinB), getNodeID(getDestination(destArcA)), getNodeID(getDestination(destArcB)));
+
+	if ((!(getDestination(destArcA) == twinA && getDestination(destArcB) == twinB) &&
+	     !(getDestination(destArcA) == twinB && getDestination(destArcB) == twinA)) ||
 	    getDestination(destArcA) == getDestination(destArcB))
 		return;
 
@@ -2840,10 +2842,9 @@ void correctHapLoopGraph(Time maxHapCov,
 		Node *node;
 
 		node = getNodeInGraph(graph, index);
-		if (node == NULL || getNodeStatus(node))
+		if (node == NULL)
 			continue;
 
-		setSingleNodeStatus(node, true);
 		hapLoopNode(node);
 	}
 
