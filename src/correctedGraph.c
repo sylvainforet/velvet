@@ -1340,12 +1340,14 @@ static void foldSymmetricalNode(Node * node)
 	remapNodeInwardReferencesOntoNode(twinNode, node);
 
 	// Active node
-	if (twinNode == activeNode) {
-		activeNode = node;
-		todo =
-		    &todoLists[getNodeID(activeNode) + nodeCount(graph)];
+	if (!hapLoopResolution) {
+		if (twinNode == activeNode) {
+			activeNode = node;
+			todo =
+				&todoLists[getNodeID(activeNode) + nodeCount(graph)];
+		}
+		concatenateTodoLists(node, twinNode);
 	}
-	concatenateTodoLists(node, twinNode);
 
 	// Remap arcs properly
 	arc = getArc(twinNode);
@@ -2527,8 +2529,7 @@ static void tourBus(Node * startingPoint)
 
 void correctGraph(Graph * argGraph,
 		  IDnum * argSequenceLengths,
-		  Category * argSequenceCategories,
-		  boolean keepMem)
+		  Category * argSequenceCategories)
 {
 	IDnum nodes;
 	IDnum index;
@@ -2587,13 +2588,10 @@ void correctGraph(Graph * argGraph,
 	clipTipsHard(graph);
 
 	//Deallocating globals
-	if (!keepMem)
-	{
-		free(times);
-		free(previous);
-		free(sequenceLengths);
-		free(progressStatus);
-	}
+	free(times);
+	free(previous);
+	free(sequenceLengths);
+	free(progressStatus);
 	deactivateArcLookupTable(graph);
 	free(dheapNodes);
 	destroyDHeap(dheap);
@@ -2807,11 +2805,13 @@ void correctHapLoopGraph(Time maxHapCov,
 	IDnum nodes;
 	IDnum index;
 
+	//Setting global params
 	MAX_HAP_COV = maxHapCov;
 	MAX_DIP_COV = maxDipCov;
 	MAXREADLENGTH = maxLength;
 	MAXGAPS = maxGaps;
 	hapLoopResolution = true;
+	// Done with global params
 
 	clipWeakArcs();
 
@@ -2819,6 +2819,9 @@ void correctHapLoopGraph(Time maxHapCov,
 
 	nodes = nodeCount(graph);
 
+	// Allocating memory
+	times = mallocOrExit(2 * nodes + 1, Time);
+	previous = mallocOrExit(2 * nodes + 1, Node *);
 	for (index = 0; index < (2 * nodes + 1); index++) {
 		times[index] = -1;
 		previous[index] = NULL;
@@ -2833,7 +2836,6 @@ void correctHapLoopGraph(Time maxHapCov,
 	for (index = 1; index < MAXREADLENGTH + 1; index++)
 		Fmatrix[index] = Fmatrix[0] + index * (MAXREADLENGTH + 1);
 	activateArcLookupTable(graph);
-
 	//Done with memory 
 
 	resetNodeStatus(graph);
@@ -2854,16 +2856,12 @@ void correctHapLoopGraph(Time maxHapCov,
 	//Deallocating globals
 	free(times);
 	free(previous);
-	free(progressStatus);
 	deactivateArcLookupTable(graph);
-
 	destroyTightString(fastSequence);
 	destroyTightString(slowSequence);
 	free(fastToSlowMapping);
 	free(slowToFastMapping);
 	free(Fmatrix[0]);
 	free(Fmatrix);
-
-	free(sequenceLengths);
 	//Done deallocating
 }

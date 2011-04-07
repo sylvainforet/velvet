@@ -396,13 +396,14 @@ int main(int argc, char **argv)
 				   roadmapFilename, readTracking, accelerationBits);
 		sequenceLengths =
 		    getSequenceLengths(sequences, getWordLength(graph));
-		correctGraph(graph, sequenceLengths, sequences->categories, doHapLoop);
+		correctGraph(graph, sequenceLengths, sequences->categories);
 		if (doHapLoop)
 			correctHapLoopGraph(maxHapCov,
 					    maxDipCov,
 					    hapLoopMaxDivergence,
 					    hapLoopMaxGaps,
 					    hapLoopBranchLength);
+		free(sequenceLengths);
 		exportGraph(graphFilename, graph, sequences->tSequences);
 	} else if ((file = fopen(roadmapFilename, "r")) != NULL) {
 		fclose(file);
@@ -421,13 +422,14 @@ int main(int argc, char **argv)
 				   roadmapFilename, readTracking, accelerationBits);
 		sequenceLengths =
 		    getSequenceLengths(sequences, getWordLength(graph));
-		correctGraph(graph, sequenceLengths, sequences->categories, doHapLoop);
+		correctGraph(graph, sequenceLengths, sequences->categories);
 		if (doHapLoop)
 			correctHapLoopGraph(maxHapCov,
 					    maxDipCov,
 					    hapLoopMaxDivergence,
 					    hapLoopMaxGaps,
 					    hapLoopBranchLength);
+		free(sequenceLengths);
 		exportGraph(graphFilename, graph, sequences->tSequences);
 	} else {
 		velvetLog("No Roadmap file to build upon! Please run velveth (see manual)\n");
