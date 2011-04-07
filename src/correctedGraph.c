@@ -2590,7 +2590,6 @@ void correctGraph(Graph * argGraph,
 	//Deallocating globals
 	free(times);
 	free(previous);
-	free(sequenceLengths);
 	free(progressStatus);
 	deactivateArcLookupTable(graph);
 	free(dheapNodes);
