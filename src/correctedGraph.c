@@ -2584,6 +2584,8 @@ void correctGraph(Graph * argGraph,
 		updateNodeStatus(startingNode);
 	}
 
+	deactivateArcLookupTable(graph);
+
 	concatenateGraph(graph);
 	clipTipsHard(graph);
 
@@ -2591,7 +2593,6 @@ void correctGraph(Graph * argGraph,
 	free(times);
 	free(previous);
 	free(progressStatus);
-	deactivateArcLookupTable(graph);
 	free(dheapNodes);
 	destroyDHeap(dheap);
 
@@ -2849,13 +2850,14 @@ void correctHapLoopGraph(Time maxHapCov,
 		hapLoopNode(node);
 	}
 
+	deactivateArcLookupTable(graph);
+
 	concatenateGraph(graph);
 	clipTipsHard(graph);
 
 	//Deallocating globals
 	free(times);
 	free(previous);
-	deactivateArcLookupTable(graph);
 	destroyTightString(fastSequence);
 	destroyTightString(slowSequence);
 	free(fastToSlowMapping);
