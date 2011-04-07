@@ -2591,10 +2591,10 @@ void correctGraph(Graph * argGraph,
 	{
 		free(times);
 		free(previous);
-		deactivateArcLookupTable(graph);
 		free(sequenceLengths);
 		free(progressStatus);
 	}
+	deactivateArcLookupTable(graph);
 	free(dheapNodes);
 	destroyDHeap(dheap);
 
@@ -2830,6 +2830,7 @@ void correctHapLoopGraph(Time maxHapCov,
 	Fmatrix[0] = callocOrExit((MAXREADLENGTH + 1) * (MAXREADLENGTH + 1), Time *);
 	for (index = 1; index < MAXREADLENGTH + 1; index++)
 		Fmatrix[index] = Fmatrix[0] + index * (MAXREADLENGTH + 1);
+	activateArcLookupTable(graph);
 
 	//Done with memory 
 
