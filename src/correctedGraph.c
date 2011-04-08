@@ -2766,8 +2766,6 @@ hapLoopNode(Node *origin)
 	destArcA = getArc(twinDest);
 	destArcB = getNextArc(destArcA);
 
-	printf("%d %d %d %d\n", getNodeID(twinA), getNodeID(twinB), getNodeID(getDestination(destArcA)), getNodeID(getDestination(destArcB)));
-
 	if ((!(getDestination(destArcA) == twinA && getDestination(destArcB) == twinB) &&
 	     !(getDestination(destArcA) == twinB && getDestination(destArcB) == twinA)) ||
 	    getDestination(destArcA) == getDestination(destArcB))
