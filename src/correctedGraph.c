@@ -2710,6 +2710,7 @@ hapLoopNode(Node *origin)
 	IDnum nodes;
 
 	if (origin == NULL ||
+	    getNodeLength(origin) == 0 ||
 	    getTotalCoverage(origin) / getNodeLength(origin) > MAX_DIP_COV ||
 	    simpleArcCount(origin) != 2 ||
 	    arcCount(origin) != 2)
@@ -2732,6 +2733,8 @@ hapLoopNode(Node *origin)
 	    twinB == origin ||
 	    twinA == twin ||
 	    twinB == twin ||
+	    getNodeLength(hapA) == 0 ||
+	    getNodeLength(hapB) == 0 ||
 	    getTotalCoverage(hapA) / getNodeLength(hapA) > MAX_HAP_COV ||
 	    getTotalCoverage(hapB) / getNodeLength(hapB) > MAX_HAP_COV ||
 	    hapB == getTwinNode(hapA) ||
@@ -2754,6 +2757,7 @@ hapLoopNode(Node *origin)
 	    dest == hapB ||
 	    dest == twinA ||
 	    dest == twinB ||
+	    getNodeLength(dest) == 0 ||
 	    getTotalCoverage(dest) / getNodeLength(dest) > MAX_DIP_COV ||
 	    simpleArcCount(twinDest) != 2 ||
 	    arcCount(twinDest) != 2)
