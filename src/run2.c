@@ -397,12 +397,23 @@ int main(int argc, char **argv)
 		sequenceLengths =
 		    getSequenceLengths(sequences, getWordLength(graph));
 		correctGraph(graph, sequenceLengths, sequences->categories);
-		if (doHapLoop)
-			correctHapLoopGraph(maxHapCov,
+		if (doHapLoop) {
+			correctHapLoopGraph(graph,
+					    sequenceLengths,
+					    maxHapCov,
 					    maxDipCov,
 					    hapLoopMaxDivergence,
 					    hapLoopMaxGaps,
 					    hapLoopBranchLength);
+			clipWeakArcs(graph, 1);
+			correctHapLoopGraph(graph,
+					    sequenceLengths,
+					    maxHapCov,
+					    maxDipCov,
+					    hapLoopMaxDivergence,
+					    hapLoopMaxGaps,
+					    hapLoopBranchLength);
+		}
 		free(sequenceLengths);
 		exportGraph(graphFilename, graph, sequences->tSequences);
 	} else if ((file = fopen(roadmapFilename, "r")) != NULL) {
@@ -423,12 +434,23 @@ int main(int argc, char **argv)
 		sequenceLengths =
 		    getSequenceLengths(sequences, getWordLength(graph));
 		correctGraph(graph, sequenceLengths, sequences->categories);
-		if (doHapLoop)
-			correctHapLoopGraph(maxHapCov,
+		if (doHapLoop) {
+			correctHapLoopGraph(graph,
+					    sequenceLengths,
+					    maxHapCov,
 					    maxDipCov,
 					    hapLoopMaxDivergence,
 					    hapLoopMaxGaps,
 					    hapLoopBranchLength);
+			clipWeakArcs(graph, 1);
+			correctHapLoopGraph(graph,
+					    sequenceLengths,
+					    maxHapCov,
+					    maxDipCov,
+					    hapLoopMaxDivergence,
+					    hapLoopMaxGaps,
+					    hapLoopBranchLength);
+		}
 		free(sequenceLengths);
 		exportGraph(graphFilename, graph, sequences->tSequences);
 	} else {
@@ -500,6 +522,19 @@ int main(int argc, char **argv)
 							  lowCovContigsFilename);
 
 	removeHighCoverageNodes(graph, maxCoverageCutoff, exportFilteredNodes, minContigKmerLength, highCovContigsFilename);
+
+	if (doHapLoop) {
+		sequenceLengths =
+		    getSequenceLengths(sequences, getWordLength(graph));
+		correctHapLoopGraph(graph,
+				    sequenceLengths,
+				    maxHapCov,
+				    maxDipCov,
+				    hapLoopMaxDivergence,
+				    hapLoopMaxGaps,
+				    hapLoopBranchLength);
+		free(sequenceLengths);
+	}
 	clipTipsHard(graph);
 
 	if (expectedCoverage > 0) {

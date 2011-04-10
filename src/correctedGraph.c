@@ -2655,7 +2655,6 @@ void setMaxDivergence(double value)
 
 //////////////////// Haplotype Loops Merging
 
-static IDnum ARC_MIN_MULTIPLICITY = 2; // TODO this should be a parameter
 static Time MAX_HAP_COV = -1;
 static Time MAX_DIP_COV = -1;
 
@@ -2668,15 +2667,14 @@ struct HapLoopCandidate_st {
 	Node *end;
 };
 
-static void
-clipWeakArcs(void)
+void
+clipWeakArcs(Graph *graph, IDnum minMultiplicity)
 {
 	IDnum index;
 	IDnum nodes = nodeCount(graph);
 
-	velvetLog("Clipping weak arcs with cutoff %d\n", ARC_MIN_MULTIPLICITY);
+	velvetLog("Clipping weak arcs with cutoff %d\n", minMultiplicity);
 
-	// TODO remove low coverage nodes first?
 	for (index = -nodes; index <= nodes; index++) {
 		Node *node;
 		Arc *arc;
@@ -2691,7 +2689,7 @@ clipWeakArcs(void)
 			Arc *nextArc;
 
 			nextArc = getNextArc(arc);
-			if (getMultiplicity(arc) < ARC_MIN_MULTIPLICITY)
+			if (getMultiplicity(arc) < minMultiplicity)
 				destroyArc (arc, graph);
 			arc = nextArc;
 		}
@@ -2849,7 +2847,9 @@ hapLoopNode(Node *origin)
 	}
 }
 
-void correctHapLoopGraph(Time maxHapCov,
+void correctHapLoopGraph(Graph * argGraph,
+			 IDnum * argSequenceLengths,
+			 Time maxHapCov,
 			 Time maxDipCov,
 			 Time maxDivergence,
 			 IDnum maxGaps,
@@ -2859,14 +2859,15 @@ void correctHapLoopGraph(Time maxHapCov,
 	IDnum index;
 
 	//Setting global params
+	graph = argGraph;
+	WORDLENGTH = getWordLength(graph);
+	sequenceLengths = argSequenceLengths;
 	MAX_HAP_COV = maxHapCov;
 	MAX_DIP_COV = maxDipCov;
 	MAXREADLENGTH = maxLength;
 	MAXGAPS = maxGaps;
 	hapLoopResolution = true;
 	// Done with global params
-
-	clipWeakArcs();
 
 	velvetLog("Correcting haploid loops\n");
 
