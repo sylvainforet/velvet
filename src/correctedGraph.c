@@ -2705,10 +2705,10 @@ static HapLoopCandidate *
 findHapLoopCandidates(Node *origin)
 {
 	HapLoopCandidate *candidates = NULL;
+	Node *twin = getTwinNode(origin);
 	Arc *arc;
 
-	if (origin == NULL ||
-	    getNodeLength(origin) == 0 ||
+	if (getNodeLength(origin) == 0 ||
 	    getTotalCoverage(origin) / getNodeLength(origin) > MAX_DIP_COV)
 		return NULL;
 
@@ -2716,40 +2716,42 @@ findHapLoopCandidates(Node *origin)
 		Node *dest;
 		Node *twinDest;
 		Node *end;
-		HapLoopCandidate *hlc;
+		HapLoopCandidate *candidate;
 
 		dest = getDestination(arc);
 		twinDest = getTwinNode(dest);
+
 		if (arcCount(twinDest) != 1 ||
-		    getDestination(getArc(twinDest)) != origin ||
+		    getDestination(getArc(twinDest)) != twin ||
 		    getNodeLength(dest) == 0 ||
 		    getTotalCoverage(dest) / getNodeLength(dest) > MAX_HAP_COV ||
 		    arcCount(dest) != 1)
 			continue;
+
 		end = getDestination(getArc(dest));
+
 		if (getNodeLength(end) == 0 ||
 		    getTotalCoverage(end) / getNodeLength(end) > MAX_DIP_COV)
 			continue;
 
-		for (hlc = candidates; hlc != NULL; hlc = hlc->next) {
-			if (hlc->end == end) {
-				if (hlc->nodeA != NULL && hlc->nodeB == NULL)
-					hlc->nodeB = dest;
+		for (candidate = candidates; candidate != NULL; candidate = candidate->next) {
+			if (candidate->end == end) {
+				if (candidate->nodeA != NULL && candidate->nodeB == NULL)
+					candidate->nodeB = dest;
 				else {
-					hlc->nodeA = NULL;
-					hlc->nodeB = NULL;
+					candidate->nodeA = NULL;
+					candidate->nodeB = NULL;
 				}
 				break;
 			}
 		}
-		if (hlc == NULL) {
-			HapLoopCandidate *newCandidate;
-
-			newCandidate = mallocOrExit(1, HapLoopCandidate);
-			newCandidate->end = end;
-			newCandidate->nodeA = dest;
-			newCandidate->next = candidates;
-			candidates = newCandidate;
+		if (candidate == NULL) {
+			candidate = mallocOrExit(1, HapLoopCandidate);
+			candidate->end = end;
+			candidate->nodeA = dest;
+			candidate->nodeB = NULL;
+			candidate->next = candidates;
+			candidates = candidate;
 		}
 	}
 	return candidates;
