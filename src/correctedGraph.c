@@ -2659,6 +2659,15 @@ static IDnum ARC_MIN_MULTIPLICITY = 2; // TODO this should be a parameter
 static Time MAX_HAP_COV = -1;
 static Time MAX_DIP_COV = -1;
 
+typedef struct HapLoopCandidate_st HapLoopCandidate;
+
+struct HapLoopCandidate_st {
+	HapLoopCandidate *next;
+	Node *nodeA;
+	Node *nodeB;
+	Node *end;
+};
+
 static void
 clipWeakArcs(void)
 {
@@ -2692,35 +2701,76 @@ clipWeakArcs(void)
 	clipTipsHard(graph);
 }
 
+static HapLoopCandidate *
+findHapLoopCandidates(Node *origin)
+{
+	HapLoopCandidate *candidates = NULL;
+	Arc *arc;
+
+	if (origin == NULL ||
+	    getNodeLength(origin) == 0 ||
+	    getTotalCoverage(origin) / getNodeLength(origin) > MAX_DIP_COV)
+		return NULL;
+
+	for (arc = getArc(origin); arc != NULL; arc = getNextArc(arc)) {
+		Node *dest;
+		Node *twinDest;
+		Node *end;
+		HapLoopCandidate *hlc;
+
+		dest = getDestination(arc);
+		twinDest = getTwinNode(dest);
+		if (arcCount(twinDest) != 1 ||
+		    getDestination(getArc(twinDest)) != origin ||
+		    getNodeLength(dest) == 0 ||
+		    getTotalCoverage(dest) / getNodeLength(dest) > MAX_HAP_COV ||
+		    arcCount(dest) != 1)
+			continue;
+		end = getDestination(getArc(dest));
+		if (getNodeLength(end) == 0 ||
+		    getTotalCoverage(end) / getNodeLength(end) > MAX_DIP_COV)
+			continue;
+
+		for (hlc = candidates; hlc != NULL; hlc = hlc->next) {
+			if (hlc->end == end) {
+				if (hlc->nodeA != NULL && hlc->nodeB == NULL)
+					hlc->nodeB = dest;
+				else {
+					hlc->nodeA = NULL;
+					hlc->nodeB = NULL;
+				}
+				break;
+			}
+		}
+		if (hlc == NULL) {
+			HapLoopCandidate *newCandidate;
+
+			newCandidate = mallocOrExit(1, HapLoopCandidate);
+			newCandidate->end = end;
+			newCandidate->nodeA = dest;
+			newCandidate->next = candidates;
+			candidates = newCandidate;
+		}
+	}
+	return candidates;
+}
+
 static void
-hapLoopNode(Node *origin)
+resolveLoop(Node *origin,
+	    Node *hapA,
+	    Node *hapB,
+	    Node *dest)
 {
 	Arc *arcA;
 	Arc *arcB;
-	Arc *destArcA;
-	Arc *destArcB;
 	Node *twin;
-	Node *hapA;
-	Node *hapB;
 	Node *twinA;
 	Node *twinB;
-	Node *dest;
 	Node *twinDest;
 	Time tmpTime;
 	IDnum nodes;
 
-	if (origin == NULL ||
-	    getNodeLength(origin) == 0 ||
-	    getTotalCoverage(origin) / getNodeLength(origin) > MAX_DIP_COV ||
-	    simpleArcCount(origin) != 2 ||
-	    arcCount(origin) != 2)
-		return;
-
 	twin = getTwinNode(origin);
-	arcA = getArc(origin);
-	arcB = getNextArc(arcA);
-	hapA = getDestination(arcA);
-	hapB = getDestination(arcB);
 	twinA = getTwinNode(hapA);
 	twinB = getTwinNode(hapB);
 
@@ -2733,45 +2783,21 @@ hapLoopNode(Node *origin)
 	    twinB == origin ||
 	    twinA == twin ||
 	    twinB == twin ||
-	    getNodeLength(hapA) == 0 ||
-	    getNodeLength(hapB) == 0 ||
-	    getTotalCoverage(hapA) / getNodeLength(hapA) > MAX_HAP_COV ||
-	    getTotalCoverage(hapB) / getNodeLength(hapB) > MAX_HAP_COV ||
 	    hapB == getTwinNode(hapA) ||
-	    arcCount(hapA) != 1 ||
-	    arcCount(hapB) != 1 ||
-	    arcCount(twinA) != 1 ||
-	    arcCount(twinB) != 1 ||
 	    getDestination(getArc(twinA)) != twin ||
 	    getDestination(getArc(twinB)) != twin)
 		return;
 
-	dest = getDestination(getArc(hapA));
 	twinDest = getTwinNode(dest);
 
 	// TODO cleanup! some of these tests are useless
-	if (dest != getDestination(getArc(hapB)) ||
-	    dest == origin ||
+	if (dest == origin ||
 	    dest == twin ||
 	    dest == hapA ||
 	    dest == hapB ||
 	    dest == twinA ||
-	    dest == twinB ||
-	    getNodeLength(dest) == 0 ||
-	    getTotalCoverage(dest) / getNodeLength(dest) > MAX_DIP_COV ||
-	    simpleArcCount(twinDest) != 2 ||
-	    arcCount(twinDest) != 2)
+	    dest == twinB)
 		return;
-
-	destArcA = getArc(twinDest);
-	destArcB = getNextArc(destArcA);
-
-	if ((!(getDestination(destArcA) == twinA && getDestination(destArcB) == twinB) &&
-	     !(getDestination(destArcA) == twinB && getDestination(destArcB) == twinA)) ||
-	    getDestination(destArcA) == getDestination(destArcB))
-		return;
-
-	// Now the topology is OK
 
 	// Setup the previous array
 
@@ -2780,6 +2806,9 @@ hapLoopNode(Node *origin)
 	previous[getNodeID(hapA) + nodes] = origin;
 	previous[getNodeID(hapB) + nodes] = origin;
 	previous[getNodeID(dest) + nodes] = hapA;
+
+	arcA = getArcBetweenNodes(origin, hapA, graph);
+	arcB = getArcBetweenNodes(origin, hapB, graph);
 
 	setNodeTime(origin, 0);
 	setNodeTime(hapA, ((Time)getNodeLength(origin)) / ((Time)getMultiplicity(arcA)));
@@ -2795,6 +2824,26 @@ hapLoopNode(Node *origin)
 		setNodeTime(dest, tmpTime);
 		previous[getNodeID(dest) + nodes] = hapB;
 		comparePaths(dest, hapA);
+	}
+}
+
+static void
+hapLoopNode(Node *origin)
+{
+	HapLoopCandidate *candidates;
+	HapLoopCandidate *tmp;
+
+	candidates = findHapLoopCandidates(origin);
+
+	for (tmp = candidates; tmp != NULL; ) {
+		HapLoopCandidate *next;
+
+		if (tmp->nodeA != NULL && tmp->nodeB != NULL)
+			resolveLoop(origin, tmp->nodeA, tmp->nodeB, tmp->end);
+
+		next = tmp->next;
+		free(tmp);
+		tmp = next;
 	}
 }
 
