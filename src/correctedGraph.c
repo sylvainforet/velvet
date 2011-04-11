@@ -2540,6 +2540,7 @@ void correctGraph(Graph * argGraph,
 	sequenceLengths = argSequenceLengths;
 	sequenceCategories = argSequenceCategories;
 	dbgCounter = 0;
+	hapLoopResolution = false;
 	// Done with global params
 
 	velvetLog("Correcting graph with cutoff %f\n", MAXDIVERGENCE);
@@ -2662,8 +2663,8 @@ typedef struct HapLoopCandidate_st HapLoopCandidate;
 
 struct HapLoopCandidate_st {
 	HapLoopCandidate *next;
-	Node *nodeA;
-	Node *nodeB;
+	Node *hapA;
+	Node *hapB;
 	Node *end;
 };
 
@@ -2721,8 +2722,6 @@ findHapLoopCandidates(Node *origin)
 
 		if (arcCount(twinDest) != 1 ||
 		    getDestination(getArc(twinDest)) != twin ||
-		    getNodeLength(dest) == 0 ||
-		    getTotalCoverage(dest) / getNodeLength(dest) > MAX_HAP_COV ||
 		    arcCount(dest) != 1)
 			continue;
 
@@ -2734,11 +2733,11 @@ findHapLoopCandidates(Node *origin)
 
 		for (candidate = candidates; candidate != NULL; candidate = candidate->next) {
 			if (candidate->end == end) {
-				if (candidate->nodeA != NULL && candidate->nodeB == NULL)
-					candidate->nodeB = dest;
+				if (candidate->hapA != NULL && candidate->hapB == NULL)
+					candidate->hapB = dest;
 				else {
-					candidate->nodeA = NULL;
-					candidate->nodeB = NULL;
+					candidate->hapA = NULL;
+					candidate->hapB = NULL;
 				}
 				break;
 			}
@@ -2746,8 +2745,8 @@ findHapLoopCandidates(Node *origin)
 		if (candidate == NULL) {
 			candidate = mallocOrExit(1, HapLoopCandidate);
 			candidate->end = end;
-			candidate->nodeA = dest;
-			candidate->nodeB = NULL;
+			candidate->hapA = dest;
+			candidate->hapB = NULL;
 			candidate->next = candidates;
 			candidates = candidate;
 		}
@@ -2774,6 +2773,12 @@ resolveLoop(Node *origin,
 	twinA = getTwinNode(hapA);
 	twinB = getTwinNode(hapB);
 
+	if (getNodeLength(hapA) == 0 ||
+	    getTotalCoverage(hapA) / getNodeLength(hapA) > MAX_HAP_COV ||
+	    getNodeLength(hapB) == 0 ||
+	    getTotalCoverage(hapB) / getNodeLength(hapB) > MAX_HAP_COV)
+		return;
+
 	// TODO cleanup! some of these tests are useless
 	if (hapA == origin ||
 	    hapB == origin ||
@@ -2783,9 +2788,7 @@ resolveLoop(Node *origin,
 	    twinB == origin ||
 	    twinA == twin ||
 	    twinB == twin ||
-	    hapB == getTwinNode(hapA) ||
-	    getDestination(getArc(twinA)) != twin ||
-	    getDestination(getArc(twinB)) != twin)
+	    hapB == getTwinNode(hapA))
 		return;
 
 	twinDest = getTwinNode(dest);
@@ -2815,8 +2818,8 @@ resolveLoop(Node *origin,
 	setNodeTime(hapB, ((Time)getNodeLength(origin)) / ((Time)getMultiplicity(arcB)));
 	setNodeTime(dest, getNodeTime(hapA) +
 			  ((Time)getNodeLength(hapA)) / ((Time)getMultiplicity(getArc(hapA))));
-	tmpTime = getNodeTime(hapB);
-	tmpTime += ((Time)getNodeLength(hapB)) / ((Time)getMultiplicity(getArc(hapB)));
+	tmpTime = getNodeTime(hapB) +
+		  ((Time)getNodeLength(hapB)) / ((Time)getMultiplicity(getArc(hapB)));
 
 	if (tmpTime > getNodeTime(dest))
 		comparePaths(dest, hapB);
@@ -2831,19 +2834,18 @@ static void
 hapLoopNode(Node *origin)
 {
 	HapLoopCandidate *candidates;
-	HapLoopCandidate *tmp;
 
 	candidates = findHapLoopCandidates(origin);
 
-	for (tmp = candidates; tmp != NULL; ) {
+	while (candidates != NULL) {
 		HapLoopCandidate *next;
 
-		if (tmp->nodeA != NULL && tmp->nodeB != NULL)
-			resolveLoop(origin, tmp->nodeA, tmp->nodeB, tmp->end);
+		if (candidates->hapA != NULL && candidates->hapB != NULL)
+			resolveLoop(origin, candidates->hapA, candidates->hapB, candidates->end);
 
-		next = tmp->next;
-		free(tmp);
-		tmp = next;
+		next = candidates->next;
+		free(candidates);
+		candidates = next;
 	}
 }
 
