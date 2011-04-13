@@ -405,7 +405,7 @@ int main(int argc, char **argv)
 					    hapLoopMaxDivergence,
 					    hapLoopMaxGaps,
 					    hapLoopBranchLength);
-			clipWeakArcs(graph, 1);
+			clipWeakArcs(graph, 2);
 			correctHapLoopGraph(graph,
 					    sequenceLengths,
 					    maxHapCov,
