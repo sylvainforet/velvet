@@ -733,8 +733,7 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 		candidate = NULL;
 
 		// First round for priority nodes
-		for (arc = getArc(current); arc != NULL;
-		     arc = getNextArc(arc)) {
+		for (arc = getArc(current); arc != NULL; arc = getNextArc(arc)) {
 			dest = getDestination(arc);
 
 			if (dest == node || dest == getTwinNode(node))
@@ -744,61 +743,30 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 				continue;
 
 			if (candidate == NULL
-			    || getNodeStatus(candidate) >
-			    getNodeStatus(dest)
-			    || (getNodeStatus(candidate) ==
-				getNodeStatus(dest)
-				&& extension_distance >
-				localScaffold[getNodeID(dest) +
-					      nodeCount(graph)].
-				distance - getNodeLength(dest) / 2)) {
-				extension_distance =
-				    localScaffold[getNodeID(dest) +
-						  nodeCount(graph)].
-				    distance - getNodeLength(dest) / 2;
+			    || getNodeStatus(candidate) > getNodeStatus(dest)
+			    || (getNodeStatus(candidate) == getNodeStatus(dest)
+				&& extension_distance > localScaffold[getNodeID(dest) + nodeCount(graph)].distance - getNodeLength(dest) / 2)) {
+				extension_distance = localScaffold[getNodeID(dest) + nodeCount(graph)].distance - getNodeLength(dest) / 2;
 				candidate = dest;
 			}
 		}
 
-		if (candidate != NULL && repeatEntrance) {
-			for (arc = getArc(node); arc != NULL;
-			     arc = getNextArc(arc)) {
-				dest = getDestination(arc);
-				if (dest != candidate
-				    && getNodeStatus(dest)) {
-					break;
-				}
-			}
-		}
 		// In case of failure   
 		if (candidate == NULL) {
-			for (arc = getArc(current); arc != NULL;
-			     arc = getNextArc(arc)) {
+			for (arc = getArc(current); arc != NULL; arc = getNextArc(arc)) {
 				dest = getDestination(arc);
 
 				if (getNodeStatus(dest) == 0)
 					continue;
 
-				if (dest == node
-				    || dest == getTwinNode(node))
+				if (dest == node || dest == getTwinNode(node))
 					continue;
 
 				if (candidate == NULL
-				    || getNodeStatus(candidate) <
-				    getNodeStatus(dest)
-				    || (getNodeStatus(candidate) ==
-					getNodeStatus(dest)
-					&& extension_distance <
-					localScaffold[getNodeID(dest) +
-						      nodeCount(graph)].
-					distance -
-					getNodeLength(dest) / 2)) {
-					extension_distance =
-					    localScaffold[getNodeID(dest) +
-							  nodeCount
-							  (graph)].
-					    distance -
-					    getNodeLength(dest) / 2;
+				    || getNodeStatus(candidate) < getNodeStatus(dest)
+				    || (getNodeStatus(candidate) == getNodeStatus(dest)
+					&& extension_distance < localScaffold[getNodeID(dest) + nodeCount(graph)].distance - getNodeLength(dest) / 2)) {
+					extension_distance = localScaffold[getNodeID(dest) + nodeCount(graph)].distance - getNodeLength(dest) / 2;
 					candidate = dest;
 				}
 			}
@@ -809,18 +777,17 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 				deallocateNodeList(path);
 				path = tail;
 			}
-			return false;
+			return NULL;
 		}
 		// Loop detection
 		if (candidate == repeatEntrance
-		    && abs_bool(getNodeStatus(candidate)) ==
-		    maxRepeat + 1) {
+		    && abs_bool(getNodeStatus(candidate)) == maxRepeat + 1) {
 			while (path) {
 				tail = path->next;
 				deallocateNodeList(path);
 				path = tail;
 			}
-			return false;
+			return NULL;
 		} else if (abs_bool(getNodeStatus(candidate)) > maxRepeat) {
 			maxRepeat = abs_bool(getNodeStatus(candidate));
 			repeatEntrance = candidate;
@@ -844,7 +811,7 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 				deallocateNodeList(path);
 				path = tail;
 			}
-			return false;
+			return NULL;
 		}
 
 		// Missassembly detection
@@ -856,7 +823,7 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 				deallocateNodeList(path);
 				path = tail;
 			}
-			return false;
+			return NULL;
 		}
 
 		if (path == NULL) {
@@ -924,54 +891,28 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 #endif
 
 				if (getNodeStatus(candidate)) {
-					localConnect =
-					    &localScaffold[getNodeID
-							   (candidate) +
-							   nodeCount
-							   (graph)];
+					localConnect = &localScaffold[getNodeID(candidate) + nodeCount(graph)];
 					if (localConnect->frontReference) {
-						destroyConnection
-						    (localConnect->
-						     frontReference,
-						     getNodeID(node));
-						localConnect->
-						    frontReference = NULL;
+						destroyConnection(localConnect->frontReference, getNodeID(node));
+						localConnect->frontReference = NULL;
 					}
 					if (localConnect->backReference) {
-						destroyConnection
-						    (localConnect->
-						     backReference,
-						     -getNodeID(node));
-						localConnect->
-						    backReference = NULL;
+						destroyConnection(localConnect->backReference,  -getNodeID(node));
+						localConnect->backReference = NULL;
 					}
-					unmarkNode(candidate,
-						   localConnect);
+					unmarkNode(candidate, localConnect);
 				}
 				if (getNodeStatus(getTwinNode(candidate))) {
-					localConnect =
-					    &localScaffold[-getNodeID
-							   (candidate) +
-							   nodeCount
-							   (graph)];
+					localConnect = &localScaffold[-getNodeID(candidate) + nodeCount(graph)];
 					if (localConnect->frontReference) {
-						destroyConnection
-						    (localConnect->
-						     frontReference,
-						     getNodeID(node));
-						localConnect->
-						    frontReference = NULL;
+						destroyConnection(localConnect->frontReference, getNodeID(node));
+						localConnect->frontReference = NULL;
 					}
 					if (localConnect->backReference) {
-						destroyConnection
-						    (localConnect->
-						     backReference,
-						     -getNodeID(node));
-						localConnect->
-						    backReference = NULL;
+						destroyConnection(localConnect->backReference, -getNodeID(node));
+						localConnect->backReference = NULL;
 					}
-					unmarkNode(getTwinNode(candidate),
-						   localConnect);
+					unmarkNode(getTwinNode(candidate), localConnect);
 				}
 				destroyNode(candidate, graph);
 				return true;
@@ -1016,41 +957,28 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 #endif
 
 		if (getNodeStatus(oppositeNode)) {
-			localConnect =
-			    &localScaffold[getNodeID(oppositeNode) +
-					   nodeCount(graph)];
+			localConnect = &localScaffold[getNodeID(oppositeNode) + nodeCount(graph)];
 			if (localConnect->frontReference) {
-				destroyConnection(localConnect->
-						  frontReference,
-						  getNodeID(node));
+				destroyConnection(localConnect->frontReference, getNodeID(node));
 				localConnect->frontReference = NULL;
 			}
 			if (localConnect->backReference) {
-				destroyConnection(localConnect->
-						  backReference,
-						  -getNodeID(node));
+				destroyConnection(localConnect->backReference, -getNodeID(node));
 				localConnect->backReference = NULL;
 			}
 			unmarkNode(oppositeNode, localConnect);
 		}
 		if (getNodeStatus(getTwinNode(oppositeNode))) {
-			localConnect =
-			    &localScaffold[-getNodeID(oppositeNode) +
-					   nodeCount(graph)];
+			localConnect = &localScaffold[-getNodeID(oppositeNode) + nodeCount(graph)];
 			if (localConnect->frontReference) {
-				destroyConnection(localConnect->
-						  frontReference,
-						  getNodeID(node));
+				destroyConnection(localConnect->frontReference, getNodeID(node));
 				localConnect->frontReference = NULL;
 			}
 			if (localConnect->backReference) {
-				destroyConnection(localConnect->
-						  backReference,
-						  -getNodeID(node));
+				destroyConnection(localConnect->backReference, -getNodeID(node));
 				localConnect->backReference = NULL;
 			}
-			unmarkNode(getTwinNode(oppositeNode),
-				   localConnect);
+			unmarkNode(getTwinNode(oppositeNode), localConnect);
 		}
 
 		destroyNode(oppositeNode, graph);
@@ -1120,9 +1048,8 @@ static boolean expandLongNode(Node * node, boolean force_jumps)
 	while (hit) {
 		correctGraphLocally(node);
 		findOppositeNode(node, &oppositeNode, &distance);
-		hit =
-		    pushNeighbours(node, oppositeNode, distance,
-				   force_jumps);
+		hit = pushNeighbours(node, oppositeNode, distance,
+				     force_jumps);
 		modified = modified || hit;
 	}
 
@@ -1141,11 +1068,8 @@ static boolean expandLongNodes(boolean force_jumps)
 		node = getNodeInGraph(graph, nodeID);
 
 		if (node != NULL && getUniqueness(node)) {
-			modified = expandLongNode(node, force_jumps)
-			    || modified;
-			modified =
-			    expandLongNode(getTwinNode(node), force_jumps)
-			    || modified;
+			modified = expandLongNode(node, force_jumps) || modified;
+			modified = expandLongNode(getTwinNode(node), force_jumps) || modified;
 		}
 	}
 
