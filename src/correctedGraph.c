@@ -2707,8 +2707,8 @@ findHapLoopCandidates(Node *origin)
 	Node *twin = getTwinNode(origin);
 	Arc *arc;
 
-	if (getNodeLength(origin) == 0 ||
-	    getTotalCoverage(origin) / getNodeLength(origin) > MAX_DIP_COV)
+	if (getNodeLength(origin) == 0
+	    || getTotalCoverage(origin) / getNodeLength(origin) > MAX_DIP_COV)
 		return NULL;
 
 	for (arc = getArc(origin); arc != NULL; arc = getNextArc(arc)) {
@@ -2720,15 +2720,15 @@ findHapLoopCandidates(Node *origin)
 		dest = getDestination(arc);
 		twinDest = getTwinNode(dest);
 
-		if (arcCount(twinDest) != 1 ||
-		    getDestination(getArc(twinDest)) != twin ||
-		    arcCount(dest) != 1)
+		if (arcCount(twinDest) != 1
+		    || getDestination(getArc(twinDest)) != twin
+		    || arcCount(dest) != 1)
 			continue;
 
 		end = getDestination(getArc(dest));
 
-		if (getNodeLength(end) == 0 ||
-		    getTotalCoverage(end) / getNodeLength(end) > MAX_DIP_COV)
+		if (getNodeLength(end) == 0
+		    || getTotalCoverage(end) / getNodeLength(end) > MAX_DIP_COV)
 			continue;
 
 		for (candidate = candidates; candidate != NULL; candidate = candidate->next) {
@@ -2773,33 +2773,27 @@ resolveLoop(Node *origin,
 	twinA = getTwinNode(hapA);
 	twinB = getTwinNode(hapB);
 
-	if (getNodeLength(hapA) == 0 ||
-	    getTotalCoverage(hapA) / getNodeLength(hapA) > MAX_HAP_COV ||
-	    getNodeLength(hapB) == 0 ||
-	    getTotalCoverage(hapB) / getNodeLength(hapB) > MAX_HAP_COV)
+	if (getNodeLength(hapA) == 0
+	    || getTotalCoverage(hapA) / getNodeLength(hapA) > MAX_HAP_COV
+	    || getNodeLength(hapB) == 0
+	    || getTotalCoverage(hapB) / getNodeLength(hapB) > MAX_HAP_COV)
 		return;
 
-	// TODO cleanup! some of these tests are useless
-	if (hapA == origin ||
-	    hapB == origin ||
-	    hapA == twin ||
-	    hapB == twin ||
-	    twinA == origin ||
-	    twinB == origin ||
-	    twinA == twin ||
-	    twinB == twin ||
-	    hapB == getTwinNode(hapA))
+	if (hapA == origin
+	    || hapB == origin
+	    || hapA == twin
+	    || hapB == twin
+	    || hapB == getTwinNode(hapA))
 		return;
 
 	twinDest = getTwinNode(dest);
 
-	// TODO cleanup! some of these tests are useless
-	if (dest == origin ||
-	    dest == twin ||
-	    dest == hapA ||
-	    dest == hapB ||
-	    dest == twinA ||
-	    dest == twinB)
+	if (dest == origin
+	    || dest == twin
+	    || dest == hapA
+	    || dest == hapB
+	    || dest == twinA
+	    || dest == twinB)
 		return;
 
 	// Setup the previous array
@@ -2847,6 +2841,95 @@ hapLoopNode(Node *origin)
 		free(candidates);
 		candidates = next;
 	}
+}
+
+static void
+hapDeadEnd1(Node *origin)
+{
+	Arc *arcA;
+	Arc *arcB;
+	Node *twin;
+	Node *hapA;
+	Node *hapB;
+	Node *twinA;
+	Node *twinB;
+	Node *dest;
+	Time tmpTime;
+	IDnum nodes;
+
+	if (origin == NULL
+	    || getNodeLength(origin) == 0
+	    || getTotalCoverage(origin) / getNodeLength(origin) > MAX_DIP_COV
+	    || simpleArcCount(origin) != 2
+	    || arcCount(origin) != 2)
+		return;
+
+	twin = getTwinNode(origin);
+	arcA = getArc(origin);
+	arcB = getNextArc(arcA);
+	hapA = getDestination(arcA);
+	hapB = getDestination(arcB);
+	twinA = getTwinNode(hapA);
+	twinB = getTwinNode(hapB);
+
+	if (hapA == origin
+	    || hapB == origin
+	    || hapA == twin
+	    || hapB == twin
+	    || getNodeLength(hapA) == 0
+	    || getNodeLength(hapB) == 0
+	    || getTotalCoverage(hapA) / getNodeLength(hapA) > MAX_HAP_COV
+	    || getTotalCoverage(hapB) / getNodeLength(hapB) > MAX_HAP_COV
+	    || hapB == getTwinNode(hapA)
+	    || arcCount(twinA) != 1
+	    || arcCount(twinB) != 1
+	    || getDestination(getArc(twinA)) != twin
+	    || getDestination(getArc(twinB)) != twin)
+		return;
+
+	if (arcCount(hapA) == 1 && arcCount(hapB) == 0)
+		dest = getDestination(getArc(hapA));
+	else if (arcCount(hapB) == 1 && arcCount(hapA) == 0)
+		dest = getDestination(getArc(hapB));
+	else
+		return;
+
+	if (dest == origin
+	    || dest == twin
+	    || dest == hapA
+	    || dest == hapB
+	    || dest == twinA
+	    || dest == twinB
+	    || getNodeLength(dest) == 0
+	    || getTotalCoverage(dest) / getNodeLength(dest) > MAX_DIP_COV)
+		return;
+
+	// Now the topology is OK
+
+	// Setup the previous array
+
+	nodes = nodeCount(graph);
+	previous[getNodeID(origin) + nodes] = origin;
+	previous[getNodeID(hapA) + nodes] = origin;
+	previous[getNodeID(hapB) + nodes] = origin;
+	previous[getNodeID(dest) + nodes] = hapA;
+
+	setNodeTime(origin, 0);
+	setNodeTime(hapA, ((Time)getNodeLength(origin)) / ((Time)getMultiplicity(arcA)));
+	setNodeTime(hapB, ((Time)getNodeLength(origin)) / ((Time)getMultiplicity(arcB)));
+	setNodeTime(dest, getNodeTime(hapA) +
+			  ((Time)getNodeLength(hapA)) / ((Time)getMultiplicity(getArc(hapA))));
+	tmpTime = getNodeTime(hapB);
+	tmpTime += ((Time)getNodeLength(hapB)) / ((Time)getMultiplicity(getArc(hapB)));
+
+	if (tmpTime > getNodeTime(dest))
+		comparePaths(dest, hapB);
+	else {
+		setNodeTime(dest, tmpTime);
+		previous[getNodeID(dest) + nodes] = hapB;
+		comparePaths(dest, hapA);
+	}
+
 }
 
 void correctHapLoopGraph(Graph * argGraph,
