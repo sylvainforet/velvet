@@ -2565,7 +2565,7 @@ void correctGraph(Graph * argGraph,
 	fastToSlowMapping = callocOrExit(MAXREADLENGTH + 1, Coordinate);
 	slowToFastMapping = callocOrExit(MAXREADLENGTH + 1, Coordinate);
 	Fmatrix = mallocOrExit(MAXREADLENGTH + 1, Time *);
-	Fmatrix[0] = callocOrExit((MAXREADLENGTH + 1) * (MAXREADLENGTH + 1), Time *);
+	Fmatrix[0] = callocOrExit((MAXREADLENGTH + 1) * (MAXREADLENGTH + 1), Time);
 	for (index = 1; index < MAXREADLENGTH + 1; index++)
 		Fmatrix[index] = Fmatrix[0] + index * (MAXREADLENGTH + 1);
 
@@ -2669,7 +2669,8 @@ struct HapLoopCandidate_st {
 };
 
 void
-clipWeakArcs(Graph *graph, IDnum minMultiplicity)
+clipWeakArcs(Graph *graph,
+	     IDnum minMultiplicity)
 {
 	IDnum index;
 	IDnum nodes = nodeCount(graph);
@@ -2701,14 +2702,16 @@ clipWeakArcs(Graph *graph, IDnum minMultiplicity)
 }
 
 static HapLoopCandidate *
-findHapLoopCandidates(Node *origin)
+findHapLoopCandidates(Node *origin,
+		      IDnum maxOrigArcs)
 {
 	HapLoopCandidate *candidates = NULL;
 	Node *twin = getTwinNode(origin);
 	Arc *arc;
 
 	if (getNodeLength(origin) == 0
-	    || getTotalCoverage(origin) / getNodeLength(origin) > MAX_DIP_COV)
+	    || getTotalCoverage(origin) / (Time)getNodeLength(origin) > MAX_DIP_COV
+	    || arcCount(origin) > maxOrigArcs)
 		return NULL;
 
 	for (arc = getArc(origin); arc != NULL; arc = getNextArc(arc)) {
@@ -2728,7 +2731,7 @@ findHapLoopCandidates(Node *origin)
 		end = getDestination(getArc(dest));
 
 		if (getNodeLength(end) == 0
-		    || getTotalCoverage(end) / getNodeLength(end) > MAX_DIP_COV)
+		    || getTotalCoverage(end) / (Time)getNodeLength(end) > MAX_DIP_COV)
 			continue;
 
 		for (candidate = candidates; candidate != NULL; candidate = candidate->next) {
@@ -2774,9 +2777,9 @@ resolveLoop(Node *origin,
 	twinB = getTwinNode(hapB);
 
 	if (getNodeLength(hapA) == 0
-	    || getTotalCoverage(hapA) / getNodeLength(hapA) > MAX_HAP_COV
+	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
 	    || getNodeLength(hapB) == 0
-	    || getTotalCoverage(hapB) / getNodeLength(hapB) > MAX_HAP_COV)
+	    || getTotalCoverage(hapB) / (Time)getNodeLength(hapB) > MAX_HAP_COV)
 		return;
 
 	if (hapA == origin
@@ -2808,8 +2811,8 @@ resolveLoop(Node *origin,
 	arcB = getArcBetweenNodes(origin, hapB, graph);
 
 	setNodeTime(origin, 0);
-	setNodeTime(hapA, ((Time)getNodeLength(origin)) / ((Time)getMultiplicity(arcA)));
-	setNodeTime(hapB, ((Time)getNodeLength(origin)) / ((Time)getMultiplicity(arcB)));
+	setNodeTime(hapA, getNodeLength(origin) / (Time)getMultiplicity(arcA));
+	setNodeTime(hapB, getNodeLength(origin) / (Time)getMultiplicity(arcB));
 	setNodeTime(dest, getNodeTime(hapA) +
 			  ((Time)getNodeLength(hapA)) / ((Time)getMultiplicity(getArc(hapA))));
 	tmpTime = getNodeTime(hapB) +
@@ -2829,7 +2832,7 @@ hapLoopNode(Node *origin)
 {
 	HapLoopCandidate *candidates;
 
-	candidates = findHapLoopCandidates(origin);
+	candidates = findHapLoopCandidates(origin, 3);
 
 	while (candidates != NULL) {
 		HapLoopCandidate *next;
@@ -2844,14 +2847,15 @@ hapLoopNode(Node *origin)
 }
 
 static boolean
-extractSequenceDE(PassageMarkerI path, TightString * sequence)
+extractSequenceDeadEnd(PassageMarkerI path,
+		       TightString *sequence)
 {
 	PassageMarkerI marker;
 	Coordinate seqLength = 0;
 	Coordinate writeIndex = 0;
 
 	//Measure length
-	for (marker = path; !isTerminal(marker);
+	for (marker = getNextInSequence(path); marker != NULL_IDX;
 	     marker = getNextInSequence(marker))
 		seqLength += getNodeLength(getNode(marker));
 
@@ -2861,7 +2865,7 @@ extractSequenceDE(PassageMarkerI path, TightString * sequence)
 		setTightStringLength(sequence, seqLength);
 
 	//Copy sequences
-	for (marker = path; !isTerminal(marker);
+	for (marker = getNextInSequence(path); marker != NULL_IDX;
 	     marker = getNextInSequence(marker)) {
 		appendNodeSequence(getNode(marker), sequence, writeIndex);
 		writeIndex += getNodeLength(getNode(marker));
@@ -2870,33 +2874,32 @@ extractSequenceDE(PassageMarkerI path, TightString * sequence)
 	return true;
 }
 
-static Coordinate mapDistancesOntoPathsDE()
+static Coordinate
+mapDistancesOntoPathsDeadEnd(void)
 {
 	PassageMarkerI marker;
 	Coordinate totalDistance = 0;
 
 	marker = slowPath;
-	while (!isTerminal(marker)) {
-		setPassageMarkerStart(marker, totalDistance);
-		totalDistance += getNodeLength(getNode(marker));
-		setPassageMarkerFinish(marker, totalDistance);
-		marker = getNextInSequence(marker);
-	}
+	marker = getNextInSequence(marker);
+	setPassageMarkerStart(marker, totalDistance);
+	totalDistance += getNodeLength(getNode(marker));
+	setPassageMarkerFinish(marker, totalDistance);
+
 
 	totalDistance = 0;
 	marker = fastPath;
-	while (!isTerminal(marker)) {
-		setPassageMarkerStart(marker, totalDistance);
-		totalDistance += getNodeLength(getNode(marker));
-		setPassageMarkerFinish(marker, totalDistance);
-		marker = getNextInSequence(marker);
-	}
+	marker = getNextInSequence(marker);
+	setPassageMarkerStart(marker, totalDistance);
+	totalDistance += getNodeLength(getNode(marker));
+	setPassageMarkerFinish(marker, totalDistance);
 
 	return totalDistance;
 }
 
 
-static void cleanUpRedundancyDE()
+static void
+cleanUpRedundancyDeadEnd(void)
 {
 	PassageMarkerI slowMarker = slowPath;
 	PassageMarkerI fastMarker = fastPath;
@@ -2908,7 +2911,7 @@ static void cleanUpRedundancyDE()
 
 	//velvetLog("Correcting new redundancy\n");
 	mapSlowOntoFast();
-	finalLength = mapDistancesOntoPathsDE();
+	finalLength = mapDistancesOntoPathsDeadEnd();
 
 	while (slowMarker != NULL_IDX && fastMarker != NULL_IDX) {
 		if (isTerminal(slowMarker))
@@ -2991,13 +2994,14 @@ static void cleanUpRedundancyDE()
 }
 
 static boolean
-compareSequencesDE(TightString * sequence1, TightString * sequence2)
+compareSequencesDeadEnd(TightString *sequence1,
+			TightString *sequence2)
 {
 	Coordinate i, j;
 	Coordinate length1 = getLength(sequence1);
 	Coordinate length2 = getLength(sequence2);
 	Coordinate maxLength;
-	Coordinate minLength;
+	//Coordinate minLength;
 	Time Choice1, Choice2, Choice3;
 	Time maxScore;
 
@@ -3005,7 +3009,7 @@ compareSequencesDE(TightString * sequence1, TightString * sequence2)
 		return false;
 
 	maxLength = (length1 > length2 ? length1 : length2);
-	minLength = (length1 > length2 ? length2 : length1);
+	//minLength = (length1 > length2 ? length2 : length1);
 
 	for (i = 0; i <= length1; i++)
 		Fmatrix[i][0] = 0;
@@ -3026,23 +3030,24 @@ compareSequencesDE(TightString * sequence1, TightString * sequence2)
 
 	maxScore = Fmatrix[length1][length2];
 
-	if (minLength < 100) {
-		if (maxScore < minLength - MAXGAPS)
+	if (maxLength < 100) {
+		if (maxScore < maxLength - MAXGAPS)
 			return false;
 	} else {
-		if (roundf((float)(MAXGAPS * minLength) / 100.) < minLength - maxScore)
+		if (roundf((float)(MAXGAPS * maxLength) / 100.) < maxLength - maxScore)
 			return false;
 	}
 
-	if ((1 - maxScore / minLength) > MAXDIVERGENCE)
+	if ((1 - maxScore / maxLength) > MAXDIVERGENCE)
 		return false;
 
 	return true;
 }
 
-static void comparePathsDE(Node *origin,
-			   Node *hapA,
-			   Node *hapB)
+static void
+comparePathsDeadEnd(Node *origin,
+		    Node *hapA,
+		    Node *hapB)
 {
 	IDnum slowLength, fastLength;
 	Node *fastNode, *slowNode;
@@ -3058,12 +3063,14 @@ static void comparePathsDE(Node *origin,
 	setPassageMarkerStatus(fastPath, true);
 	marker = addUncertainPassageMarker(1, origin);
 	connectPassageMarkers(marker, fastPath, graph);
+	fastPath = marker;
 
 	slowPath = addUncertainPassageMarker(2, hapB);
 	setPassageMarkerStatus(slowPath, true);
 	marker = addUncertainPassageMarker(2, origin);
 	setPassageMarkerStatus(marker, true);
 	connectPassageMarkers(marker, slowPath, graph);
+	slowPath = marker;
 
 	// Avoid merging parallel Reference sequences
 	if (pathContainsReference(fastPath) && pathContainsReference(slowPath)) {
@@ -3071,14 +3078,14 @@ static void comparePathsDE(Node *origin,
 		return;
 	}
 	//Extract sequences
-	if (!extractSequenceDE(fastPath, fastSequence)
-	    || !extractSequenceDE(slowPath, slowSequence)) {
+	if (!extractSequenceDeadEnd(fastPath, fastSequence)
+	    || !extractSequenceDeadEnd(slowPath, slowSequence)) {
 		destroyPaths();
 		return;
 	}
 	//Compare sequences
-	if (compareSequencesDE(fastSequence, slowSequence)) {
-		cleanUpRedundancyDE();
+	if (compareSequencesDeadEnd(fastSequence, slowSequence)) {
+		cleanUpRedundancyDeadEnd();
 		return;
 	}
 
@@ -3096,11 +3103,13 @@ hapDeadEnd1(Node *origin)
 	Node *twinA;
 	Node *twinB;
 	Node *dest;
+	Time tmpTime;
+	IDnum  nodes;
 	boolean deadEndA = false;
 
 	if (origin == NULL
 	    || getNodeLength(origin) == 0
-	    || getTotalCoverage(origin) / getNodeLength(origin) > MAX_DIP_COV
+	    || getTotalCoverage(origin) / (Time)getNodeLength(origin) > MAX_DIP_COV
 	    || simpleArcCount(origin) != 2
 	    || arcCount(origin) != 2)
 		return;
@@ -3119,8 +3128,8 @@ hapDeadEnd1(Node *origin)
 	    || hapB == twin
 	    || getNodeLength(hapA) == 0
 	    || getNodeLength(hapB) == 0
-	    || getTotalCoverage(hapA) / getNodeLength(hapA) > MAX_HAP_COV
-	    || getTotalCoverage(hapB) / getNodeLength(hapB) > MAX_HAP_COV
+	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
+	    || getTotalCoverage(hapB) / (Time)getNodeLength(hapB) > MAX_HAP_COV
 	    || hapB == getTwinNode(hapA)
 	    || arcCount(twinA) != 1
 	    || arcCount(twinB) != 1
@@ -3137,22 +3146,38 @@ hapDeadEnd1(Node *origin)
 	else
 		return;
 
-	if (dest == origin
-	    || dest == twin
+	// TODO check the number of incomming nodes into dest???
+	if (dest == twin
 	    || dest == hapA
 	    || dest == hapB
 	    || dest == twinA
 	    || dest == twinB
 	    || getNodeLength(dest) == 0
-	    || getTotalCoverage(dest) / getNodeLength(dest) > MAX_DIP_COV)
+	    || getTotalCoverage(dest) / (Time)getNodeLength(dest) > MAX_DIP_COV)
 		return;
 
 	// Now the topology is OK
 
-	if (deadEndA)
-		comparePathsDE(origin, hapB, hapA);
-	else
-		comparePathsDE(origin, hapA, hapB);
+	nodes = nodeCount(graph);
+	previous[getNodeID(origin) + nodes] = origin;
+	previous[getNodeID(hapA) + nodes] = origin;
+	previous[getNodeID(hapB) + nodes] = origin;
+	setNodeTime(origin, 0);
+
+	if (deadEndA) {
+		tmpTime = getNodeLength(origin) / (Time)getMultiplicity(arcB);
+		setNodeTime(hapB, tmpTime);
+		setNodeTime(hapA, tmpTime * 2);
+
+		comparePathsDeadEnd(origin, hapB, hapA);
+	}
+	else {
+		tmpTime = getNodeLength(origin) / (Time)getMultiplicity(arcA);
+		setNodeTime(hapA, tmpTime);
+		setNodeTime(hapB, tmpTime * 2);
+
+		comparePathsDeadEnd(origin, hapA, hapB);
+	}
 }
 
 static void
@@ -3165,10 +3190,11 @@ hapDeadEnd2(Node *origin)
 	Node *hapB;
 	Node *twinA;
 	Node *twinB;
+	IDnum nodes;
 
 	if (origin == NULL
 	    || getNodeLength(origin) == 0
-	    || getTotalCoverage(origin) / getNodeLength(origin) > MAX_DIP_COV
+	    || getTotalCoverage(origin) / (Time)getNodeLength(origin) > MAX_DIP_COV
 	    || simpleArcCount(origin) != 2
 	    || arcCount(origin) != 2)
 		return;
@@ -3187,8 +3213,8 @@ hapDeadEnd2(Node *origin)
 	    || hapB == twin
 	    || getNodeLength(hapA) == 0
 	    || getNodeLength(hapB) == 0
-	    || getTotalCoverage(hapA) / getNodeLength(hapA) > MAX_HAP_COV
-	    || getTotalCoverage(hapB) / getNodeLength(hapB) > MAX_HAP_COV
+	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
+	    || getTotalCoverage(hapB) / (Time)getNodeLength(hapB) > MAX_HAP_COV
 	    || hapB == getTwinNode(hapA)
 	    || arcCount(twinA) != 1
 	    || arcCount(twinB) != 1
@@ -3200,10 +3226,18 @@ hapDeadEnd2(Node *origin)
 
 	// Now the topology is OK
 
+	nodes = nodeCount(graph);
+	previous[getNodeID(origin) + nodes] = origin;
+	previous[getNodeID(hapA) + nodes] = origin;
+	previous[getNodeID(hapB) + nodes] = origin;
+	setNodeTime(origin, 0);
+	setNodeTime(hapA, getNodeLength(origin) / (Time)getMultiplicity(arcA));
+	setNodeTime(hapB, getNodeLength(origin) / (Time)getMultiplicity(arcB));
+
 	if (getMultiplicity(arcA) > getMultiplicity(arcB))
-		comparePathsDE(origin, hapA, hapB);
+		comparePathsDeadEnd(origin, hapA, hapB);
 	else
-		comparePathsDE(origin, hapB, hapA);
+		comparePathsDeadEnd(origin, hapB, hapA);
 }
 
 void correctHapLoopGraph(Graph * argGraph,
@@ -3245,7 +3279,7 @@ void correctHapLoopGraph(Graph * argGraph,
 	fastToSlowMapping = callocOrExit(MAXREADLENGTH + 1, Coordinate);
 	slowToFastMapping = callocOrExit(MAXREADLENGTH + 1, Coordinate);
 	Fmatrix = mallocOrExit(MAXREADLENGTH + 1, Time *);
-	Fmatrix[0] = callocOrExit((MAXREADLENGTH + 1) * (MAXREADLENGTH + 1), Time *);
+	Fmatrix[0] = callocOrExit((MAXREADLENGTH + 1) * (MAXREADLENGTH + 1), Time);
 	for (index = 1; index < MAXREADLENGTH + 1; index++)
 		Fmatrix[index] = Fmatrix[0] + index * (MAXREADLENGTH + 1);
 	activateArcLookupTable(graph);
@@ -3261,7 +3295,7 @@ void correctHapLoopGraph(Graph * argGraph,
 			continue;
 
 		hapLoopNode(node);
-		//hapDeadEnd1(node);
+		hapDeadEnd1(node);
 		hapDeadEnd2(node);
 	}
 
