@@ -3011,6 +3011,14 @@ compareSequencesDeadEnd(TightString *sequence1,
 	maxLength = (length1 > length2 ? length1 : length2);
 	//minLength = (length1 > length2 ? length2 : length1);
 
+	if (length1 < WORDLENGTH || length2 < WORDLENGTH) {
+		if (maxLength - length1 > MAXGAPS
+		    || maxLength - length2 > MAXGAPS
+		    || WORDLENGTH - length1 > MAXGAPS
+		    || WORDLENGTH - length2 > MAXGAPS)
+			return false;
+	}
+
 	for (i = 0; i <= length1; i++)
 		Fmatrix[i][0] = 0;
 	for (j = 0; j <= length2; j++)
