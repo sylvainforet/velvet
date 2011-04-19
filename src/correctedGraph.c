@@ -2843,6 +2843,248 @@ hapLoopNode(Node *origin)
 	}
 }
 
+static boolean
+extractSequenceDE(PassageMarkerI path, TightString * sequence)
+{
+	PassageMarkerI marker;
+	Coordinate seqLength = 0;
+	Coordinate writeIndex = 0;
+
+	//Measure length
+	for (marker = path; !isTerminal(marker);
+	     marker = getNextInSequence(marker))
+		seqLength += getNodeLength(getNode(marker));
+
+	if (seqLength > MAXREADLENGTH)
+		return false;
+	else
+		setTightStringLength(sequence, seqLength);
+
+	//Copy sequences
+	for (marker = path; !isTerminal(marker);
+	     marker = getNextInSequence(marker)) {
+		appendNodeSequence(getNode(marker), sequence, writeIndex);
+		writeIndex += getNodeLength(getNode(marker));
+	}
+
+	return true;
+}
+
+static Coordinate mapDistancesOntoPathsDE()
+{
+	PassageMarkerI marker;
+	Coordinate totalDistance = 0;
+
+	marker = slowPath;
+	while (!isTerminal(marker)) {
+		setPassageMarkerStart(marker, totalDistance);
+		totalDistance += getNodeLength(getNode(marker));
+		setPassageMarkerFinish(marker, totalDistance);
+		marker = getNextInSequence(marker);
+	}
+
+	totalDistance = 0;
+	marker = fastPath;
+	while (!isTerminal(marker)) {
+		setPassageMarkerStart(marker, totalDistance);
+		totalDistance += getNodeLength(getNode(marker));
+		setPassageMarkerFinish(marker, totalDistance);
+		marker = getNextInSequence(marker);
+	}
+
+	return totalDistance;
+}
+
+
+static void cleanUpRedundancyDE()
+{
+	PassageMarkerI slowMarker = slowPath;
+	PassageMarkerI fastMarker = fastPath;
+	Coordinate slowLength, fastLength;
+	Coordinate fastConstraint = 0;
+	Coordinate slowConstraint = 0;
+	Coordinate finalLength;
+	Node *slowNode, *fastNode;
+
+	//velvetLog("Correcting new redundancy\n");
+	mapSlowOntoFast();
+	finalLength = mapDistancesOntoPathsDE();
+
+	while (slowMarker != NULL_IDX && fastMarker != NULL_IDX) {
+		if (isTerminal(slowMarker))
+			slowLength = finalLength;
+		else {
+			slowLength =
+			    slowToFastMapping[getPassageMarkerFinish
+					      (slowMarker) - 1];
+			if (slowLength < slowConstraint)
+				slowLength = slowConstraint;
+		}
+
+		fastLength = getPassageMarkerFinish(fastMarker) - 1;
+		if (fastLength < fastConstraint)
+			fastLength = fastConstraint;
+
+		slowNode = getNode(slowMarker);
+		fastNode = getNode(fastMarker);
+
+		if (slowNode == fastNode) {
+			if (fastLength > slowLength)
+				slowConstraint = fastLength;
+			else if (fastLength < slowLength)
+				fastConstraint = slowLength;
+
+			slowMarker = getNextInSequence(slowMarker);
+			fastMarker = getNextInSequence(fastMarker);
+		} else if (slowNode == getTwinNode(fastNode)) {
+			if (fastLength > slowLength)
+				slowConstraint = fastLength;
+			else if (fastLength < slowLength)
+				fastConstraint = slowLength;
+
+			slowMarker = getNextInSequence(slowMarker);
+			fastMarker = getNextInSequence(fastMarker);
+			foldSymmetricalNode(fastNode);
+		} else if (markerLeadsToNode(slowMarker, fastNode)) {
+			reduceSlowNodes(slowMarker, fastNode);
+			remapEmptyPathOntoMiddlePath(fastMarker,
+						     slowMarker);
+			while (getNode(slowMarker) != fastNode)
+				slowMarker = getNextInSequence(slowMarker);
+		} else if (markerLeadsToNode(fastMarker, slowNode)) {
+			remapEmptyPathOntoMiddlePath(slowMarker,
+						     fastMarker);
+			while (getNode(fastMarker) != slowNode)
+				fastMarker = getNextInSequence(fastMarker);
+		} else if (slowLength == fastLength) {
+			remapNodeOntoNeighbour(slowNode, slowMarker,
+					       fastNode, fastMarker);
+			slowMarker = getNextInSequence(slowMarker);
+			fastMarker = getNextInSequence(fastMarker);
+		} else if (slowLength < fastLength) {
+			remapBackOfNodeOntoNeighbour(fastNode, fastMarker,
+						     slowNode, slowMarker,
+						     FAST_TO_SLOW);
+			slowMarker = getNextInSequence(slowMarker);
+		} else {
+			remapBackOfNodeOntoNeighbour(slowNode, slowMarker,
+						     fastNode, fastMarker,
+						     SLOW_TO_FAST);
+			fastMarker = getNextInSequence(fastMarker);
+		}
+
+		fflush(stdout);
+	}
+
+	while (!isInitial(slowPath))
+		slowPath = getPreviousInSequence(slowPath);
+	while (!isInitial(fastPath))
+		fastPath = getPreviousInSequence(fastPath);
+
+	// Freeing up memory  
+	if (slowMarker != NULL_IDX)
+		concatenatePathNodes(slowPath);
+	else
+		concatenatePathNodes(fastPath);
+
+	destroyPaths();
+}
+
+static boolean
+compareSequencesDE(TightString * sequence1, TightString * sequence2)
+{
+	Coordinate i, j;
+	Coordinate length1 = getLength(sequence1);
+	Coordinate length2 = getLength(sequence2);
+	Coordinate maxLength;
+	Coordinate minLength;
+	Time Choice1, Choice2, Choice3;
+	Time maxScore;
+
+	if (length1 == 0 || length2 == 0)
+		return false;
+
+	maxLength = (length1 > length2 ? length1 : length2);
+	minLength = (length1 > length2 ? length2 : length1);
+
+	for (i = 0; i <= length1; i++)
+		Fmatrix[i][0] = 0;
+	for (j = 0; j <= length2; j++)
+		Fmatrix[0][j] = 0;
+
+	for (i = 1; i <= length1; i++) {
+		for (j = 1; j <= length2; j++) {
+			Choice1 =
+			    Fmatrix[i - 1][j - 1] +
+			    SIM[(int) getNucleotide(i - 1, sequence1)]
+			    [(int) getNucleotide(j - 1, sequence2)];
+			Choice2 = Fmatrix[i - 1][j] + INDEL;
+			Choice3 = Fmatrix[i][j - 1] + INDEL;
+			Fmatrix[i][j] = max3(Choice1, Choice2, Choice3);
+		}
+	}
+
+	maxScore = Fmatrix[length1][length2];
+
+	if (minLength < 100) {
+		if (maxScore < minLength - MAXGAPS)
+			return false;
+	} else {
+		if (roundf((float)(MAXGAPS * minLength) / 100.) < minLength - maxScore)
+			return false;
+	}
+
+	if ((1 - maxScore / minLength) > MAXDIVERGENCE)
+		return false;
+
+	return true;
+}
+
+static void comparePathsDE(Node *origin,
+			   Node *hapA,
+			   Node *hapB)
+{
+	IDnum slowLength, fastLength;
+	Node *fastNode, *slowNode;
+	PassageMarkerI marker;
+
+	//Measure lengths
+	slowLength = fastLength = 0;
+	fastNode = hapA;
+	slowNode = hapB;
+
+	//Backtracking to record actual paths
+	fastPath = addUncertainPassageMarker(1, hapA);
+	setPassageMarkerStatus(fastPath, true);
+	marker = addUncertainPassageMarker(1, origin);
+	connectPassageMarkers(marker, fastPath, graph);
+
+	slowPath = addUncertainPassageMarker(2, hapB);
+	setPassageMarkerStatus(slowPath, true);
+	marker = addUncertainPassageMarker(2, origin);
+	setPassageMarkerStatus(marker, true);
+	connectPassageMarkers(marker, slowPath, graph);
+
+	// Avoid merging parallel Reference sequences
+	if (pathContainsReference(fastPath) && pathContainsReference(slowPath)) {
+		destroyPaths();
+		return;
+	}
+	//Extract sequences
+	if (!extractSequenceDE(fastPath, fastSequence)
+	    || !extractSequenceDE(slowPath, slowSequence)) {
+		destroyPaths();
+		return;
+	}
+	//Compare sequences
+	if (compareSequencesDE(fastSequence, slowSequence)) {
+		cleanUpRedundancyDE();
+		return;
+	}
+
+	destroyPaths();
+}
+
 static void
 hapDeadEnd1(Node *origin)
 {
@@ -2854,8 +3096,7 @@ hapDeadEnd1(Node *origin)
 	Node *twinA;
 	Node *twinB;
 	Node *dest;
-	Time tmpTime;
-	IDnum nodes;
+	boolean deadEndA = false;
 
 	if (origin == NULL
 	    || getNodeLength(origin) == 0
@@ -2889,8 +3130,10 @@ hapDeadEnd1(Node *origin)
 
 	if (arcCount(hapA) == 1 && arcCount(hapB) == 0)
 		dest = getDestination(getArc(hapA));
-	else if (arcCount(hapB) == 1 && arcCount(hapA) == 0)
+	else if (arcCount(hapB) == 1 && arcCount(hapA) == 0) {
 		dest = getDestination(getArc(hapB));
+		deadEndA = true;
+	}
 	else
 		return;
 
@@ -2906,30 +3149,61 @@ hapDeadEnd1(Node *origin)
 
 	// Now the topology is OK
 
-	// Setup the previous array
+	if (deadEndA)
+		comparePathsDE(origin, hapB, hapA);
+	else
+		comparePathsDE(origin, hapA, hapB);
+}
 
-	nodes = nodeCount(graph);
-	previous[getNodeID(origin) + nodes] = origin;
-	previous[getNodeID(hapA) + nodes] = origin;
-	previous[getNodeID(hapB) + nodes] = origin;
-	previous[getNodeID(dest) + nodes] = hapA;
+static void
+hapDeadEnd2(Node *origin)
+{
+	Arc *arcA;
+	Arc *arcB;
+	Node *twin;
+	Node *hapA;
+	Node *hapB;
+	Node *twinA;
+	Node *twinB;
 
-	setNodeTime(origin, 0);
-	setNodeTime(hapA, ((Time)getNodeLength(origin)) / ((Time)getMultiplicity(arcA)));
-	setNodeTime(hapB, ((Time)getNodeLength(origin)) / ((Time)getMultiplicity(arcB)));
-	setNodeTime(dest, getNodeTime(hapA) +
-			  ((Time)getNodeLength(hapA)) / ((Time)getMultiplicity(getArc(hapA))));
-	tmpTime = getNodeTime(hapB);
-	tmpTime += ((Time)getNodeLength(hapB)) / ((Time)getMultiplicity(getArc(hapB)));
+	if (origin == NULL
+	    || getNodeLength(origin) == 0
+	    || getTotalCoverage(origin) / getNodeLength(origin) > MAX_DIP_COV
+	    || simpleArcCount(origin) != 2
+	    || arcCount(origin) != 2)
+		return;
 
-	if (tmpTime > getNodeTime(dest))
-		comparePaths(dest, hapB);
-	else {
-		setNodeTime(dest, tmpTime);
-		previous[getNodeID(dest) + nodes] = hapB;
-		comparePaths(dest, hapA);
-	}
+	twin = getTwinNode(origin);
+	arcA = getArc(origin);
+	arcB = getNextArc(arcA);
+	hapA = getDestination(arcA);
+	hapB = getDestination(arcB);
+	twinA = getTwinNode(hapA);
+	twinB = getTwinNode(hapB);
 
+	if (hapA == origin
+	    || hapB == origin
+	    || hapA == twin
+	    || hapB == twin
+	    || getNodeLength(hapA) == 0
+	    || getNodeLength(hapB) == 0
+	    || getTotalCoverage(hapA) / getNodeLength(hapA) > MAX_HAP_COV
+	    || getTotalCoverage(hapB) / getNodeLength(hapB) > MAX_HAP_COV
+	    || hapB == getTwinNode(hapA)
+	    || arcCount(twinA) != 1
+	    || arcCount(twinB) != 1
+	    || getDestination(getArc(twinA)) != twin
+	    || getDestination(getArc(twinB)) != twin
+	    || arcCount(hapA) != 0
+	    || arcCount(hapB) != 0)
+		return;
+
+	// Now the topology is OK
+
+	if (getMultiplicity(arcA) > getMultiplicity(arcB))
+		comparePathsDE(origin, hapA, hapB);
+	else
+		comparePathsDE(origin, hapB, hapA);
 }
 
 void correctHapLoopGraph(Graph * argGraph,
@@ -2987,6 +3261,8 @@ void correctHapLoopGraph(Graph * argGraph,
 			continue;
 
 		hapLoopNode(node);
+		//hapDeadEnd1(node);
+		hapDeadEnd2(node);
 	}
 
 	deactivateArcLookupTable(graph);
