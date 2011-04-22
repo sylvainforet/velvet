@@ -710,11 +710,11 @@ static void ghostThreadSequenceThroughGraph(TightString * tString,
 		if (annotCount < annotationCount && annotIndex == getAnnotationLength(annotation)) {
 			annotation = getNextAnnotation(annotation);
 			annotCount++;
+			annotIndex = 0;
 		}
 
 		// Search for reference mapping
-		if (annotCount < annotationCount && uniqueIndex >= getPosition(annotation))
-		{
+ 		if (annotCount < annotationCount && uniqueIndex >= getPosition(annotation) && getAnnotSequenceID(annotation) <= refCount && getAnnotSequenceID(annotation) >= -refCount) {
 			refID = getAnnotSequenceID(annotation);
 			if (refID > 0)
 				refCoord = getStart(annotation) + annotIndex;
@@ -874,6 +874,7 @@ static void threadSequenceThroughGraph(TightString * tString,
 		if (annotCount < annotationCount && annotIndex == getAnnotationLength(annotation)) {
 			annotation = getNextAnnotation(annotation);
 			annotCount++;
+			annotIndex = 0;
 		}
 
 		// Search for reference mapping
@@ -994,7 +995,7 @@ static void threadSequenceThroughGraph(TightString * tString,
 							getNodeLength(node)
 							- coord - 1);
 				} else {
-#ifdef FULL_COVERAGE_INFO
+#ifndef SINGLE_COV_CAT
 					incrementVirtualCoverage(node, category / 2, 1);
 					incrementOriginalVirtualCoverage(node, category / 2, 1);
 #else
@@ -1035,7 +1036,7 @@ static void threadSequenceThroughGraph(TightString * tString,
 						}
 					}
 
-#ifdef FULL_COVERAGE_INFO
+#ifndef SINGLE_COV_CAT
 					incrementVirtualCoverage(node, category / 2, 1);
 					incrementOriginalVirtualCoverage(node, category / 2, 1);
 #else
@@ -1078,7 +1079,7 @@ static void fillUpGraph(ReadSet * reads,
 	
 	if (referenceMappings)
 	{
-		roadmap = importReferenceRoadMapArray(roadmapFilename);
+		roadmap = importRoadMapArray(roadmapFilename);
 		annotationOffset = callocOrExit(reads->readCount, Coordinate);
 		for (readIndex = 1; readIndex < reads->readCount; readIndex++)
 			annotationOffset[readIndex] = annotationOffset[readIndex - 1]

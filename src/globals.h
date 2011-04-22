@@ -38,7 +38,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 
 #define VERSION_NUMBER 1
 #define RELEASE_NUMBER 1
-#define UPDATE_NUMBER 02
+#define UPDATE_NUMBER 03
 
 #define MAXLINE 5000 
 
@@ -94,7 +94,11 @@ typedef double Time;
 typedef uint8_t Quality;
 typedef double Probability;
 typedef int8_t Category;
+#ifndef VBIGASSEMBLY
 typedef uint32_t ArrayIdx;
+#else
+typedef uint64_t ArrayIdx;
+#endif
 
 // Atomic word
 typedef struct kmer_st Kmer;

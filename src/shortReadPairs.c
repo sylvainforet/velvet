@@ -588,8 +588,10 @@ static void adjustShortReads(Node * target, Node * source)
 	for (index = 0; index < targetLength; index++) {
 		marker = getShortReadMarkerAtIndex(targetArray, index);
 		position = getShortReadMarkerPosition(marker);
-		position += nodeLength;
-		setShortReadMarkerPosition(marker, position);
+		if (position != -1) {
+			position += nodeLength;
+			setShortReadMarkerPosition(marker, position);
+		}
 	}
 }
 
@@ -695,8 +697,10 @@ static void adjustShortReadsByLength(Node * target, Coordinate nodeLength)
 	for (index = 0; index < targetLength; index++) {
 		marker = getShortReadMarkerAtIndex(targetArray, index);
 		position = getShortReadMarkerPosition(marker);
-		position += nodeLength;
-		setShortReadMarkerPosition(marker, position);
+		if (position != -1) {
+			position += nodeLength;
+			setShortReadMarkerPosition(marker, position);
+		}
 	}
 }
 
@@ -878,7 +882,7 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 				absorbExtensionInScaffold(node, candidate);
 
 				// Read coverage
-#ifdef FULL_COVERAGE_INFO
+#ifndef SINGLE_COV_CAT
 				Category cat;
 				for (cat = 0; cat < CATEGORIES; cat++) {
 					incrementVirtualCoverage(node, cat,
@@ -947,7 +951,7 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 		absorbExtensionInScaffold(node, oppositeNode);
 
 		// Read coverage
-#ifdef FULL_COVERAGE_INFO
+#ifndef SINGLE_COV_CAT
 		Category cat;
 		for (cat = 0; cat < CATEGORIES; cat++)
 			incrementVirtualCoverage(node, cat,

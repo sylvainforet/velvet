@@ -51,7 +51,6 @@ typedef struct tkt_st Ticket;
 struct tkt_st {
 	Ticket *next;
 	IDnum id_a;
-	IDnum id_b;
 } ATTRIBUTE_PACKED;
 
 //Global variables used throughout this procedure(internal use only !)
@@ -852,7 +851,7 @@ static void remapNodeMarkersOntoNeighbour(Node * source,
 			       graph);
 	}
 	// Virtual reads
-#ifdef FULL_COVERAGE_INFO
+#ifndef SINGLE_COV_CAT
 	Category cat;
 	for (cat = 0; cat < CATEGORIES; cat++)
 		incrementVirtualCoverage(target, cat,
@@ -1176,7 +1175,7 @@ remapBackOfNodeMarkersOntoNeighbour(Node * source,
 	// Virtual coverage
 	if (alignedSourceLength != 0) {
 		Coordinate coverage;
-#ifdef FULL_COVERAGE_INFO
+#ifndef SINGLE_COV_CAT
 		Category cat;
 		for (cat = 0; cat < CATEGORIES; cat++) {
 			coverage = getVirtualCoverage(source, cat);
@@ -2038,7 +2037,7 @@ static void concatenateNodesAndVaccinate(Node * nodeA, Node * nodeB,
 	// Update uniqueness:
 	setUniqueness(nodeA, getUniqueness(nodeA) || getUniqueness(nodeB));
 
-#ifdef FULL_COVERAGE_INFO
+#ifndef SINGLE_COV_CAT
 	Category cat;
 	for (cat = 0; cat < CATEGORIES; cat++) {
 		// Update virtual coverage

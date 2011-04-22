@@ -137,6 +137,21 @@ int main(int argc, char **argv)
 		puts("Compilation settings:");
 		printf("CATEGORIES = %i\n", CATEGORIES);
 		printf("MAXKMERLENGTH = %i\n", MAXKMERLENGTH);
+#ifdef OPENMP
+		puts("OPENMP");
+#endif
+#ifdef LONGSEQUENCES
+		puts("LONGSEQUENCES");
+#endif
+#ifdef BIGASSEMBLY
+		puts("BIGASSEMBLY");
+#endif
+#ifdef COLOR
+		puts("COLOR");
+#endif
+#ifdef DEBUG
+		puts("DEBUG");
+#endif
 		puts("");
 		printUsage();
 		return 1;
@@ -556,7 +571,8 @@ int main(int argc, char **argv)
 		velvetLog("See manual for instructions on how to set the expected coverage parameter\n");
 	}
 
-	free(dubious);
+	if (dubious)
+		free(dubious);
 
 	concatenateGraph(graph);
 

@@ -156,6 +156,19 @@ To turn on multithreading, simply use the OPENMP option at compilation. This sho
 make 'OPENMP=1'
 \end{verbatim}
 
+OpenMP allows a program to make use of multiple CPU cores on the same machine. You might have to set the environment variables OMP\_NUM\_THREADS and OMP\_THREAD\_LIMIT. Velvet will the use up to $OMP\_NUM\_THREADS + 1$ or $OMP\_THREAD\_LIMIT$ threads. More information at \\
+\href{ http://www.ats.ucla.edu/clusters/common/computing/parallel/using_openmp.htm}{http://www.ats.ucla.edu/clusters/common/computing/parallel/using\_openmp.htm}
+
+Only parts of the Velvet algorithm make use of OpenMP, so don't expect a linear increase in run time with respect to CPUs.
+
+\subsubsection{BUNDLEDZLIB}
+
+By default, Velvet uses an existing zlib installed on your system. If there isn't one or if it is unsuitable for any reason, zlib source code is also distributed within the Velvet source package and Velvet can be compiled to use this bundled zlib by adding the following option to the make command:
+
+\begin{verbatim}
+make 'BUNDLEDZLIB=1'
+\end{verbatim}
+
 \section{Running instructions}
 
 \subsection{Running velveth}

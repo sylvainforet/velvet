@@ -30,7 +30,9 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #include "readSet.h"
 #include "utility.h"
 
-#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+#if !defined(BUNDLEDZLIB)
+#include <zlib.h>
+#elif defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
 #include "../third-party/zlib-1.2.3/Win32/include/zlib.h"
 #else
 #include "../third-party/zlib-1.2.3/zlib.h"
@@ -1518,7 +1520,7 @@ static void computeSecondInPair(ReadSet * reads)
 
 	if (reads->secondInPair)
 		free (reads->secondInPair);
-	reads->secondInPair = callocOrExit((reads->readCount + 7) / 8, char);
+	reads->secondInPair = callocOrExit((reads->readCount + 7) / 8, unsigned char);
 
 	for (index = 0; index < reads->readCount; index++)
 	{
