@@ -1574,7 +1574,8 @@ void detachDubiousReads(ReadSet * reads, boolean * dubiousReads)
 }
 
 #define MAX_LINE_SIZE 5000
-#define SEQ_BLOCK_SIZE (1024 * 1024 * 2)
+#define SEQ_BLOCK_SIZE (1024 * 1024)
+#define DATA_BLOCK_SIZE (SEQ_BLOCK_SIZE * 32)
 
 ReadSet *importReadSet(char *filename)
 {
@@ -1598,7 +1599,7 @@ ReadSet *importReadSet(char *filename)
 	reads = newReadSet();
 	reads->readCount = 0;
 	totalSeqs = SEQ_BLOCK_SIZE;
-	totalData = SEQ_BLOCK_SIZE * 128;
+	totalData = DATA_BLOCK_SIZE;
 	usedData = -1;
 	thisSeqSize = 0;
 
@@ -1630,7 +1631,7 @@ ReadSet *importReadSet(char *filename)
 				exit(1);
 			}
 			if (usedData + lineLength + 1 >= totalData) {
-				totalData += SEQ_BLOCK_SIZE * 128;
+				totalData += DATA_BLOCK_SIZE;
 				reads->seqMem = reallocOrExit(reads->seqMem, totalData, char);
 			}
 			strncpy(reads->seqMem + usedData, line, lineLength);
@@ -1647,6 +1648,7 @@ ReadSet *importReadSet(char *filename)
 	free(offsets);
 	fclose(file);
 	computeSecondInPair(reads);
+	velvetLog("%li sequences found\n", (long) reads->readCount);
 	velvetLog("Done\n");
 
 	return reads;
@@ -1654,6 +1656,7 @@ ReadSet *importReadSet(char *filename)
 
 #undef MAX_LINE_SIZE
 #undef SEQ_BLOCK_SIZE
+#undef DATA_BLOCK_SIZE
 
 void logInstructions(int argc, char **argv, char *directory)
 {
