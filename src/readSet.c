@@ -1577,6 +1577,10 @@ void detachDubiousReads(ReadSet * reads, boolean * dubiousReads)
 #define SEQ_BLOCK_SIZE (1024 * 1024)
 #define DATA_BLOCK_SIZE (SEQ_BLOCK_SIZE * 32)
 
+#if MAX_LINE_SIZE > DATA_BLOCK_SIZE
+#error "MAX_LINE_SIZE must be less than DATA_BLOCK_SIZE"
+#endif
+
 ReadSet *importReadSet(char *filename)
 {
 	char line[MAX_LINE_SIZE];
