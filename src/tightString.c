@@ -127,7 +127,6 @@ static void fillTightStringWithString(TightString * tString,
 		writeNucleotide(sequence[index],
 				&(newSequence[index / 4]),
 				index % 4);
-	free(sequence);
 }
 
 //
@@ -160,7 +159,6 @@ TightString *newTightStringArrayFromStringArray(char **sequences,
 		tmp += arrayLength;
 	}
 
-	free(sequences);
 	return tStringArray;
 }
 

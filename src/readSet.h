@@ -23,6 +23,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 
 struct readSet_st {
 	char **sequences;
+	char *seqMem;
 	TightString *tSequences;
 	char **labels;
 	char *tSeqMem;

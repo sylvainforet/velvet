@@ -255,7 +255,10 @@ void convertSequences(ReadSet * rs)
 	rs->tSequences = newTightStringArrayFromStringArray(rs->sequences,
 							    rs->readCount,
 							    &rs->tSeqMem);
+	free(rs->sequences);
 	rs->sequences = NULL;
+	free(rs->seqMem);
+	rs->seqMem = NULL;
 }
 
 // Returns the value of a 32-bit little-endian-stored integer.
@@ -1570,108 +1573,87 @@ void detachDubiousReads(ReadSet * reads, boolean * dubiousReads)
 	}
 }
 
+#define MAX_LINE_SIZE 5000
+#define SEQ_BLOCK_SIZE (1024 * 1024 * 2)
+
 ReadSet *importReadSet(char *filename)
 {
-	FILE *file = fopen(filename, "r");
-	char *sequence = NULL;
-	Coordinate bpCount = 0;
-	const int maxline = 5000;
-	char line[5000];
-	IDnum sequenceCount, sequenceIndex;
+	char line[MAX_LINE_SIZE];
+	FILE *file;
 	ReadSet *reads;
-	short int temp_short;
-	int lineLength;
+	Coordinate *offsets;
+	Coordinate totalData;
+	Coordinate totalSeqs;
+	Coordinate usedData;
+	Coordinate thisSeqSize;
+	IDnum seqIdx;
+	short int tempShort;
 
+	file = fopen(filename, "r");
 	if (file != NULL)
 		velvetLog("Reading read set file %s;\n", filename);
 	else
 		exitErrorf(EXIT_FAILURE, true, "Could not open %s", filename);
 
 	reads = newReadSet();
+	reads->readCount = 0;
+	totalSeqs = SEQ_BLOCK_SIZE;
+	totalData = SEQ_BLOCK_SIZE * 128;
+	usedData = -1;
+	thisSeqSize = 0;
 
-	// Count number of separate sequences
-	sequenceCount = 0;
-	while (fgets(line, maxline, file) != NULL)
-		if (line[0] == '>')
-			sequenceCount++;
-	fclose(file);
-	velvetLog("%li sequences found\n", (long) sequenceCount);
+	reads->seqMem = mallocOrExit(totalData, char);
+	reads->categories = mallocOrExit(totalSeqs, Category);
+	offsets = mallocOrExit(totalSeqs, Coordinate);
 
-	reads->readCount = sequenceCount;
-	
-	if (reads->readCount == 0) {
-		reads->sequences = NULL;
-		reads->categories = NULL;
-		return reads;	
-	}
-
-	reads->sequences = callocOrExit(sequenceCount, char *);
-	reads->categories = callocOrExit(sequenceCount, Category);
-	// Counting base pair length of each sequence:
-	file = fopen(filename, "r");
-	sequenceIndex = -1;
-	while (fgets(line, maxline, file) != NULL) {
+	while (fgets(line, MAX_LINE_SIZE, file) != NULL) {
 		if (line[0] == '>') {
-
 			// Reading category info
-			sscanf(line, "%*[^\t]\t%*[^\t]\t%hd",
-			       &temp_short);
-			reads->categories[sequenceIndex + 1] = (Category) temp_short;
+			sscanf(line, "%*[^\t]\t%*[^\t]\t%hd", &tempShort);
+			if (reads->readCount >= totalSeqs) {
+				totalSeqs += SEQ_BLOCK_SIZE;
+				reads->categories = reallocOrExit(reads->categories, totalSeqs, Category);
+				offsets = reallocOrExit(offsets, totalSeqs, Coordinate);
+			}
+			reads->categories[reads->readCount] = (Category) tempShort;
+			thisSeqSize = 0;
+			usedData++;
+			offsets[reads->readCount] = usedData;
+			reads->readCount++;
+		} else if (line[0] != 'M') {
+			Coordinate lineLength = strlen(line) - 1;
 
-			if (sequenceIndex != -1)
-				reads->sequences[sequenceIndex] =
-				    mallocOrExit(bpCount + 1, char);
-			sequenceIndex++;
-			bpCount = 0;
-		} if (line[0] == 'M') {;
-			// Map line
-		} else {
-			bpCount += (Coordinate) strlen(line) - 1;
-
-			if (sizeof(ShortLength) == sizeof(int16_t) && bpCount > SHRT_MAX) {
+			if (sizeof(ShortLength) == sizeof(int16_t) && lineLength + thisSeqSize + 1 > SHRT_MAX) {
 				velvetLog("Read %li of length %lli, longer than limit %i\n",
-				       (long) sequenceIndex + 1, (long long) bpCount, SHRT_MAX);
-				velvetLog("You should modify recompile with the LONGSEQUENCES option (cf. manual)\n");
+					  (long) reads->readCount, (long long) thisSeqSize, SHRT_MAX);
+				velvetLog("You should recompile with the LONGSEQUENCES option (cf. manual)\n");
 				exit(1);
 			}
-		}
-	}
-
-	//velvetLog("Sequence %d has length %d\n", sequenceIndex, bpCount);
-	reads->sequences[sequenceIndex] =
-	    mallocOrExit(bpCount + 1, char);
-	fclose(file);
-
-	// Reopen file and memorize line:
-	file = fopen(filename, "r");
-	sequenceIndex = -1;
-	while (fgets(line, maxline, file)) {
-		if (line[0] == '>') {
-			if (sequenceIndex != -1) {
-				sequence[bpCount] = '\0';
+			if (usedData + lineLength + 1 >= totalData) {
+				totalData += SEQ_BLOCK_SIZE * 128;
+				reads->seqMem = reallocOrExit(reads->seqMem, totalData, char);
 			}
-			sequenceIndex++;
-			bpCount = 0;
-			//velvetLog("Starting to read sequence %d\n",
-			//       sequenceIndex);
-			sequence = reads->sequences[sequenceIndex];
-		} else if (line[0] == 'M') {;
-			// Map line
-		} else {
-			lineLength = strlen(line) - 1;
-			strncpy(sequence + bpCount, line, lineLength);
-			bpCount += (Coordinate) lineLength;
+			strncpy(reads->seqMem + usedData, line, lineLength);
+			thisSeqSize += lineLength;
+			usedData += lineLength;
+			reads->seqMem[usedData] = '\0';
 		}
 	}
 
-	sequence[bpCount] = '\0';
+	reads->sequences = mallocOrExit(reads->readCount, char*);
+	for (seqIdx = 0; seqIdx < reads->readCount; seqIdx++)
+		reads->sequences[seqIdx] = reads->seqMem + offsets[seqIdx];
+
+	free(offsets);
 	fclose(file);
 	computeSecondInPair(reads);
-
 	velvetLog("Done\n");
-	return reads;
 
+	return reads;
 }
+
+#undef MAX_LINE_SIZE
+#undef SEQ_BLOCK_SIZE
 
 void logInstructions(int argc, char **argv, char *directory)
 {
@@ -1710,18 +1692,16 @@ void destroyReadSet(ReadSet * reads)
 	if (reads == NULL)
 		return;
 
-	if (reads->sequences != NULL)
-	{
-		for (index = 0; index < reads->readCount; index++)
-			free(reads->sequences[index]);
+	if (reads->sequences != NULL) {
+		free(reads->seqMem);
 		free(reads->sequences);
 	}
 
 	if (reads->tSequences != NULL)
-		free (reads->tSequences);
+		free(reads->tSequences);
 
 	if (reads->tSeqMem != NULL)
-		free (reads->tSeqMem);
+		free(reads->tSeqMem);
 
 	if (reads->labels != NULL)
 		for (index = 0; index < reads->readCount; index++)
