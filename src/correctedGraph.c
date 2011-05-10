@@ -33,6 +33,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #include "concatenatedGraph.h"
 #include "graphStats.h"
 #include "utility.h"
+#include "hirschberg.h"
 
 #define TICKET_BLOCK_SIZE 10000
 
@@ -2655,8 +2656,11 @@ void setMaxDivergence(double value)
 
 //////////////////// Haplotype Loops Merging
 
-static Time MAX_HAP_COV = -1;
-static Time MAX_DIP_COV = -1;
+static Time  MAX_HAP_COV = -1.0;
+static Time  MAX_DIP_COV = -1.0;
+static Time  HAP_MAX_DIVERGENCE = 0.2;
+static Time  HAP_MAX_GAPS = 0.1;
+static IDnum HAP_WINDOW = 200;
 
 typedef struct HapLoopCandidate_st HapLoopCandidate;
 
@@ -2898,7 +2902,7 @@ mapDistancesOntoPathsDeadEnd(void)
 
 
 static void
-cleanUpRedundancyDeadEnd(void)
+cleanUpRedundancyDeadEnd(Hirschberg *aln)
 {
 	PassageMarkerI slowMarker = slowPath;
 	PassageMarkerI fastMarker = fastPath;
@@ -2908,8 +2912,9 @@ cleanUpRedundancyDeadEnd(void)
 	Coordinate finalLength;
 	Node *slowNode, *fastNode;
 
-	//velvetLog("Correcting new redundancy\n");
-	mapSlowOntoFast();
+	fastToSlowMapping = mallocOrExit(getLength(fastSequence) + 1, Coordinate);
+	slowToFastMapping = mallocOrExit(getLength(slowSequence) + 1, Coordinate);
+	hirschbergMapSlowOntoFast(aln, fastToSlowMapping, slowToFastMapping);
 	finalLength = mapDistancesOntoPathsDeadEnd();
 
 	while (slowMarker != NULL_IDX && fastMarker != NULL_IDX) {
@@ -2990,65 +2995,24 @@ cleanUpRedundancyDeadEnd(void)
 		concatenatePathNodes(fastPath);
 
 	destroyPaths();
+	free(fastToSlowMapping);
+	free(slowToFastMapping);
+	destroyHirschberg(aln);
 }
 
-static boolean
-compareSequencesDeadEnd(TightString *sequence1,
-			TightString *sequence2)
+static Hirschberg*
+compareSequencesHap(TightString *sequence1,
+		    TightString *sequence2)
 {
-	Coordinate i, j;
-	Coordinate length1 = getLength(sequence1);
-	Coordinate length2 = getLength(sequence2);
-	Coordinate maxLength;
-	//Coordinate minLength;
-	Time Choice1, Choice2, Choice3;
-	Time maxScore;
+    Hirschberg *aln;
 
-	if (length1 == 0 || length2 == 0)
-		return false;
+    aln = newHirschberg(sequence1, sequence2);
+    hirschbergAlign(aln);
+    if (hirschbergCompare(aln, HAP_WINDOW, HAP_MAX_DIVERGENCE, HAP_MAX_GAPS))
+	    return aln;
 
-	maxLength = (length1 > length2 ? length1 : length2);
-	//minLength = (length1 > length2 ? length2 : length1);
-
-	if (length1 < WORDLENGTH || length2 < WORDLENGTH) {
-		if (maxLength - length1 > MAXGAPS
-		    || maxLength - length2 > MAXGAPS
-		    || WORDLENGTH - length1 > MAXGAPS
-		    || WORDLENGTH - length2 > MAXGAPS)
-			return false;
-	}
-
-	for (i = 0; i <= length1; i++)
-		Fmatrix[i][0] = 0;
-	for (j = 0; j <= length2; j++)
-		Fmatrix[0][j] = 0;
-
-	for (i = 1; i <= length1; i++) {
-		for (j = 1; j <= length2; j++) {
-			Choice1 =
-			    Fmatrix[i - 1][j - 1] +
-			    SIM[(int) getNucleotide(i - 1, sequence1)]
-			    [(int) getNucleotide(j - 1, sequence2)];
-			Choice2 = Fmatrix[i - 1][j] + INDEL;
-			Choice3 = Fmatrix[i][j - 1] + INDEL;
-			Fmatrix[i][j] = max3(Choice1, Choice2, Choice3);
-		}
-	}
-
-	maxScore = Fmatrix[length1][length2];
-
-	if (maxLength < 100) {
-		if (maxScore < maxLength - MAXGAPS)
-			return false;
-	} else {
-		if (roundf((float)(MAXGAPS * maxLength) / 100.) < maxLength - maxScore)
-			return false;
-	}
-
-	if ((1 - maxScore / maxLength) > MAXDIVERGENCE)
-		return false;
-
-	return true;
+    destroyHirschberg(aln);
+    return NULL;
 }
 
 static void
@@ -3059,6 +3023,7 @@ comparePathsDeadEnd(Node *origin,
 	IDnum slowLength, fastLength;
 	Node *fastNode, *slowNode;
 	PassageMarkerI marker;
+	Hirschberg *aln;
 
 	//Measure lengths
 	slowLength = fastLength = 0;
@@ -3091,8 +3056,9 @@ comparePathsDeadEnd(Node *origin,
 		return;
 	}
 	//Compare sequences
-	if (compareSequencesDeadEnd(fastSequence, slowSequence)) {
-		cleanUpRedundancyDeadEnd();
+	aln = compareSequencesHap(fastSequence, slowSequence);
+	if (aln != NULL) {
+		cleanUpRedundancyDeadEnd(aln);
 		return;
 	}
 
@@ -3247,26 +3213,27 @@ hapDeadEnd2(Node *origin)
 		comparePathsDeadEnd(origin, hapB, hapA);
 }
 
-void correctHapLoopGraph(Graph * argGraph,
-			 IDnum * argSequenceLengths,
-			 Time maxHapCov,
-			 Time maxDipCov,
-			 Time maxDivergence,
-			 IDnum maxGaps,
-			 IDnum maxLength)
+void
+correctHapLoopGraph(Graph * argGraph,
+		    IDnum * argSequenceLengths,
+		    Time maxHapCov,
+		    Time maxDipCov,
+		    Time divergence,
+		    Time gaps,
+		    IDnum window)
 {
 	IDnum nodes;
 	IDnum index;
 
 	//Setting global params
+	hapLoopResolution = true;
 	graph = argGraph;
-	WORDLENGTH = getWordLength(graph);
 	sequenceLengths = argSequenceLengths;
 	MAX_HAP_COV = maxHapCov;
 	MAX_DIP_COV = maxDipCov;
-	MAXREADLENGTH = maxLength;
-	MAXGAPS = maxGaps;
-	hapLoopResolution = true;
+	HAP_MAX_DIVERGENCE = divergence;
+	HAP_MAX_GAPS = gaps;
+	HAP_WINDOW = window;
 	// Done with global params
 
 	velvetLog("Correcting haploid loops\n");
@@ -3283,12 +3250,6 @@ void correctHapLoopGraph(Graph * argGraph,
 
 	fastSequence = newTightString(MAXREADLENGTH);
 	slowSequence = newTightString(MAXREADLENGTH);
-	fastToSlowMapping = callocOrExit(MAXREADLENGTH + 1, Coordinate);
-	slowToFastMapping = callocOrExit(MAXREADLENGTH + 1, Coordinate);
-	Fmatrix = mallocOrExit(MAXREADLENGTH + 1, Time *);
-	Fmatrix[0] = callocOrExit((MAXREADLENGTH + 1) * (MAXREADLENGTH + 1), Time);
-	for (index = 1; index < MAXREADLENGTH + 1; index++)
-		Fmatrix[index] = Fmatrix[0] + index * (MAXREADLENGTH + 1);
 	activateArcLookupTable(graph);
 	//Done with memory 
 
@@ -3316,9 +3277,7 @@ void correctHapLoopGraph(Graph * argGraph,
 	free(previous);
 	destroyTightString(fastSequence);
 	destroyTightString(slowSequence);
-	free(fastToSlowMapping);
-	free(slowToFastMapping);
-	free(Fmatrix[0]);
-	free(Fmatrix);
+	cleanupHirschbergMemory();
+	hapLoopResolution = false;
 	//Done deallocating
 }

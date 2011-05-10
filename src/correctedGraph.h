@@ -30,9 +30,9 @@ void correctHapLoopGraph(Graph * graph,
 			 IDnum * sequenceLengths,
 			 Time maxHapCov,
 			 Time maxDipCov,
-			 Time maxDivergence,
-			 IDnum maxGaps,
-			 IDnum maxLength);
+			 Time divergence,
+			 Time gaps,
+			 IDnum window);
 void clipWeakArcs(Graph *graph,
 		  IDnum minMultiplicity);
 

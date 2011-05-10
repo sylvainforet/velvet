@@ -113,9 +113,9 @@ int main(int argc, char **argv)
 	// Hap Loop params
 	Time maxHapCov = -1;
 	Time maxDipCov = -1;
-	Time hapLoopMaxDivergence = -1;
-	IDnum hapLoopMaxGaps = -1;
-	IDnum hapLoopBranchLength = -1;
+	Time hapLoopDivergence = -1;
+	Time hapLoopGaps = -1;
+	IDnum hapLoopWindow = -1;
 	boolean doHapLoop = false;
 
 	setProgramName("velvetg");
@@ -344,18 +344,18 @@ int main(int argc, char **argv)
 			}
 			shadows[cat - 1] = (strcmp(argv[arg_index], "yes") == 0);
 		} else if (strcmp(arg, "-hap_loop") == 0) {
-			sscanf(argv[arg_index], "%lli,%lf,%lf,%lf,%i",
-				&longlong_var, &maxHapCov, &maxDipCov, &hapLoopMaxDivergence, &arg_int);
-			hapLoopBranchLength = (IDnum) longlong_var;
-			hapLoopMaxGaps = (IDnum) arg_int;
-			if (hapLoopBranchLength < 0 ||
-			    maxHapCov < 0 ||
-			    maxDipCov < 0 ||
-			    hapLoopMaxDivergence < 0 ||
-			    hapLoopMaxGaps < 0) {
-				velvetLog("Invalid value for hap_loop parameters: `%s' -> (%i, %lf, %lf, %lf %i)\n",
-				argv[arg_index], hapLoopBranchLength, maxHapCov, maxDipCov,
-				hapLoopMaxDivergence, hapLoopMaxGaps);
+			sscanf(argv[arg_index], "%lf,%lf,%lf,%lf,%i",
+			       &maxHapCov, &maxDipCov, &hapLoopDivergence, &hapLoopGaps, &arg_int);
+			hapLoopWindow = (IDnum)arg_int;
+			if (maxHapCov < 0
+			    || maxDipCov < 0
+			    || hapLoopDivergence < 0
+			    || hapLoopGaps < 0
+			    || hapLoopWindow < 0) {
+				velvetLog("Invalid value for hap_loop parameters: `%s' -> (%lf, %lf, %lf %lf %li)\n",
+				argv[arg_index], maxHapCov, maxDipCov,
+				hapLoopDivergence, hapLoopGaps,
+				(long int)hapLoopWindow);
 #ifdef DEBUG
 				abort();
 #endif
@@ -417,17 +417,17 @@ int main(int argc, char **argv)
 					    sequenceLengths,
 					    maxHapCov,
 					    maxDipCov,
-					    hapLoopMaxDivergence,
-					    hapLoopMaxGaps,
-					    hapLoopBranchLength);
-			clipWeakArcs(graph, 2);
+					    hapLoopDivergence,
+					    hapLoopGaps,
+					    hapLoopWindow);
+			clipWeakArcs(graph, 2); // TODO this should be configurable
 			correctHapLoopGraph(graph,
 					    sequenceLengths,
 					    maxHapCov,
 					    maxDipCov,
-					    hapLoopMaxDivergence,
-					    hapLoopMaxGaps,
-					    hapLoopBranchLength);
+					    hapLoopDivergence,
+					    hapLoopGaps,
+					    hapLoopWindow);
 		}
 		free(sequenceLengths);
 		exportGraph(graphFilename, graph, sequences->tSequences);
@@ -454,17 +454,17 @@ int main(int argc, char **argv)
 					    sequenceLengths,
 					    maxHapCov,
 					    maxDipCov,
-					    hapLoopMaxDivergence,
-					    hapLoopMaxGaps,
-					    hapLoopBranchLength);
+					    hapLoopDivergence,
+					    hapLoopGaps,
+					    hapLoopWindow);
 			clipWeakArcs(graph, 1);
 			correctHapLoopGraph(graph,
 					    sequenceLengths,
 					    maxHapCov,
 					    maxDipCov,
-					    hapLoopMaxDivergence,
-					    hapLoopMaxGaps,
-					    hapLoopBranchLength);
+					    hapLoopDivergence,
+					    hapLoopGaps,
+					    hapLoopWindow);
 		}
 		free(sequenceLengths);
 		exportGraph(graphFilename, graph, sequences->tSequences);
@@ -545,9 +545,9 @@ int main(int argc, char **argv)
 				    sequenceLengths,
 				    maxHapCov,
 				    maxDipCov,
-				    hapLoopMaxDivergence,
-				    hapLoopMaxGaps,
-				    hapLoopBranchLength);
+				    hapLoopDivergence,
+				    hapLoopGaps,
+				    hapLoopWindow);
 		free(sequenceLengths);
 	}
 	clipTipsHard(graph);
