@@ -2704,151 +2704,6 @@ clipWeakArcs(Graph *graph,
 	clipTipsHard(graph);
 }
 
-static HapLoopCandidate *
-findHapLoopCandidates(Node *origin,
-		      IDnum maxOrigArcs)
-{
-	HapLoopCandidate *candidates = NULL;
-	Node *twin = getTwinNode(origin);
-	Arc *arc;
-
-	if (getNodeLength(origin) == 0
-	    || getTotalCoverage(origin) / (Time)getNodeLength(origin) > MAX_DIP_COV
-	    || arcCount(origin) > maxOrigArcs)
-		return NULL;
-
-	for (arc = getArc(origin); arc != NULL; arc = getNextArc(arc)) {
-		Node *dest;
-		Node *twinDest;
-		Node *end;
-		HapLoopCandidate *candidate;
-
-		dest = getDestination(arc);
-		twinDest = getTwinNode(dest);
-
-		if (arcCount(twinDest) != 1
-		    || getDestination(getArc(twinDest)) != twin
-		    || arcCount(dest) != 1)
-			continue;
-
-		end = getDestination(getArc(dest));
-
-		if (getNodeLength(end) == 0
-		    || getTotalCoverage(end) / (Time)getNodeLength(end) > MAX_DIP_COV)
-			continue;
-
-		for (candidate = candidates; candidate != NULL; candidate = candidate->next) {
-			if (candidate->end == end) {
-				if (candidate->hapA != NULL && candidate->hapB == NULL)
-					candidate->hapB = dest;
-				else {
-					candidate->hapA = NULL;
-					candidate->hapB = NULL;
-				}
-				break;
-			}
-		}
-		if (candidate == NULL) {
-			candidate = mallocOrExit(1, HapLoopCandidate);
-			candidate->end = end;
-			candidate->hapA = dest;
-			candidate->hapB = NULL;
-			candidate->next = candidates;
-			candidates = candidate;
-		}
-	}
-	return candidates;
-}
-
-static void
-resolveLoop(Node *origin,
-	    Node *hapA,
-	    Node *hapB,
-	    Node *dest)
-{
-	Arc *arcA;
-	Arc *arcB;
-	Node *twin;
-	Node *twinA;
-	Node *twinB;
-	Node *twinDest;
-	Time tmpTime;
-	IDnum nodes;
-
-	twin = getTwinNode(origin);
-	twinA = getTwinNode(hapA);
-	twinB = getTwinNode(hapB);
-
-	if (getNodeLength(hapA) == 0
-	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
-	    || getNodeLength(hapB) == 0
-	    || getTotalCoverage(hapB) / (Time)getNodeLength(hapB) > MAX_HAP_COV)
-		return;
-
-	if (hapA == origin
-	    || hapB == origin
-	    || hapA == twin
-	    || hapB == twin
-	    || hapB == getTwinNode(hapA))
-		return;
-
-	twinDest = getTwinNode(dest);
-
-	if (dest == origin
-	    || dest == twin
-	    || dest == hapA
-	    || dest == hapB
-	    || dest == twinA
-	    || dest == twinB)
-		return;
-
-	// Setup the previous array
-
-	nodes = nodeCount(graph);
-	previous[getNodeID(origin) + nodes] = origin;
-	previous[getNodeID(hapA) + nodes] = origin;
-	previous[getNodeID(hapB) + nodes] = origin;
-	previous[getNodeID(dest) + nodes] = hapA;
-
-	arcA = getArcBetweenNodes(origin, hapA, graph);
-	arcB = getArcBetweenNodes(origin, hapB, graph);
-
-	setNodeTime(origin, 0);
-	setNodeTime(hapA, getNodeLength(origin) / (Time)getMultiplicity(arcA));
-	setNodeTime(hapB, getNodeLength(origin) / (Time)getMultiplicity(arcB));
-	setNodeTime(dest, getNodeTime(hapA) +
-			  ((Time)getNodeLength(hapA)) / ((Time)getMultiplicity(getArc(hapA))));
-	tmpTime = getNodeTime(hapB) +
-		  ((Time)getNodeLength(hapB)) / ((Time)getMultiplicity(getArc(hapB)));
-
-	if (tmpTime > getNodeTime(dest))
-		comparePaths(dest, hapB);
-	else {
-		setNodeTime(dest, tmpTime);
-		previous[getNodeID(dest) + nodes] = hapB;
-		comparePaths(dest, hapA);
-	}
-}
-
-static void
-hapLoopNode(Node *origin)
-{
-	HapLoopCandidate *candidates;
-
-	candidates = findHapLoopCandidates(origin, 3);
-
-	while (candidates != NULL) {
-		HapLoopCandidate *next;
-
-		if (candidates->hapA != NULL && candidates->hapB != NULL)
-			resolveLoop(origin, candidates->hapA, candidates->hapB, candidates->end);
-
-		next = candidates->next;
-		free(candidates);
-		candidates = next;
-	}
-}
-
 static boolean
 extractSequenceDeadEnd(PassageMarkerI path,
 		       TightString *sequence)
@@ -2862,10 +2717,7 @@ extractSequenceDeadEnd(PassageMarkerI path,
 	     marker = getNextInSequence(marker))
 		seqLength += getNodeLength(getNode(marker));
 
-	if (seqLength > MAXREADLENGTH)
-		return false;
-	else
-		setTightStringLength(sequence, seqLength);
+	setTightStringLength(sequence, seqLength);
 
 	//Copy sequences
 	for (marker = getNextInSequence(path); marker != NULL_IDX;
@@ -3015,6 +2867,106 @@ compareSequencesHap(TightString *sequence1,
     return NULL;
 }
 
+// TODO merge that with comparePathsDeadEnd
+static void comparePathsHap(Node * destination, Node * origin)
+{
+	IDnum slowLength, fastLength;
+	Node *fastNode, *slowNode;
+	IDnum i;
+	PassageMarkerI marker;
+	Hirschberg *aln;
+
+	//Measure lengths
+	slowLength = fastLength = 0;
+	fastNode = destination;
+	slowNode = origin;
+
+	while (fastNode != slowNode) {
+		if (getNodeTime(fastNode) > getNodeTime(slowNode)) {
+			fastLength++;
+			fastNode = getNodePrevious(fastNode);
+		} else if (getNodeTime(fastNode) < getNodeTime(slowNode)) {
+			slowLength++;
+			slowNode = getNodePrevious(slowNode);
+		} else if (isPreviousToNode(slowNode, fastNode)) {
+			while (fastNode != slowNode) {
+				fastLength++;
+				fastNode = getNodePrevious(fastNode);
+			}
+		} else if (isPreviousToNode(fastNode, slowNode)) {
+			while (slowNode != fastNode) {
+				slowLength++;
+				slowNode = getNodePrevious(slowNode);
+			}
+		} else {
+			fastLength++;
+			fastNode = getNodePrevious(fastNode);
+			slowLength++;
+			slowNode = getNodePrevious(slowNode);
+		}
+
+		if (slowLength > MAXNODELENGTH
+		    || fastLength > MAXNODELENGTH)
+			return;
+	}
+
+	if (fastLength == 0)
+		return;
+
+	//Backtracking to record actual paths
+	fastPath = addUncertainPassageMarker(1, destination);
+	setPassageMarkerStatus(fastPath, true);
+
+	for (i = 0; i < fastLength; i++) {
+		marker =
+		    addUncertainPassageMarker(1,
+					      getNodePrevious(getNode
+							      (fastPath)));
+		setPassageMarkerStatus(marker, true);
+		connectPassageMarkers(marker, fastPath, graph);
+		fastPath = marker;
+	}
+
+	slowPath = addUncertainPassageMarker(2, destination);
+	setPassageMarkerStatus(slowPath, true);
+
+	marker = addUncertainPassageMarker(2, origin);
+	setPassageMarkerStatus(marker, true);
+	connectPassageMarkers(marker, slowPath, graph);
+	slowPath = marker;
+
+	for (i = 0; i < slowLength; i++) {
+		marker =
+		    addUncertainPassageMarker(2,
+					      getNodePrevious(getNode
+							      (slowPath)));
+		setPassageMarkerStatus(marker, true);
+		connectPassageMarkers(marker, slowPath, graph);
+		slowPath = marker;
+	}
+
+	// Avoid merging parallel Reference sequences
+	if (pathContainsReference(fastPath) && pathContainsReference(slowPath)) {
+		destroyPaths();
+		return;
+	}
+	//Extract sequences
+	if (!extractSequenceDeadEnd(fastPath, fastSequence)
+	    || !extractSequenceDeadEnd(slowPath, slowSequence)) {
+		destroyPaths();
+		return;
+	}
+	//Compare sequences
+	aln = compareSequencesHap(fastSequence, slowSequence);
+	if (aln != NULL) {
+		cleanUpRedundancyDeadEnd(aln);
+		return;
+	}
+
+	//velvetLog("\tFinished comparing paths, changes made\n");
+	destroyPaths();
+}
+
 static void
 comparePathsDeadEnd(Node *origin,
 		    Node *hapA,
@@ -3063,6 +3015,151 @@ comparePathsDeadEnd(Node *origin,
 	}
 
 	destroyPaths();
+}
+
+static HapLoopCandidate *
+findHapLoopCandidates(Node *origin,
+		      IDnum maxOrigArcs)
+{
+	HapLoopCandidate *candidates = NULL;
+	Node *twin = getTwinNode(origin);
+	Arc *arc;
+
+	if (getNodeLength(origin) == 0
+	    || getTotalCoverage(origin) / (Time)getNodeLength(origin) > MAX_DIP_COV
+	    || arcCount(origin) > maxOrigArcs)
+		return NULL;
+
+	for (arc = getArc(origin); arc != NULL; arc = getNextArc(arc)) {
+		Node *dest;
+		Node *twinDest;
+		Node *end;
+		HapLoopCandidate *candidate;
+
+		dest = getDestination(arc);
+		twinDest = getTwinNode(dest);
+
+		if (arcCount(twinDest) != 1
+		    || getDestination(getArc(twinDest)) != twin
+		    || arcCount(dest) != 1)
+			continue;
+
+		end = getDestination(getArc(dest));
+
+		if (getNodeLength(end) == 0
+		    || getTotalCoverage(end) / (Time)getNodeLength(end) > MAX_DIP_COV)
+			continue;
+
+		for (candidate = candidates; candidate != NULL; candidate = candidate->next) {
+			if (candidate->end == end) {
+				if (candidate->hapA != NULL && candidate->hapB == NULL)
+					candidate->hapB = dest;
+				else {
+					candidate->hapA = NULL;
+					candidate->hapB = NULL;
+				}
+				break;
+			}
+		}
+		if (candidate == NULL) {
+			candidate = mallocOrExit(1, HapLoopCandidate);
+			candidate->end = end;
+			candidate->hapA = dest;
+			candidate->hapB = NULL;
+			candidate->next = candidates;
+			candidates = candidate;
+		}
+	}
+	return candidates;
+}
+
+static void
+resolveLoop(Node *origin,
+	    Node *hapA,
+	    Node *hapB,
+	    Node *dest)
+{
+	Arc *arcA;
+	Arc *arcB;
+	Node *twin;
+	Node *twinA;
+	Node *twinB;
+	Node *twinDest;
+	Time tmpTime;
+	IDnum nodes;
+
+	twin = getTwinNode(origin);
+	twinA = getTwinNode(hapA);
+	twinB = getTwinNode(hapB);
+
+	if (getNodeLength(hapA) == 0
+	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
+	    || getNodeLength(hapB) == 0
+	    || getTotalCoverage(hapB) / (Time)getNodeLength(hapB) > MAX_HAP_COV)
+		return;
+
+	if (hapA == origin
+	    || hapB == origin
+	    || hapA == twin
+	    || hapB == twin
+	    || hapB == getTwinNode(hapA))
+		return;
+
+	twinDest = getTwinNode(dest);
+
+	if (dest == origin
+	    || dest == twin
+	    || dest == hapA
+	    || dest == hapB
+	    || dest == twinA
+	    || dest == twinB)
+		return;
+
+	// Setup the previous array
+
+	nodes = nodeCount(graph);
+	previous[getNodeID(origin) + nodes] = origin;
+	previous[getNodeID(hapA) + nodes] = origin;
+	previous[getNodeID(hapB) + nodes] = origin;
+	previous[getNodeID(dest) + nodes] = hapA;
+
+	arcA = getArcBetweenNodes(origin, hapA, graph);
+	arcB = getArcBetweenNodes(origin, hapB, graph);
+
+	setNodeTime(origin, 0);
+	setNodeTime(hapA, getNodeLength(origin) / (Time)getMultiplicity(arcA));
+	setNodeTime(hapB, getNodeLength(origin) / (Time)getMultiplicity(arcB));
+	setNodeTime(dest, getNodeTime(hapA) +
+			  ((Time)getNodeLength(hapA)) / ((Time)getMultiplicity(getArc(hapA))));
+	tmpTime = getNodeTime(hapB) +
+		  ((Time)getNodeLength(hapB)) / ((Time)getMultiplicity(getArc(hapB)));
+
+	if (tmpTime > getNodeTime(dest))
+		comparePathsHap(dest, hapB);
+	else {
+		setNodeTime(dest, tmpTime);
+		previous[getNodeID(dest) + nodes] = hapB;
+		comparePathsHap(dest, hapA);
+	}
+}
+
+static void
+hapLoopNode(Node *origin)
+{
+	HapLoopCandidate *candidates;
+
+	candidates = findHapLoopCandidates(origin, 3);
+
+	while (candidates != NULL) {
+		HapLoopCandidate *next;
+
+		if (candidates->hapA != NULL && candidates->hapB != NULL)
+			resolveLoop(origin, candidates->hapA, candidates->hapB, candidates->end);
+
+		next = candidates->next;
+		free(candidates);
+		candidates = next;
+	}
 }
 
 static void

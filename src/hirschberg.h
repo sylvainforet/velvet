@@ -54,4 +54,6 @@ void hirschbergMapSlowOntoFast(Hirschberg *aln,
 			       Coordinate *fastToSlowMapping,
 			       Coordinate *slowToFastMapping);
 
+void hirschbergPrint(Hirschberg *aln);
+
 #endif /* _HIRSCHBERG_H_ */

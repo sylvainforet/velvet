@@ -58,26 +58,29 @@ struct HirschbergOp_st {
 };
 
 struct Hirschberg_st {
-	unsigned char *seq1;
-	unsigned char *seq2;
+	Nucleotide   *seq1;
+	Nucleotide   *seq2;
 
-	IDnum         *CC;
-	IDnum         *DD;
-	IDnum         *SS;
-	IDnum         *RR;
+	TightString  *ts1;
+	TightString  *ts2;
 
-	AlignCode     *aln;
+	IDnum        *CC;
+	IDnum        *DD;
+	IDnum        *SS;
+	IDnum        *RR;
 
-	HirschbergOp  *stack;
+	AlignCode    *aln;
 
-	IDnum          l1;
-	IDnum          l2;
+	HirschbergOp *stack;
 
-	IDnum          score;
+	IDnum         l1;
+	IDnum         l2;
 
-	IDnum 	       alnLen;
+	IDnum         score;
 
-	boolean        flipped;
+	IDnum 	      alnLen;
+
+	boolean       flipped;
 };
 
 #define HIRSCHBERG_OP_BLOCK_SIZE 10000
@@ -98,8 +101,8 @@ newHirschbergOp(IDnum i1,
 
 	if (hirschbergOpMemory == NULL)
 		hirschbergOpMemory = newRecycleBin(sizeof(HirschbergOp), HIRSCHBERG_OP_BLOCK_SIZE);
-	op = allocatePointer(hirschbergOpMemory);
 
+	op = allocatePointer(hirschbergOpMemory);
 	op->next = NULL;
 	op->i1 = i1;
 	op->i2 = i2;
@@ -140,9 +143,12 @@ newHirschberg(TightString *seq1,
 
 	aln = callocOrExit(1, Hirschberg);
 
+	aln->ts1 = seq1;
+	aln->ts2 = seq2;
+
 	l1 = getLength(seq1);
 	l2 = getLength(seq2);
-	if (l1 > l2) {
+	if (l1 >= l2) {
 		aln->flipped = false;
 		aln->l1 = l1;
 		aln->l2 = l2;
@@ -157,8 +163,8 @@ newHirschberg(TightString *seq1,
 		s2 = seq1;
 	}
 
-	aln->seq1 = mallocOrExit(l1, unsigned char);
-	aln->seq2 = mallocOrExit(l2, unsigned char);
+	aln->seq1 = mallocOrExit(aln->l1, Nucleotide);
+	aln->seq2 = mallocOrExit(aln->l2, Nucleotide);
 
 	for (i = aln->l1 - 1; i >= 0; i--)
 		aln->seq1[i] = getNucleotide(i, s1);
@@ -170,6 +176,8 @@ newHirschberg(TightString *seq1,
 	aln->RR = callocOrExit(aln->l2 + 1, IDnum);
 	aln->SS = callocOrExit(aln->l2 + 1, IDnum);
 	aln->aln = callocOrExit(aln->l1 + aln->l2 + 1, AlignCode);
+
+	aln->stack = NULL;
 
 	return aln;
 }
@@ -199,18 +207,18 @@ destroyHirschberg(Hirschberg *aln)
 static void
 hirschbergFlipBack(Hirschberg *aln)
 {
-	unsigned char *tmpSeq;
+	Nucleotide *tmpSeq;
 	IDnum tmpL;
-	IDnum i;
+	IDnum alnIdx;
 
 	if (!aln->flipped)
 		return;
 
-	for (i = 0; i < aln->alnLen; i++) {
-		if (aln->aln[i] == ALIGN_CODE_INSERT)
-			aln->aln[i] = ALIGN_CODE_DELETE;
-		else if (aln->aln[i] == ALIGN_CODE_DELETE)
-			aln->aln[i] = ALIGN_CODE_INSERT;
+	for (alnIdx = 0; alnIdx < aln->alnLen; alnIdx++) {
+		if (aln->aln[alnIdx] == ALIGN_CODE_INSERT)
+			aln->aln[alnIdx] = ALIGN_CODE_DELETE;
+		else if (aln->aln[alnIdx] == ALIGN_CODE_DELETE)
+			aln->aln[alnIdx] = ALIGN_CODE_INSERT;
 	}
 	tmpSeq = aln->seq1;
 	aln->seq1 = aln->seq2;
@@ -360,11 +368,11 @@ hirschbergReverse(Hirschberg *aln,
 
 		s = aln->RR[j2];
 		t += GAP_EXTEND;
+		e = t + GAP_OPEN;
 		c = t;
 		aln->RR[j2] = c;
-		e = t + GAP_OPEN;
 		for (j = j2 - 1; j >= j1; j--) {
-			const unsigned char cj = aln->seq2[j - 1];
+			const unsigned char cj = aln->seq2[j];
 
 			if (e < c + GAP_OPEN)
 				e = c + GAP_OPEN;
@@ -429,7 +437,7 @@ hirschbergAlign(Hirschberg *aln)
 				*current++ = ALIGN_CODE_INSERT;
 		}
 		else if (j2 <= j1) {
-			for (i = i1; i1 < i2; i++)
+			for (i = i1; i < i2; i++)
 				*current++ = ALIGN_CODE_DELETE;
 		}
 		else if (i1 + 1 == i2) {
@@ -437,9 +445,9 @@ hirschbergAlign(Hirschberg *aln)
 		}
 		// Core dynamic programming algo
 		else {
-			const IDnum mid = (i1 + i2) / 2;
 			IDnum midc;
 			IDnum midj;
+			const IDnum mid = (i1 + i2) / 2;
 
 			hirschbergForward(aln, i1, mid, j1, j2, tb);
 			hirschbergReverse(aln, mid, i2, j1, j2, te);
@@ -452,7 +460,7 @@ hirschbergAlign(Hirschberg *aln)
 				if (c >= midc) {
 					if (c > midc
 					    || (aln->CC[j] != aln->DD[j]
-						&& aln->RR[j] != aln->SS[j])) {
+						&& aln->RR[j] == aln->SS[j])) {
 						midc = c;
 						midj = j;
 					}
@@ -489,6 +497,7 @@ hirschbergAlign(Hirschberg *aln)
 	}
 	aln->alnLen = current - aln->aln;
 	hirschbergFlipBack(aln);
+	//hirschbergPrint(aln);
 }
 
 boolean
@@ -590,4 +599,71 @@ hirschbergMapSlowOntoFast(Hirschberg *aln,
 	}
 	fastToSlowMapping[aln->l1] = aln->l2;
 	slowToFastMapping[aln->l2] = aln->l1;
+}
+
+void
+hirschbergPrint(Hirschberg *aln)
+{
+	char *str1;
+	char *str2;
+	char *aln1;
+	char *alnm;
+	char *aln2;
+	IDnum alnIdx;
+	IDnum i = 0;
+	IDnum j = 0;
+
+	str1 = readTightString(aln->ts1);
+	str2 = readTightString(aln->ts2);
+
+	printf("\nPrinting Alignment:\n\n");
+	printf("seq1: %s\n", str1);
+	printf("seq2: %s\n\n", str2);
+
+	aln1 = mallocOrExit(aln->alnLen + 1, char);
+	alnm = mallocOrExit(aln->alnLen + 1, char);
+	aln2 = mallocOrExit(aln->alnLen + 1, char);
+	for (alnIdx = 0; alnIdx < aln->alnLen; alnIdx++) {
+		const AlignCode c = aln->aln[alnIdx];
+
+		if (c == ALIGN_CODE_MATCH || c == ALIGN_CODE_MISMATCH) {
+			aln1[alnIdx] = str1[i];
+			aln2[alnIdx] = str2[j];
+			alnm[alnIdx] = '|';
+			if (c == ALIGN_CODE_MISMATCH)
+				alnm[alnIdx] = ' ';
+			i++;
+			j++;
+		}
+		else if (c == ALIGN_CODE_INSERT) {
+			aln1[alnIdx] = '-';
+			aln2[alnIdx] = str2[j];
+			alnm[alnIdx] = ' ';
+			j++;
+		}
+		else if (c == ALIGN_CODE_DELETE) {
+			aln1[alnIdx] = str1[i];
+			alnm[alnIdx] = ' ';
+			aln2[alnIdx] = '-';
+			i++;
+		}
+		else {
+			velvetLog("Error: unknown align code\n");
+			fflush(stdout);
+			abort();
+		}
+	}
+	aln1[aln->alnLen] = '\0';
+	alnm[aln->alnLen] = '\0';
+	aln2[aln->alnLen] = '\0';
+
+	printf("seq1 %s\n", aln1);
+	printf("     %s\n", alnm);
+	printf("seq2 %s\n\n", aln2);
+
+	free(str1);
+	free(str2);
+	free(aln1);
+	free(alnm);
+	free(aln2);
 }
