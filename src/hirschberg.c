@@ -517,7 +517,7 @@ hirschbergCompare(Hirschberg *aln,
 	// Resize window to the smallest sequence
 	if (aln->l1 < window || aln->l2 < window) {
 		window = aln->l1;
-		if (window < aln->l2)
+		if (aln->l2 < window)
 			window = aln->l2;
 	}
 

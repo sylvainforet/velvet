@@ -2704,7 +2704,32 @@ clipWeakArcs(Graph *graph,
 	clipTipsHard(graph);
 }
 
-static boolean
+
+static void
+extractSequenceHapLoop(PassageMarkerI path, TightString * sequence)
+{
+	PassageMarkerI marker;
+	Coordinate seqLength = 0;
+	Coordinate writeIndex = 0;
+
+	//velvetLog("Extracting sequence %ld ... ", pathLength);
+
+	//Measure length
+	for (marker = getNextInSequence(path); !isTerminal(marker);
+	     marker = getNextInSequence(marker))
+		seqLength += getNodeLength(getNode(marker));
+
+	setTightStringLength(sequence, seqLength);
+
+	//Copy sequences
+	for (marker = getNextInSequence(path); !isTerminal(marker);
+	     marker = getNextInSequence(marker)) {
+		appendNodeSequence(getNode(marker), sequence, writeIndex);
+		writeIndex += getNodeLength(getNode(marker));
+	}
+}
+
+static void
 extractSequenceDeadEnd(PassageMarkerI path,
 		       TightString *sequence)
 {
@@ -2725,8 +2750,6 @@ extractSequenceDeadEnd(PassageMarkerI path,
 		appendNodeSequence(getNode(marker), sequence, writeIndex);
 		writeIndex += getNodeLength(getNode(marker));
 	}
-
-	return true;
 }
 
 static Coordinate
@@ -2868,7 +2891,7 @@ compareSequencesHap(TightString *sequence1,
 }
 
 // TODO merge that with comparePathsDeadEnd
-static void comparePathsHap(Node * destination, Node * origin)
+static void comparePathsHapLoop(Node * destination, Node * origin)
 {
 	IDnum slowLength, fastLength;
 	Node *fastNode, *slowNode;
@@ -2951,11 +2974,9 @@ static void comparePathsHap(Node * destination, Node * origin)
 		return;
 	}
 	//Extract sequences
-	if (!extractSequenceDeadEnd(fastPath, fastSequence)
-	    || !extractSequenceDeadEnd(slowPath, slowSequence)) {
-		destroyPaths();
-		return;
-	}
+	extractSequenceHapLoop(fastPath, fastSequence);
+	extractSequenceHapLoop(slowPath, slowSequence);
+
 	//Compare sequences
 	aln = compareSequencesHap(fastSequence, slowSequence);
 	if (aln != NULL) {
@@ -3002,11 +3023,9 @@ comparePathsDeadEnd(Node *origin,
 		return;
 	}
 	//Extract sequences
-	if (!extractSequenceDeadEnd(fastPath, fastSequence)
-	    || !extractSequenceDeadEnd(slowPath, slowSequence)) {
-		destroyPaths();
-		return;
-	}
+	extractSequenceDeadEnd(fastPath, fastSequence);
+	extractSequenceDeadEnd(slowPath, slowSequence);
+
 	//Compare sequences
 	aln = compareSequencesHap(fastSequence, slowSequence);
 	if (aln != NULL) {
@@ -3135,11 +3154,11 @@ resolveLoop(Node *origin,
 		  ((Time)getNodeLength(hapB)) / ((Time)getMultiplicity(getArc(hapB)));
 
 	if (tmpTime > getNodeTime(dest))
-		comparePathsHap(dest, hapB);
+		comparePathsHapLoop(dest, hapB);
 	else {
 		setNodeTime(dest, tmpTime);
 		previous[getNodeID(dest) + nodes] = hapB;
-		comparePathsHap(dest, hapA);
+		comparePathsHapLoop(dest, hapA);
 	}
 }
 
