@@ -457,7 +457,7 @@ int main(int argc, char **argv)
 					    hapLoopDivergence,
 					    hapLoopGaps,
 					    hapLoopWindow);
-			clipWeakArcs(graph, 1);
+			clipWeakArcs(graph, 2); // TODO this should be configurable
 			correctHapLoopGraph(graph,
 					    sequenceLengths,
 					    maxHapCov,

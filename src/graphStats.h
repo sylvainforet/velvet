@@ -68,4 +68,13 @@ void exportLongNodeMappings(char *filename, Graph * graph, ReadSet * reads,
 
 void removeHighCoverageNodes(Graph * graph, double maxCov, boolean export, Coordinate minLength, char * filename);
 
+void removeUnmergedHaplotypes(Graph *graph,
+			      Time maxHapCov,
+			      Time maxDipCov,
+			      ReadSet *reads,
+			      boolean *dubious,
+			      boolean export,
+			      Coordinate minLength,
+			      char *filename);
+
 #endif
