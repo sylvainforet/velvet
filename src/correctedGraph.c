@@ -2891,7 +2891,8 @@ compareSequencesHap(TightString *sequence1,
 }
 
 // TODO merge that with comparePathsDeadEnd
-static void comparePathsHapLoop(Node * destination, Node * origin)
+static boolean
+comparePathsHapLoop(Node * destination, Node * origin)
 {
 	IDnum slowLength, fastLength;
 	Node *fastNode, *slowNode;
@@ -2927,14 +2928,7 @@ static void comparePathsHapLoop(Node * destination, Node * origin)
 			slowLength++;
 			slowNode = getNodePrevious(slowNode);
 		}
-
-		if (slowLength > MAXNODELENGTH
-		    || fastLength > MAXNODELENGTH)
-			return;
 	}
-
-	if (fastLength == 0)
-		return;
 
 	//Backtracking to record actual paths
 	fastPath = addUncertainPassageMarker(1, destination);
@@ -2971,7 +2965,7 @@ static void comparePathsHapLoop(Node * destination, Node * origin)
 	// Avoid merging parallel Reference sequences
 	if (pathContainsReference(fastPath) && pathContainsReference(slowPath)) {
 		destroyPaths();
-		return;
+		return true;
 	}
 	//Extract sequences
 	extractSequenceHapLoop(fastPath, fastSequence);
@@ -2981,14 +2975,15 @@ static void comparePathsHapLoop(Node * destination, Node * origin)
 	aln = compareSequencesHap(fastSequence, slowSequence);
 	if (aln != NULL) {
 		cleanUpRedundancyDeadEnd(aln);
-		return;
+		return true;
 	}
 
 	//velvetLog("\tFinished comparing paths, changes made\n");
 	destroyPaths();
+	return false;
 }
 
-static void
+static boolean
 comparePathsDeadEnd(Node *origin,
 		    Node *hapA,
 		    Node *hapB)
@@ -3020,7 +3015,7 @@ comparePathsDeadEnd(Node *origin,
 	// Avoid merging parallel Reference sequences
 	if (pathContainsReference(fastPath) && pathContainsReference(slowPath)) {
 		destroyPaths();
-		return;
+		return true;
 	}
 	//Extract sequences
 	extractSequenceDeadEnd(fastPath, fastSequence);
@@ -3030,10 +3025,11 @@ comparePathsDeadEnd(Node *origin,
 	aln = compareSequencesHap(fastSequence, slowSequence);
 	if (aln != NULL) {
 		cleanUpRedundancyDeadEnd(aln);
-		return;
+		return true;
 	}
 
 	destroyPaths();
+	return false;
 }
 
 static HapLoopCandidate *
@@ -3153,12 +3149,21 @@ resolveLoop(Node *origin,
 	tmpTime = getNodeTime(hapB) +
 		  ((Time)getNodeLength(hapB)) / ((Time)getMultiplicity(getArc(hapB)));
 
-	if (tmpTime > getNodeTime(dest))
-		comparePathsHapLoop(dest, hapB);
+	if (tmpTime > getNodeTime(dest)) {
+		if (!comparePathsHapLoop(dest, hapB)) {
+			destroyArc(arcB, graph);
+			destroyArc(getArc(hapB), graph);
+			destroyNode(hapB, graph);
+		}
+	}
 	else {
 		setNodeTime(dest, tmpTime);
 		previous[getNodeID(dest) + nodes] = hapB;
-		comparePathsHapLoop(dest, hapA);
+		if (!comparePathsHapLoop(dest, hapA)) {
+			destroyArc(arcA, graph);
+			destroyArc(getArc(hapA), graph);
+			destroyNode(hapA, graph);
+		}
 	}
 }
 
@@ -3258,14 +3263,19 @@ hapDeadEnd1(Node *origin)
 		setNodeTime(hapB, tmpTime);
 		setNodeTime(hapA, tmpTime * 2);
 
-		comparePathsDeadEnd(origin, hapB, hapA);
+		if (!comparePathsDeadEnd(origin, hapB, hapA)) {
+			destroyArc(arcA, graph);
+			destroyNode(hapA, graph);
+		}
 	}
 	else {
 		tmpTime = getNodeLength(origin) / (Time)getMultiplicity(arcA);
 		setNodeTime(hapA, tmpTime);
 		setNodeTime(hapB, tmpTime * 2);
 
-		comparePathsDeadEnd(origin, hapA, hapB);
+		if (!comparePathsDeadEnd(origin, hapA, hapB))
+			destroyArc(arcB, graph);
+			destroyNode(hapB, graph);
 	}
 }
 
@@ -3323,10 +3333,18 @@ hapDeadEnd2(Node *origin)
 	setNodeTime(hapA, getNodeLength(origin) / (Time)getMultiplicity(arcA));
 	setNodeTime(hapB, getNodeLength(origin) / (Time)getMultiplicity(arcB));
 
-	if (getMultiplicity(arcA) > getMultiplicity(arcB))
-		comparePathsDeadEnd(origin, hapA, hapB);
-	else
-		comparePathsDeadEnd(origin, hapB, hapA);
+	if (getMultiplicity(arcA) > getMultiplicity(arcB)) {
+		if (!comparePathsDeadEnd(origin, hapA, hapB)) {
+			destroyArc(arcB, graph);
+			destroyNode(hapB, graph);
+		}
+	}
+	else {
+		if (!comparePathsDeadEnd(origin, hapB, hapA)) {
+			destroyArc(arcA, graph);
+			destroyNode(hapA, graph);
+		}
+	}
 }
 
 void
