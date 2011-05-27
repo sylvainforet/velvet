@@ -2693,7 +2693,6 @@ clipWeakArcs(Graph *graph,
 	}
 
 	concatenateGraph(graph);
-	clipTipsHard(graph);
 }
 
 
@@ -3383,7 +3382,6 @@ correctHapLoopGraph(Graph * argGraph,
 	deactivateArcLookupTable(graph);
 
 	concatenateGraph(graph);
-	clipTipsHard(graph);
 
 	//Deallocating globals
 	free(times);
