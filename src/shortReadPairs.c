@@ -853,7 +853,6 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 			      Coordinate distance, boolean force_jumps)
 {
 	Node *candidate;
-	Node *lastCandidate = NULL;
 	Coordinate oldLength = getNodeLength(node);
 	MiniConnection *localConnect;
 	NodeList *path, *tmp;
@@ -924,7 +923,6 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 				adjustShortReads(node, candidate);
 				adjustLongReads(node, candidate);
 				absorbExtension(node, candidate);
-				lastCandidate = candidate;
 			}
 		}
 	}
