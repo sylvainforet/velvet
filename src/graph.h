@@ -209,7 +209,7 @@ void resetNodeStatus(Graph * graph);
 
 // File IO
 Graph *importGraph(char *filename);
-void exportGraph(char *filename, Graph * graph, TightString * sequences);
+void exportGraph(char *filename, Graph * graph, TightString * sequences, boolean exportSequences);
 Graph *readPreGraphFile(char *preGraphFilename, boolean * double_strand);
 
 // Read starts

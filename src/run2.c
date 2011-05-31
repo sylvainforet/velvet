@@ -430,7 +430,7 @@ int main(int argc, char **argv)
 					    hapLoopWindow);
 		}
 		free(sequenceLengths);
-		exportGraph(graphFilename, graph, sequences->tSequences);
+		exportGraph(graphFilename, graph, sequences->tSequences, true);
 	} else if ((file = fopen(roadmapFilename, "r")) != NULL) {
 		fclose(file);
 
@@ -467,7 +467,7 @@ int main(int argc, char **argv)
 					    hapLoopWindow);
 		}
 		free(sequenceLengths);
-		exportGraph(graphFilename, graph, sequences->tSequences);
+		exportGraph(graphFilename, graph, sequences->tSequences, true);
 	} else {
 		velvetLog("No Roadmap file to build upon! Please run velveth (see manual)\n");
 #ifdef DEBUG 
@@ -551,6 +551,12 @@ int main(int argc, char **argv)
 		free(sequenceLengths);
 	}
 	clipTipsHard(graph);
+	strcpy(graphFilename, directory);
+	strcat(graphFilename, "/contigs_noscaf.fa");
+	exportLongNodeSequences(graphFilename, graph, minContigKmerLength);
+	strcpy(graphFilename, directory);
+	strcat(graphFilename, "/Graph3");
+	exportGraph(graphFilename, graph, sequences->tSequences, false);
 
 	if (expectedCoverage > 0) {
 
@@ -596,7 +602,7 @@ int main(int argc, char **argv)
 	if (clean == 0) {
 		strcpy(graphFilename, directory);
 		strcat(graphFilename, "/LastGraph");
-		exportGraph(graphFilename, graph, sequences->tSequences);
+		exportGraph(graphFilename, graph, sequences->tSequences, true);
 	}
 
 	if (exportAssembly) {

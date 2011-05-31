@@ -1946,7 +1946,10 @@ void sortGapMarkers(Graph * graph)
 	}
 }
 
-void exportGraph(char *filename, Graph * graph, TightString * sequences)
+void exportGraph(char *filename,
+		Graph *graph,
+		TightString *sequences,
+		boolean exportSequences)
 {
 	IDnum index;
 	FILE *outfile;
@@ -2005,7 +2008,7 @@ void exportGraph(char *filename, Graph * graph, TightString * sequences)
 	}
 
 	// Node reads
-	if (readStartsAreActivated(graph)) {
+	if (exportSequences && readStartsAreActivated(graph)) {
 		for (index = 0; index <= graph->nodeCount * 2; index++) {
 			readCount = graph->nodeReadCounts[index];
 			if (readCount == 0)
