@@ -76,7 +76,6 @@ static void deallocateRBConnection(RBConnection * nodeList)
 
 boolean isUniqueSolexa(Node * node)
 {
-
 	Coordinate nodeLength = getNodeLength(node);
 	Coordinate nodeCoverage;
 	double nodeDensity, probability;

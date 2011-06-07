@@ -3052,10 +3052,6 @@ findHapLoopCandidates(Node *origin,
 
 		end = getDestination(getArc(dest));
 
-		if (getNodeLength(end) == 0
-		    || getTotalCoverage(end) / (Time)getNodeLength(end) > MAX_DIP_COV)
-			continue;
-
 		for (candidate = candidates; candidate != NULL; candidate = candidate->next) {
 			if (candidate->end == end) {
 				if (candidate->hapA != NULL && candidate->hapB == NULL)
