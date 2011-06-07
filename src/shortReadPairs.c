@@ -869,35 +869,29 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 			///////////////////////////////////////
 
 			if (getUniqueness(candidate)) {
-				if (isAnchor(candidate)) {
-					concatenateReadStarts(node, candidate,
-							graph);
-					concatenateLongReads(node, candidate,
-							graph);
-					absorbExtension(node, candidate);
+				concatenateReadStarts(node, candidate,
+						      graph);
+				concatenateLongReads(node, candidate,
+						     graph);
+				absorbExtension(node, candidate);
 
-					// Scaffold changes
-					recenterNode(node, oldLength);
-					recenterLocalScaffold(node, oldLength);
-					absorbExtensionInScaffold(node, candidate);
+				// Scaffold changes
+				recenterNode(node, oldLength);
+				recenterLocalScaffold(node, oldLength);
+				absorbExtensionInScaffold(node, candidate);
 
-					// Read coverage
+				// Read coverage
 #ifndef SINGLE_COV_CAT
-					Category cat;
-					for (cat = 0; cat < CATEGORIES; cat++) {
-						incrementVirtualCoverage(node, cat,
-								getVirtualCoverage(candidate, cat));
-						incrementOriginalVirtualCoverage(node, cat,
-								getOriginalVirtualCoverage(candidate, cat));
-					}
-#else
-					incrementVirtualCoverage(node, getVirtualCoverage(candidate));
-#endif
-				} else {
-					adjustShortReads(node, candidate);
-					adjustLongReads(node, candidate);
-					absorbExtension(node, candidate);
+				Category cat;
+				for (cat = 0; cat < CATEGORIES; cat++) {
+					incrementVirtualCoverage(node, cat,
+								 getVirtualCoverage(candidate, cat));
+					incrementOriginalVirtualCoverage(node, cat,
+									 getOriginalVirtualCoverage(candidate, cat));
 				}
+#else
+				incrementVirtualCoverage(node, getVirtualCoverage(candidate));
+#endif
 
 				if (getNodeStatus(candidate)) {
 					localConnect = &localScaffold[getNodeID(candidate) + nodeCount(graph)];
