@@ -3075,6 +3075,24 @@ findHapLoopCandidates(Node *origin,
 	return candidates;
 }
 
+static boolean
+checkHapCoverage(Node *hapA,
+		 Node *hapB)
+{
+	Time totCov;
+
+	if (getNodeLength(hapA) == 0
+	    || getNodeLength(hapB) == 0)
+		return false;
+
+	totCov = getTotalCoverage(hapA) / (Time)getNodeLength(hapA) +
+		 getTotalCoverage(hapB) / (Time)getNodeLength(hapB);
+	if (totCov > MAX_DIP_COV)
+		return false;
+
+	return true;
+}
+
 static void
 resolveLoop(Node *origin,
 	    Node *hapA,
@@ -3094,10 +3112,7 @@ resolveLoop(Node *origin,
 	twinA = getTwinNode(hapA);
 	twinB = getTwinNode(hapB);
 
-	if (getNodeLength(hapA) == 0
-	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
-	    || getNodeLength(hapB) == 0
-	    || getTotalCoverage(hapB) / (Time)getNodeLength(hapB) > MAX_HAP_COV)
+	if (!checkHapCoverage(hapA, hapB))
 		return;
 
 	if (hapA == origin
@@ -3201,11 +3216,8 @@ hapDeadEnd1(Node *origin)
 	    || hapB == origin
 	    || hapA == twin
 	    || hapB == twin
-	    || getNodeLength(hapA) == 0
-	    || getNodeLength(hapB) == 0
-	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
-	    || getTotalCoverage(hapB) / (Time)getNodeLength(hapB) > MAX_HAP_COV
 	    || hapB == getTwinNode(hapA)
+	    || !checkHapCoverage(hapA, hapB)
 	    || arcCount(twinA) != 1
 	    || arcCount(twinB) != 1
 	    || getDestination(getArc(twinA)) != twin
@@ -3221,14 +3233,11 @@ hapDeadEnd1(Node *origin)
 	else
 		return;
 
-	// TODO check the number of incomming nodes into dest???
 	if (dest == twin
 	    || dest == hapA
 	    || dest == hapB
 	    || dest == twinA
-	    || dest == twinB
-	    || getNodeLength(dest) == 0
-	    || getTotalCoverage(dest) / (Time)getNodeLength(dest) > MAX_DIP_COV)
+	    || dest == twinB)
 		return;
 
 	// Now the topology is OK
@@ -3288,11 +3297,8 @@ hapDeadEnd2(Node *origin)
 	    || hapB == origin
 	    || hapA == twin
 	    || hapB == twin
-	    || getNodeLength(hapA) == 0
-	    || getNodeLength(hapB) == 0
-	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
-	    || getTotalCoverage(hapB) / (Time)getNodeLength(hapB) > MAX_HAP_COV
 	    || hapB == getTwinNode(hapA)
+	    || !checkHapCoverage(hapA, hapB)
 	    || arcCount(twinA) != 1
 	    || arcCount(twinB) != 1
 	    || getDestination(getArc(twinA)) != twin
