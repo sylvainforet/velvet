@@ -312,7 +312,7 @@ static boolean testConnection(IDnum IDA,
 	Category cat;
 
 	// Spare unique -> undetermined node connections
-	if (!getUniqueness(connect->destination))
+	if (!isAnchor(connect->destination))
 		return true;
 
 	// Destroy tenuous connections
@@ -803,7 +803,7 @@ Connection *createNewConnection(IDnum nodeID, IDnum node2ID,
 	scaffold[nodeIndex] = connect;
 
 	// Event. pair up to twin
-	if (getUniqueness(destination))
+	if (isAnchor(destination))
 		createTwinConnection(node2ID, nodeID, connect);
 	else
 		connect->twin = NULL;
@@ -1232,7 +1232,7 @@ static void createConnection(IDnum nodeID,
 					distance,
 					variance);
 
-		if (getUniqueness(destination))
+		if (isAnchor(destination))
 			createTwinConnectionInTree(node2ID, nodeID, connect);
 		else
 			connect->twin = NULL;
@@ -1261,7 +1261,7 @@ static void projectFromSingleRead(Node * node,
 	if (target == getTwinNode(node) || target == node)
 		return;
 
-	if (getUniqueness(target) && getNodeID(target) < getNodeID(node))
+	if (isAnchor(target) && getNodeID(target) < getNodeID(node))
 		return;
 
 	if (position < 0) {
@@ -1363,7 +1363,7 @@ static void projectFromReadPair(Node * node, ReadOccurence * readOccurence,
 	nodeID  = getNodeID(node);
 	node2ID = getNodeID(target);
 
-	if (getUniqueness(target) && node2ID < nodeID)
+	if (isAnchor(target) && node2ID < nodeID)
 		return;
 
 	// Check if a conflicting PE (or MP from a smaller size lib) connection
@@ -1535,7 +1535,7 @@ static void projectFromNode(IDnum nodeID,
 
 	node = getNodeInGraph(graph, nodeID);
 
-	if (node == NULL || !getUniqueness(node))
+	if (node == NULL || !isAnchor(node))
 		return;
 
 	nodeArray = getNodeReads(node, graph);
@@ -1669,7 +1669,7 @@ static IDnum **countShortReads(Graph * graph, ReadSet * reads)
 	for (nodeIndex = 0; nodeIndex < 2 * nodes + 1; nodeIndex++) {
 		node = getNodeInGraph(graph, nodeIndex - nodes);
 
-		if (node == NULL || !getUniqueness(node))
+		if (node == NULL || !isAnchor(node))
 			continue;
 
 		array = getNodeReads(node, graph);
