@@ -868,7 +868,7 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 			//  Stepping forward to destination  //
 			///////////////////////////////////////
 
-			if (getUniqueness(candidate)) {
+			if (isAnchor(candidate)) {
 				concatenateReadStarts(node, candidate,
 						      graph);
 				concatenateLongReads(node, candidate,
