@@ -55,6 +55,7 @@ static void printUsage()
 	puts("\t-min_pair_count <integer>\t: minimum number of paired end connections to justify the scaffolding of two long contigs (default: 5)");
 	puts("\t-max_coverage <floating point>\t: removal of high coverage nodes AFTER tour bus (default: no removal)");
 	puts("\t-long_mult_cutoff <int>\t\t: minimum number of long reads required to merge contigs (default: 2)");
+	puts("\t-long_node_cutoff <int>\t\t: minimum size of a node to use for scaffolding (default: 50)");
 	puts("\t-unused_reads <yes|no>\t\t: export unused reads in UnusedReads.fa file (default: no)");
 	puts("\t-alignments <yes|no>\t\t: export a summary of contig alignment to the reference sequences (default: no)");
 	puts("\t-exportFiltered <yes|no>\t: export the long nodes which were eliminated by the coverage filters (default: no)");
@@ -316,6 +317,9 @@ int main(int argc, char **argv)
 		} else if (strcmp(arg, "-long_mult_cutoff") == 0) {
 			sscanf(argv[arg_index], "%i", &arg_int);
 			setMultiplicityCutoff(arg_int);
+		} else if (strcmp(arg, "-long_node_cutoff") == 0) {
+			sscanf(argv[arg_index], "%i", &arg_int);
+			setLongNodeCutoff(arg_int);
 		} else if (strcmp(arg, "-paired_exp_fraction") == 0) {
 			sscanf(argv[arg_index], "%lf", &arg_double);
 			setPairedExpFraction(arg_double);

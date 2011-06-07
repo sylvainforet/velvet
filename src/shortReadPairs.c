@@ -190,7 +190,7 @@ static void integrateDerivativeDistances(Connection * connect,
 	// debug 
 	IDnum counter = 0;
 
-	if (!getUniqueness(reference))
+	if (!isAnchor(reference))
 		return;
 
 	//velvetLog("Opposite node %li length %li at %li ± %f\n", getNodeID(reference), getNodeLength(reference), getConnectionDistance(connect), getConnectionVariance(connect));
@@ -819,7 +819,7 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 		}
 
 		// Missassembly detection
-		if (getUniqueness(candidate) && oppositeNode
+		if (isAnchor(candidate) && oppositeNode
 		    && candidate != oppositeNode
 		    && extension_distance > distance) {
 			while (path) {
@@ -842,7 +842,7 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 			tail->next = NULL;
 		}
 
-		if (getUniqueness(candidate))
+		if (isAnchor(candidate))
 			return path;
 
 		current = candidate;
@@ -869,29 +869,35 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 			///////////////////////////////////////
 
 			if (getUniqueness(candidate)) {
-				concatenateReadStarts(node, candidate,
-						      graph);
-				concatenateLongReads(node, candidate,
-						     graph);
-				absorbExtension(node, candidate);
+				if (isAnchor(candidate)) {
+					concatenateReadStarts(node, candidate,
+							graph);
+					concatenateLongReads(node, candidate,
+							graph);
+					absorbExtension(node, candidate);
 
-				// Scaffold changes
-				recenterNode(node, oldLength);
-				recenterLocalScaffold(node, oldLength);
-				absorbExtensionInScaffold(node, candidate);
+					// Scaffold changes
+					recenterNode(node, oldLength);
+					recenterLocalScaffold(node, oldLength);
+					absorbExtensionInScaffold(node, candidate);
 
-				// Read coverage
+					// Read coverage
 #ifndef SINGLE_COV_CAT
-				Category cat;
-				for (cat = 0; cat < CATEGORIES; cat++) {
-					incrementVirtualCoverage(node, cat,
-								 getVirtualCoverage(candidate, cat));
-					incrementOriginalVirtualCoverage(node, cat,
-									 getOriginalVirtualCoverage(candidate, cat));
-				}
+					Category cat;
+					for (cat = 0; cat < CATEGORIES; cat++) {
+						incrementVirtualCoverage(node, cat,
+								getVirtualCoverage(candidate, cat));
+						incrementOriginalVirtualCoverage(node, cat,
+								getOriginalVirtualCoverage(candidate, cat));
+					}
 #else
-				incrementVirtualCoverage(node, getVirtualCoverage(candidate));
+					incrementVirtualCoverage(node, getVirtualCoverage(candidate));
 #endif
+				} else {
+					adjustShortReads(node, candidate);
+					adjustLongReads(node, candidate);
+					absorbExtension(node, candidate);
+				}
 
 				if (getNodeStatus(candidate)) {
 					localConnect = &localScaffold[getNodeID(candidate) + nodeCount(graph)];
@@ -1020,7 +1026,7 @@ static void findOppositeNode(Node * node, Node ** oppositeNode,
 		if (node2 == node)
 			continue;
 
-		if (!getUniqueness(node2))
+		if (!isAnchor(node2))
 			continue;
 
 		if (localConnect->distance < 0)
@@ -1065,7 +1071,7 @@ static boolean expandLongNodes(boolean force_jumps)
 	for (nodeID = 1; nodeID <= nodeCount(graph); nodeID++) {
 		node = getNodeInGraph(graph, nodeID);
 
-		if (node != NULL && getUniqueness(node)) {
+		if (node != NULL && isAnchor(node)) {
 			modified = expandLongNode(node, force_jumps) || modified;
 			modified = expandLongNode(getTwinNode(node), force_jumps) || modified;
 		}

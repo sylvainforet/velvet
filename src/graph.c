@@ -35,6 +35,8 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #define GUANINE 2
 #define THYMINE 3
 
+static int LONG_NODE_CUTOFF = 50;
+
 struct arc_st {
 	Arc *twinArc;		// 64
 	Arc *next;		// 64
@@ -1443,6 +1445,16 @@ void allocateNodeSpace(Graph * graph, IDnum nodeCount)
 boolean getUniqueness(Node * node)
 {
 	return node->uniqueness;
+}
+
+void setLongNodeCutoff(int length)
+{
+	LONG_NODE_CUTOFF = length;
+}
+
+boolean isAnchor(Node *node)
+{
+	return node->uniqueness && node->length > LONG_NODE_CUTOFF;
 }
 
 void setUniqueness(Node * node, boolean value)

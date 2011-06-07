@@ -418,7 +418,7 @@ static boolean isLocalTwinDeadEnd(Node * node)
 static void clipTipsVeryHardLocally()
 {
 	NodeList *nodeList, *next;
-	Node *current, *twin;
+	Node *current;
 	boolean modified = true;
 
 	//velvetLog("Clipping short tips off graph HARD\n");
@@ -434,12 +434,10 @@ static void clipTipsVeryHardLocally()
 			if (current == NULL || getNodeStatus(current) != 1)
 				continue;
 
-			if (getUniqueness(current))
+			if (isAnchor(current))
 				continue;
 
 			//velvetLog("Checking node HARD %li %i\n", getNodeID(current), simpleArcCount(current));
-
-			twin = getTwinNode(current);
 
 			if (isLocalDeadEnd(current)
 			    || isLocalTwinDeadEnd(current)) {

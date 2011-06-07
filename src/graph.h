@@ -123,6 +123,8 @@ boolean getNodeStatus(Node * node);
 // Uniqueness
 void setUniqueness(Node * node, boolean value);
 boolean getUniqueness(Node * node);
+void setLongNodeCutoff(int length);
+boolean isAnchor(Node *node);
 
 // Gap markers
 void appendGap(Node * node, Coordinate length, Graph * graph);

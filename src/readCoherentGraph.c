@@ -30,7 +30,6 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #include "readSet.h"
 #include "utility.h"
 
-#define LONG_NODE_CUTOFF 50
 #define LN2 0.693147
 #define PROBABILITY_CUTOFF 5
 #define MAX_READ_COUNT 100
@@ -82,7 +81,7 @@ boolean isUniqueSolexa(Node * node)
 
 	nodeCoverage = getTotalCoverage(node);
 
-	if (nodeLength > LONG_NODE_CUTOFF) {
+	if (nodeLength > 0) {
 		nodeDensity = nodeCoverage / (double) nodeLength;
 
 		probability =
@@ -111,11 +110,11 @@ static void identifyUniqueNodes(boolean(*isUniqueFunction) (Node *))
 
 		setUniqueness(node, isUniqueFunction(node));
 
-		if (getUniqueness(node))
+		if (isAnchor(node))
 			counter++;
 	}
 
-	velvetLog("Done, %li unique nodes counted\n", (long) counter);
+	velvetLog("Done, %li anchor nodes counted\n", (long) counter);
 }
 
 static boolean uniqueNodesConnect(Node * startingNode)
@@ -144,7 +143,7 @@ static boolean uniqueNodesConnect(Node * startingNode)
 		for (currentMarker = getNextInSequence(startMarker);
 		     currentMarker != NULL_IDX;
 		     currentMarker = getNextInSequence(currentMarker)) {
-			if (!getUniqueness(getNode(currentMarker))) {
+			if (!isAnchor(getNode(currentMarker))) {
 				continue;
 			} else if (getNodeStatus(getNode(currentMarker))) {
 				if (getStartOffset(currentMarker) >
@@ -214,7 +213,7 @@ static boolean uniqueNodesConnect(Node * startingNode)
 		for (currentMarker = getNextInSequence(startMarker);
 		     currentMarker != NULL_IDX;
 		     currentMarker = getNextInSequence(currentMarker)) {
-			if (!getUniqueness(getNode(currentMarker))) {
+			if (!isAnchor(getNode(currentMarker))) {
 				continue;
 			} else if (getNodeStatus(getNode(currentMarker))) {
 				if (getStartOffset(currentMarker) >
@@ -305,7 +304,7 @@ static void updateMembers(Node * bypass, Node * nextNode)
 			next = getNextInSequence(marker);
 			disconnectNextPassageMarker(marker, graph);
 			destroyPassageMarker(next);
-		} else if (getUniqueness(nextNode)
+		} else if (isAnchor(nextNode)
 			   && goesToNode(marker, nextNode)) {
 			// Marker goes indirectly to target
 			while (getNode(getNextInSequence(marker)) !=
@@ -393,7 +392,7 @@ static Node *bypass()
 			return bypass;
 
 		// Overall node update 
-		if (!getUniqueness(next)) {
+		if (!isAnchor(next)) {
 			adjustShortReads(bypass, getNextInSequence(path));
 			appendSequence(bypass, sequences,
 				       getNextInSequence(path), graph);
@@ -420,7 +419,7 @@ static Node *bypass()
 		updateMembers(bypass, next);
 
 		// Termination 
-		if (isTerminal(path) || getUniqueness(next))
+		if (isTerminal(path) || isAnchor(next))
 			break;
 	}
 
@@ -455,7 +454,7 @@ static void trimLongReadTips()
 	for (index = 1; index <= nodeCount(graph); index++) {
 		node = getNodeInGraph(graph, index);
 
-		if (getUniqueness(node))
+		if (isAnchor(node))
 			continue;
 
 		for (marker = getMarker(node); marker != NULL_IDX;
@@ -468,7 +467,7 @@ static void trimLongReadTips()
 			if (isTerminal(marker))
 				marker = getTwinMarker(marker);
 
-			while (!getUniqueness(getNode(marker))) {
+			while (!isAnchor(getNode(marker))) {
 				if (next != NULL_IDX
 				    && (marker == next
 					|| marker == getTwinMarker(next)))
@@ -514,7 +513,7 @@ void readCoherentGraph(Graph * inGraph, boolean(*isUnique) (Node * node),
 
 			node = getNodeInGraph(graph, nodeIndex);
 
-			if (node == NULL || !getUniqueness(node))
+			if (node == NULL || !isAnchor(node))
 				continue;
 
 			while (uniqueNodesConnect(node))
