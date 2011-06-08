@@ -932,6 +932,8 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 		distance -= getNodeLength(node) / 2;
 		distance -= getNodeLength(oppositeNode) / 2;
 
+		if (distance <= 0)
+			distance = 1;
 		adjustShortReadsByLength(node, distance);
 		appendGap(node, distance, graph);
 
