@@ -3152,14 +3152,12 @@ resolveLoop(Node *origin,
 		  ((Time)getNodeLength(hapB)) / ((Time)getMultiplicity(getArc(hapB)));
 
 	if (tmpTime > getNodeTime(dest)) {
-		if (!comparePathsHapLoop(dest, hapB))
-			destroyNode(hapB, graph);
+		comparePathsHapLoop(dest, hapB);
 	}
 	else {
 		setNodeTime(dest, tmpTime);
 		previous[getNodeID(dest) + nodes] = hapB;
-		if (!comparePathsHapLoop(dest, hapA))
-			destroyNode(hapA, graph);
+		comparePathsHapLoop(dest, hapA);
 	}
 }
 
@@ -3253,16 +3251,14 @@ hapDeadEnd1(Node *origin)
 		setNodeTime(hapB, tmpTime);
 		setNodeTime(hapA, tmpTime * 2);
 
-		if (!comparePathsDeadEnd(origin, hapB, hapA))
-			destroyNode(hapA, graph);
+		comparePathsDeadEnd(origin, hapB, hapA);
 	}
 	else {
 		tmpTime = getNodeLength(origin) / (Time)getMultiplicity(arcA);
 		setNodeTime(hapA, tmpTime);
 		setNodeTime(hapB, tmpTime * 2);
 
-		if (!comparePathsDeadEnd(origin, hapA, hapB))
-			destroyNode(hapB, graph);
+		comparePathsDeadEnd(origin, hapA, hapB);
 	}
 }
 
@@ -3318,12 +3314,10 @@ hapDeadEnd2(Node *origin)
 	setNodeTime(hapB, getNodeLength(origin) / (Time)getMultiplicity(arcB));
 
 	if (getMultiplicity(arcA) > getMultiplicity(arcB)) {
-		if (!comparePathsDeadEnd(origin, hapA, hapB))
-			destroyNode(hapB, graph);
+		comparePathsDeadEnd(origin, hapA, hapB);
 	}
 	else {
-		if (!comparePathsDeadEnd(origin, hapB, hapA))
-			destroyNode(hapA, graph);
+		comparePathsDeadEnd(origin, hapB, hapA);
 	}
 }
 
