@@ -564,7 +564,6 @@ int main(int argc, char **argv)
 
 	strcpy(graphFilename, directory);
 	strcat(graphFilename, "/scaff_trace.txt");
-	exportGraph(graphFilename, graph, sequences->tSequences, false);
 	if (expectedCoverage > 0) {
 		FILE *scaffTraceFile = NULL;
 
