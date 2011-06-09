@@ -873,7 +873,7 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 			if (isAnchor(candidate)) {
 				velvetFprintf(traceFile, "cat A %d %d\n",
 					      getNodeID(node),
-					      getNodeID(oppositeNode));
+					      getNodeID(candidate));
 
 				concatenateReadStarts(node, candidate,
 						      graph);
@@ -928,7 +928,7 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 			} else {
 				velvetFprintf(traceFile, "cat N %d %d\n",
 					      getNodeID(node),
-					      getNodeID(oppositeNode));
+					      getNodeID(candidate));
 
 				adjustShortReads(node, candidate);
 				adjustLongReads(node, candidate);
