@@ -562,7 +562,15 @@ int main(int argc, char **argv)
 	strcat(graphFilename, "/Graph3");
 	exportGraph(graphFilename, graph, sequences->tSequences, false);
 
+	strcpy(graphFilename, directory);
+	strcat(graphFilename, "/scaff_trace.txt");
+	exportGraph(graphFilename, graph, sequences->tSequences, false);
 	if (expectedCoverage > 0) {
+		FILE *scaffTraceFile = NULL;
+
+		scaffTraceFile = fopen(graphFilename, "w");
+		if (scaffTraceFile == NULL)
+			velvetLog("Couldn't open scaffolding trace file, sorry\n");
 
 		// Mixed length sequencing
 		readCoherentGraph(graph, isUniqueSolexa, expectedCoverage,
@@ -573,8 +581,17 @@ int main(int argc, char **argv)
 		pebbleRounds += pairedCategories(sequences);
 		detachDubiousReads(sequences, dubious);
 		activateGapMarkers(graph);
+
 		for ( ;pebbleRounds > 0; pebbleRounds--)
-			exploitShortReadPairs(graph, sequences, dubious, shadows, scaffolding);
+			exploitShortReadPairs(graph,
+					      sequences,
+					      dubious,
+					      shadows,
+					      scaffolding,
+					      scaffTraceFile);
+
+		if (scaffTraceFile)
+			fclose(scaffTraceFile);
 	} else {
 		velvetLog("WARNING: NO EXPECTED COVERAGE PROVIDED\n");
 		velvetLog("Velvet will be unable to resolve any repeats\n");

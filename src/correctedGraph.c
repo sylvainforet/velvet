@@ -3052,6 +3052,10 @@ findHapLoopCandidates(Node *origin,
 
 		end = getDestination(getArc(dest));
 
+		if (getNodeLength(end) == 0
+		    || getTotalCoverage(end) / (Time)getNodeLength(end) > MAX_DIP_COV)
+			continue;
+
 		for (candidate = candidates; candidate != NULL; candidate = candidate->next) {
 			if (candidate->end == end) {
 				if (candidate->hapA != NULL && candidate->hapB == NULL)
@@ -3075,24 +3079,6 @@ findHapLoopCandidates(Node *origin,
 	return candidates;
 }
 
-static boolean
-checkHapCoverage(Node *hapA,
-		 Node *hapB)
-{
-	Time totCov;
-
-	if (getNodeLength(hapA) == 0
-	    || getNodeLength(hapB) == 0)
-		return false;
-
-	totCov = getTotalCoverage(hapA) / (Time)getNodeLength(hapA) +
-		 getTotalCoverage(hapB) / (Time)getNodeLength(hapB);
-	if (totCov > MAX_DIP_COV)
-		return false;
-
-	return true;
-}
-
 static void
 resolveLoop(Node *origin,
 	    Node *hapA,
@@ -3112,7 +3098,10 @@ resolveLoop(Node *origin,
 	twinA = getTwinNode(hapA);
 	twinB = getTwinNode(hapB);
 
-	if (!checkHapCoverage(hapA, hapB))
+	if (getNodeLength(hapA) == 0
+	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
+	    || getNodeLength(hapB) == 0
+	    || getTotalCoverage(hapB) / (Time)getNodeLength(hapB) > MAX_HAP_COV)
 		return;
 
 	if (hapA == origin
@@ -3152,12 +3141,14 @@ resolveLoop(Node *origin,
 		  ((Time)getNodeLength(hapB)) / ((Time)getMultiplicity(getArc(hapB)));
 
 	if (tmpTime > getNodeTime(dest)) {
-		comparePathsHapLoop(dest, hapB);
+		if (!comparePathsHapLoop(dest, hapB))
+			destroyNode(hapB, graph);
 	}
 	else {
 		setNodeTime(dest, tmpTime);
 		previous[getNodeID(dest) + nodes] = hapB;
-		comparePathsHapLoop(dest, hapA);
+		if (!comparePathsHapLoop(dest, hapA))
+			destroyNode(hapA, graph);
 	}
 }
 
@@ -3214,8 +3205,11 @@ hapDeadEnd1(Node *origin)
 	    || hapB == origin
 	    || hapA == twin
 	    || hapB == twin
+	    || getNodeLength(hapA) == 0
+	    || getNodeLength(hapB) == 0
+	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
+	    || getTotalCoverage(hapB) / (Time)getNodeLength(hapB) > MAX_HAP_COV
 	    || hapB == getTwinNode(hapA)
-	    || !checkHapCoverage(hapA, hapB)
 	    || arcCount(twinA) != 1
 	    || arcCount(twinB) != 1
 	    || getDestination(getArc(twinA)) != twin
@@ -3231,11 +3225,14 @@ hapDeadEnd1(Node *origin)
 	else
 		return;
 
+	// TODO check the number of incomming nodes into dest???
 	if (dest == twin
 	    || dest == hapA
 	    || dest == hapB
 	    || dest == twinA
-	    || dest == twinB)
+	    || dest == twinB
+	    || getNodeLength(dest) == 0
+	    || getTotalCoverage(dest) / (Time)getNodeLength(dest) > MAX_DIP_COV)
 		return;
 
 	// Now the topology is OK
@@ -3251,14 +3248,16 @@ hapDeadEnd1(Node *origin)
 		setNodeTime(hapB, tmpTime);
 		setNodeTime(hapA, tmpTime * 2);
 
-		comparePathsDeadEnd(origin, hapB, hapA);
+		if (!comparePathsDeadEnd(origin, hapB, hapA))
+			destroyNode(hapA, graph);
 	}
 	else {
 		tmpTime = getNodeLength(origin) / (Time)getMultiplicity(arcA);
 		setNodeTime(hapA, tmpTime);
 		setNodeTime(hapB, tmpTime * 2);
 
-		comparePathsDeadEnd(origin, hapA, hapB);
+		if (!comparePathsDeadEnd(origin, hapA, hapB))
+			destroyNode(hapB, graph);
 	}
 }
 
@@ -3293,8 +3292,11 @@ hapDeadEnd2(Node *origin)
 	    || hapB == origin
 	    || hapA == twin
 	    || hapB == twin
+	    || getNodeLength(hapA) == 0
+	    || getNodeLength(hapB) == 0
+	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
+	    || getTotalCoverage(hapB) / (Time)getNodeLength(hapB) > MAX_HAP_COV
 	    || hapB == getTwinNode(hapA)
-	    || !checkHapCoverage(hapA, hapB)
 	    || arcCount(twinA) != 1
 	    || arcCount(twinB) != 1
 	    || getDestination(getArc(twinA)) != twin
@@ -3314,10 +3316,12 @@ hapDeadEnd2(Node *origin)
 	setNodeTime(hapB, getNodeLength(origin) / (Time)getMultiplicity(arcB));
 
 	if (getMultiplicity(arcA) > getMultiplicity(arcB)) {
-		comparePathsDeadEnd(origin, hapA, hapB);
+		if (!comparePathsDeadEnd(origin, hapA, hapB))
+			destroyNode(hapB, graph);
 	}
 	else {
-		comparePathsDeadEnd(origin, hapB, hapA);
+		if (!comparePathsDeadEnd(origin, hapB, hapA))
+			destroyNode(hapA, graph);
 	}
 }
 

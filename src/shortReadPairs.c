@@ -53,6 +53,8 @@ static NodeList *markedNodes;
 static RecycleBin *nodeListMemory = NULL;
 static MiniConnection *localScaffold = NULL;
 
+static FILE *traceFile = NULL;
+
 static NodeList *allocateNodeList()
 {
 	if (nodeListMemory == NULL)
@@ -869,6 +871,10 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 			///////////////////////////////////////
 
 			if (isAnchor(candidate)) {
+				velvetFprintf(traceFile, "cat A %d %d\n",
+					      getNodeID(node),
+					      getNodeID(oppositeNode));
+
 				concatenateReadStarts(node, candidate,
 						      graph);
 				concatenateLongReads(node, candidate,
@@ -920,6 +926,10 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 				destroyNode(candidate, graph);
 				return true;
 			} else {
+				velvetFprintf(traceFile, "cat N %d %d\n",
+					      getNodeID(node),
+					      getNodeID(oppositeNode));
+
 				adjustShortReads(node, candidate);
 				adjustLongReads(node, candidate);
 				absorbExtension(node, candidate);
@@ -929,6 +939,11 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 
 	if (force_jumps && oppositeNode
 	    && abs_ID(getNodeID(oppositeNode)) < abs_ID(getNodeID(node))) {
+
+		velvetFprintf(traceFile, "cat J %d %d\n",
+			      getNodeID(node),
+			      getNodeID(oppositeNode));
+
 		distance -= getNodeLength(node) / 2;
 		distance -= getNodeLength(oppositeNode) / 2;
 
@@ -1088,20 +1103,25 @@ static void cleanMemory()
 	free(localScaffold);
 }
 
-void exploitShortReadPairs(Graph * argGraph,
-			   ReadSet * reads,
-			   boolean * dubious,
-			   boolean * shadows,
-			   boolean force_jumps)
+void exploitShortReadPairs(Graph *argGraph,
+			   ReadSet *reads,
+			   boolean *dubious,
+			   boolean *shadows,
+			   boolean force_jumps,
+			   FILE *scaffTraceFile)
 {
+	static int pebbleRound = 0;
 	boolean modified = true;
 
 	graph = argGraph;
+	traceFile = scaffTraceFile;
 
 	if (!readStartsAreActivated(graph))
 		return;
 
 	velvetLog("Starting pebble resolution...\n");
+	velvetFprintf(traceFile, "pebble %d\n", pebbleRound++);
+
 
 	resetNodeStatus(graph);
 
