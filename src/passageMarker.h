@@ -29,7 +29,7 @@ struct passageList_st {
 ///////////////////////////////////////////////////////////////////
 // PassageMarker lists
 ///////////////////////////////////////////////////////////////////
-// You can always malloc a PassaegMarkerList but these routines manage the 
+// You can always malloc a PassaegMarkerList but these routines manage the
 // memory for you, thus avoiding fragmentation
 PassageMarkerList *newPassageMarkerList(PassageMarkerI marker,
 					PassageMarkerList * next);
@@ -53,7 +53,7 @@ void destroyPassageMarker(PassageMarkerI marker);
 void destroyAllPassageMarkers();
 
 ///////////////////////////////////////////////////////////////////
-// Node 
+// Node
 ///////////////////////////////////////////////////////////////////
 
 // Current node

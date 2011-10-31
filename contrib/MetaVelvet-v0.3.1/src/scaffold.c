@@ -404,11 +404,11 @@ static boolean * countCoOccurences(IDnum * coOccurencesCount, ReadOccurence ** r
 
 		// Check for co-occurence
 		// We know that for each read the read occurences are ordered by increasing node ID
-		// Therefore one list is followed by increasing index, whereas the other is followed 
+		// Therefore one list is followed by increasing index, whereas the other is followed
 		// by decreasing index
 		libID = cats[readIndex]/2;
-		readPairIndex = readPairs[readIndex];	
-		
+		readPairIndex = readPairs[readIndex];
+
 		readOccurenceIndex = 0;
 		readOccurence = readNodes[readIndex + 1];
 		readNodeCount = readNodeCounts[readIndex + 1];
@@ -424,16 +424,16 @@ static boolean * countCoOccurences(IDnum * coOccurencesCount, ReadOccurence ** r
 					break;
 				} else {
 					readOccurence++;
-					readOccurenceIndex++;	
+					readOccurenceIndex++;
 					readPairOccurence--;
-					readPairOccurenceIndex--;	
+					readPairOccurenceIndex--;
 				}
 			} else if (readOccurence->nodeID < -readPairOccurence->nodeID) {
 				readOccurence++;
-				readOccurenceIndex++;	
+				readOccurenceIndex++;
 			} else {
 				readPairOccurence--;
-				readPairOccurenceIndex--;	
+				readPairOccurenceIndex--;
 			}
 		}
 	}
@@ -457,13 +457,13 @@ static void measureCoOccurences(Coordinate ** coOccurences, boolean * interestin
 		// Eliminating dodgy, unpaired, already counted or user-specified reads
 		if (!interestingReads[readIndex])
 			continue;
-		
+
 		// Find co-occurence
 		// We know that for each read the read occurences are ordered by increasing node ID
 		libID = cats[readIndex]/2;
-		readPairIndex = readPairs[readIndex];	
+		readPairIndex = readPairs[readIndex];
 		observationIndex = coOccurencesIndex[libID];
-		
+
 		readOccurence = readNodes[readIndex + 1];
 		readOccurenceIndex = 0;
 		readNodeCount = readNodeCounts[readIndex + 1];
@@ -474,25 +474,25 @@ static void measureCoOccurences(Coordinate ** coOccurences, boolean * interestin
 		while (readOccurenceIndex < readNodeCount && readPairOccurenceIndex >= 0) {
 			if (readOccurence->nodeID == -readPairOccurence->nodeID) {
 				if (readOccurence->position > 0 && readPairOccurence->position > 0) {
-					coOccurences[libID][observationIndex] = 
+					coOccurences[libID][observationIndex] =
 					      getNodeLength(getNodeInGraph(graph, readOccurence->nodeID))
 					      + getWordLength(graph) - 1
-					      - (readOccurence->position - readOccurence->offset)	
+					      - (readOccurence->position - readOccurence->offset)
 					      - (readPairOccurence->position - readPairOccurence->offset);
 					coOccurencesIndex[libID]++;
 					break;
 				} else {
 					readOccurence++;
-					readOccurenceIndex++;	
+					readOccurenceIndex++;
 					readPairOccurence--;
-					readPairOccurenceIndex--;	
+					readPairOccurenceIndex--;
 				}
 			} else if (readOccurence->nodeID < -readPairOccurence->nodeID) {
 				readOccurence++;
-				readOccurenceIndex++;	
+				readOccurenceIndex++;
 			} else {
 				readPairOccurence--;
-				readPairOccurenceIndex--;	
+				readPairOccurenceIndex--;
 			}
 		}
 	}
@@ -506,7 +506,7 @@ int compareReadOccurences(const void *A, const void * B) {
 		return 1;
 	if (*cA == *cB)
 		return 0;
-	return -1;	
+	return -1;
 }
 
 static void estimateLibraryInsertLength(Coordinate * coOccurences, IDnum coOccurencesCount, Category libID) {
@@ -517,7 +517,7 @@ static void estimateLibraryInsertLength(Coordinate * coOccurences, IDnum coOccur
 
 	median = coOccurences[coOccurencesCount / 2];
 
-	// Modified variance around the median (proxy for expected value) 
+	// Modified variance around the median (proxy for expected value)
 	// interval censoring
 	variance = 0;
 	for (index = 0; index < coOccurencesCount; index++) {
@@ -526,7 +526,7 @@ static void estimateLibraryInsertLength(Coordinate * coOccurences, IDnum coOccur
 			counter++;
 		}
 	}
-	if (counter) 
+	if (counter)
 		variance /= counter;
 	else {
 		variance = 0;
@@ -534,7 +534,7 @@ static void estimateLibraryInsertLength(Coordinate * coOccurences, IDnum coOccur
 			variance += (coOccurences[index] - median) * (coOccurences[index] - median);
 		variance /= coOccurencesCount;
 	}
-	
+
 	// To avoid subsequent divisions by zero
 	if (variance == 0)
 		variance = 1;
@@ -557,7 +557,7 @@ static void estimateLibraryInsertLengths(Coordinate ** coOccurences, IDnum * coO
 
 static void estimateMissingInsertLengths(ReadOccurence ** readNodes, IDnum * readNodeCounts, IDnum * readPairs, Category * cats) {
 	Coordinate * coOccurences[CATEGORIES + 1];
-	IDnum coOccurencesCounts[CATEGORIES + 1]; 
+	IDnum coOccurencesCounts[CATEGORIES + 1];
 	Category libID;
 
 	// Original
@@ -576,7 +576,7 @@ static void estimateMissingInsertLengths(ReadOccurence ** readNodes, IDnum * rea
 
 	for (libID = 0; libID < CATEGORIES + 1; libID++)
 		free(coOccurences[libID]);
-	
+
 	free(interestingReads);
 
 	// Original
@@ -637,7 +637,7 @@ Connection *createNewConnection(IDnum nodeID, IDnum node2ID,
 	IDnum nodeIndex = nodeID + nodeCount(graph);
 	Connection *connect = allocateConnection();
 
-	// Fill in 
+	// Fill in
 	connect->destination = destination;
 	connect->direct_count = direct_count;
 	connect->paired_count = paired_count;
@@ -728,7 +728,7 @@ static void projectFromSingleRead(Node * node,
 		    -readOccurence->position + getNodeLength(target) / 2;
 	}
 
-	if (readOccurence->offset < 0 || offset < 0) { 
+	if (readOccurence->offset < 0 || offset < 0) {
 		variance += length * length / 16;
 		//distance += 0;
 	} else {
@@ -753,7 +753,7 @@ static void projectFromSingleRead(Node * node,
 			else if (-distance < getNodeLength(node)/2 + getNodeLength(target)/2)
 				createConnection(-getNodeID(node), -getNodeID(target), 1,
 						 0, getNodeLength(node)/2 + getNodeLength(target)/2 , variance);
-			else 
+			else
 				createConnection(-getNodeID(node), -getNodeID(target), 1,
 						 0, -distance, variance);
 		}
@@ -1071,7 +1071,7 @@ void printConnections(ReadSet * reads)
 					       (getMarker
 						(connect->destination)),
 					       (long long) (getPassageMarkerFinish
-					       (getMarker(node)) - 
+					       (getMarker(node)) -
 					       getPassageMarkerFinish
 					       (getMarker
 						(connect->destination))));

@@ -110,7 +110,7 @@ KmerOccurenceTable * newKmerOccurenceTable(short int accelerationBits, int wordL
 		accelerationBits = 32;
 
 	if (accelerationBits > 0) {
-		resetKeyFilter(accelerationBits);	
+		resetKeyFilter(accelerationBits);
 		kmerTable->accelerationBits = accelerationBits;
 		kmerTable->accelerationTable =
 		    callocOrExit((((size_t) 1) << accelerationBits) + 1,
@@ -142,7 +142,7 @@ void recordKmerOccurence(Kmer * kmer, IDnum nodeID, Coordinate position, KmerOcc
 
 #ifdef OPENMP
 	#pragma omp critical
-#endif 
+#endif
 	{
 		kmerOccurence = table->kmerOccurencePtr++;
 		table->kmerOccurenceIndex++;
@@ -205,7 +205,7 @@ KmerOccurence * getNextKmerOccurence(KmerOccurence * current) {
 
 void destroyKmerOccurenceTable(KmerOccurenceTable * kmerTable) {
 	if (kmerTable == NULL)
-		return; 
+		return;
 
 	free(kmerTable->kmerTable);
 	free(kmerTable->accelerationTable);
@@ -214,7 +214,7 @@ void destroyKmerOccurenceTable(KmerOccurenceTable * kmerTable) {
 
 IDnum getKmerOccurenceNodeID(KmerOccurence * occurence) {
 	return occurence->nodeID;
-} 
+}
 
 Coordinate getKmerOccurencePosition(KmerOccurence * occurence) {
 	return occurence->position;

@@ -68,7 +68,7 @@ V 0.7.28
 V 0.7.29
 - Crashing bug when scaffolding
 
-V 0.7.30 
+V 0.7.30
 - Read numbering bug in AMOS file
 
 V 0.7.31
@@ -136,7 +136,7 @@ V 0.7.42
 - Corrected the parsing of FastA files (crashing bug)
 - Added exception catchers for file reading
 
-V 0.7.43 
+V 0.7.43
 - Added more exception catchers for file reading
 - Corrected parsers to allow long sequence names (crashing bug)
 - Inserted millions of casts to correct printf and scanf variable size inconsistency errors
@@ -175,7 +175,7 @@ V 0.7.50
 - Added the observed-insert-length script
 - Small parsing bug in simplified read import
 
-V 0.7.51 
+V 0.7.51
 - Small parsing bug
 - Correction to the observed-insert-length script
 - Verified strncpy calls
@@ -202,7 +202,7 @@ V 0.7.54
 - Corrected observed-insert_length script for warning message
 - Added an extra error detection filter in Pebble
 - Prevented divergence of distance estimates in Pebble
- 
+
 V 0.7.55
 - Applied Jonathan Hoser's patch to the VelvetOptimiser script
 - Parsing bug in extractContigReads.pl
@@ -213,7 +213,7 @@ V 0.7.55
 - Added sequence shuffling scripts
 
 V 0.7.56
-- Amended contrib files for Debian release  
+- Amended contrib files for Debian release
 - Amended inline function for C99 compatibility
 - Crashing NULL pointer bug
 - Bug in shuffling script
@@ -235,7 +235,7 @@ V 0.7.58
 V 0.7.59
 - Correction to the asmbly_splitter script
 - Correction to the zipped file reading
- 
+
 V 0.7.60
 - Amended Makefile for colorspace Oases users
 - Measured coverage is printed in log file
@@ -325,7 +325,7 @@ V 1.0.14
 - Reintroduced timed stdout messages
 - Extended explanation of k-mer lengths in manual
 - Catch failures in writing to files
-- Permission exceptions 
+- Permission exceptions
 - Pointer arithmetic warning
 - Casting warning
 - Infinite loop with read coherency
@@ -341,7 +341,7 @@ V 1.0.15
 V 1.0.16
 - Multiple k-mer hashing
 - Sequences file reuse
-- Sequences data reuse 
+- Sequences data reuse
 - Memory corruption bug
 - Sequences file no longer deleted with -clean option but -very_clean
 

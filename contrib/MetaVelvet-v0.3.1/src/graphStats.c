@@ -221,7 +221,7 @@ void testForBizarreMarkers(Graph * graph)
 
 		for (marker = getMarker(node); marker != NULL;
 		     marker = getNextInNode(marker)) {
-			if (getTwinMarker(marker) == NULL) 
+			if (getTwinMarker(marker) == NULL)
 				exitErrorf(EXIT_FAILURE, false, "Bizarre marker %s",
 				       readPassageMarker(marker));
 		}
@@ -895,7 +895,7 @@ void displayGeneralStatistics(Graph * graph, char *filename, ReadSet * reads)
 		}
 
 		fprintf(outfile, "\t%li", (long) markerCount(node));
-		printShortCounts(outfile, node, graph, reads); 
+		printShortCounts(outfile, node, graph, reads);
 
 		fprintf(outfile, "\n");
 	}
@@ -915,7 +915,7 @@ void destroyStrainSpecificIslands(Graph * graph, IDnum firstStrain)
 
 	puts("Destroying disconnected strain specific sub-graphs");
 
-	// Mark all genomic nodes 
+	// Mark all genomic nodes
 	for (index = 1; index <= nodeCount(graph); index++) {
 		node = getNodeInGraph(graph, index);
 		if (!isOnlyStrain(node, firstStrain))
@@ -1078,7 +1078,7 @@ void displayLocalBreakpoint(PassageMarker * strainMarker,
 	if (destination == NULL)
 		return;
 
-	// Eliminate those that point to uniquely strain sequences 
+	// Eliminate those that point to uniquely strain sequences
 	if (nodeGenomicMultiplicity(destination, firstStrain) != 1) {
 //              puts("Multiple genome reads");
 		return;
@@ -1099,7 +1099,7 @@ void displayLocalBreakpoint(PassageMarker * strainMarker,
 	if (destination == destination2)
 		return;
 
-	// Eliminate those that point to uniquely strain sequences 
+	// Eliminate those that point to uniquely strain sequences
 	if (isOnlyGenome(destination2, firstStrain))
 		return;
 
@@ -1514,7 +1514,7 @@ int compareNodeCovs(const void * A, const void * B) {
 	Node * nodeB = *((Node **) B);
 	double covA;
 	double covB;
-	
+
 	if (getNodeLength(nodeA) == 0)
 		nodeA = NULL;
 
@@ -1530,8 +1530,8 @@ int compareNodeCovs(const void * A, const void * B) {
 		return -1;
 
 	// Deal with real coverage numbers:
-	covA = getTotalCoverage(nodeA) / (double) getNodeLength(nodeA);	
-	covB = getTotalCoverage(nodeB) / (double) getNodeLength(nodeB);	
+	covA = getTotalCoverage(nodeA) / (double) getNodeLength(nodeA);
+	covB = getTotalCoverage(nodeB) / (double) getNodeLength(nodeB);
 
 	if (covA > covB)
 		return 1;
@@ -1542,14 +1542,14 @@ int compareNodeCovs(const void * A, const void * B) {
 
 double estimated_cov(Graph * graph, char * directory)
 {
-	Node ** nodeArray = callocOrExit(nodeCount(graph), Node*); 
+	Node ** nodeArray = callocOrExit(nodeCount(graph), Node*);
 	IDnum index;
 	Coordinate halfTotalLength = 0;
 	Coordinate sumLength = 0;
 	Node *node;
 	char *logFilename =
 	    mallocOrExit(strlen(directory) + 100, char);
-	char *statsLine = 
+	char *statsLine =
 	    mallocOrExit(5000, char);
 	FILE *logFile;
 
@@ -1603,7 +1603,7 @@ double estimated_cov(Graph * graph, char * directory)
 	free(statsLine);
 
 	return -1;
-}	
+}
 
 static void destroyMixedNode(Node * node)
 {
@@ -2090,7 +2090,7 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 	IDnum index;
 	Node *node;
 	boolean denounceReads = readStartsAreActivated(graph);
-	boolean *res = NULL; 
+	boolean *res = NULL;
 	ShortReadMarker *nodeArray, *shortMarker;
 	PassageMarker *marker;
 	IDnum maxIndex;
@@ -2098,14 +2098,14 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 	IDnum index2;
 	// Original
 	double nodeDensity = 0.0;
-	int countNodeTotal = 0, countNodeUnderMinCov = 0, countNodeOnLongRead = 0; 
+	int countNodeTotal = 0, countNodeUnderMinCov = 0, countNodeOnLongRead = 0;
 	int countNodeUMCbutOnLongRead = 0, countNodeSupportedByLongRead = 0;
 	int countNodeEscapedByLongRead = 0;
 	boolean escapeByLongRead = false;
 	// Original
 
 	printf("Removing contigs with coverage < %f...\n", minCov);
-		
+
 	if (denounceReads)
 		res = callocOrExit(sequenceCount(graph), boolean);
 
@@ -2119,12 +2119,12 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 		if (getNodeLength(node) == 0)
 			continue;
 
-		// Original 
+		// Original
 		if ((marker = getMarker(node))){
 			countNodeOnLongRead++;
 		}
 		// Original
-		
+
 		if ((double)getTotalCoverage(node) / getNodeLength(node) < minCov) {
 		        // Original
 		        countNodeUnderMinCov++;
@@ -2146,7 +2146,7 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 			}
 			// Original
 
-			
+
 			// Original
 			//if (! escapeByLongRead) {
 			// Original
@@ -2181,7 +2181,7 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 						res[-readID - 1] = true;
 				}
 			}
-			
+
 			// Original
 			//}
 			// Original
@@ -2205,7 +2205,7 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 		//}
 		// Original
 	}
-	
+
 	/*
 	// Original
 	printf("No. of Nodes : %d\n", countNodeTotal);
@@ -2781,7 +2781,7 @@ Coordinate totalAssemblyLength(Graph * graph)
 	return total;
 }
 
-IDnum usedReads(Graph * graph, Coordinate minContigLength) 
+IDnum usedReads(Graph * graph, Coordinate minContigLength)
 {
 	IDnum res = 0;
 	boolean * used = callocOrExit(sequenceCount(graph) + 1, boolean);
@@ -2795,16 +2795,16 @@ IDnum usedReads(Graph * graph, Coordinate minContigLength)
 		node = getNodeInGraph(graph, nodeID);
 		if (node == NULL || getNodeLength(node) < minContigLength)
 			continue;
-		
+
 		// Long reads
 		for(marker = getMarker(node); marker != NULL; marker = getNextInNode(marker)) {
 			readID = getPassageMarkerSequenceID(marker);
 			if (readID < 0)
 				readID = -readID;
-			used[readID] = true;	
-		}	
+			used[readID] = true;
+		}
 
-		// Short reads		
+		// Short reads
 		if (!readStartsAreActivated(graph))
 			continue;
 
@@ -2813,23 +2813,23 @@ IDnum usedReads(Graph * graph, Coordinate minContigLength)
 		for (shortReadIndex = 0; shortReadIndex < shortReadCount; shortReadIndex++) {
 			shortReadMarker = getShortReadMarkerAtIndex(shortReadArray, shortReadIndex);
 			readID = getShortReadMarkerID(shortReadMarker);
-			used[readID] = true;	
+			used[readID] = true;
 		}
-		
+
 		shortReadArray = getNodeReads(getTwinNode(node), graph);
 		shortReadCount = getNodeReadCount(getTwinNode(node), graph);
 		for (shortReadIndex = 0; shortReadIndex < shortReadCount; shortReadIndex++) {
 			shortReadMarker = getShortReadMarkerAtIndex(shortReadArray, shortReadIndex);
 			readID = getShortReadMarkerID(shortReadMarker);
-			used[readID] = true;	
+			used[readID] = true;
 		}
 	}
 
-	for (readID = 1; readID <= sequenceCount(graph); readID++) 
+	for (readID = 1; readID <= sequenceCount(graph); readID++)
 		if (used[readID])
 			res++;
 
-	free(used);	
+	free(used);
 
 	return res;
 }
@@ -2838,7 +2838,7 @@ void logFinalStats(Graph * graph, Coordinate minContigKmerLength, char *director
 {
 	char *logFilename =
 	    mallocOrExit(strlen(directory) + 100, char);
-	char *statsLine = 
+	char *statsLine =
 	    mallocOrExit(5000, char);
 	FILE *logFile;
 
@@ -2883,21 +2883,21 @@ void exportUnusedReads(Graph* graph, ReadSet * reads, Coordinate minContigKmerLe
 	outfile = fopen(outFilename, "w");
 
 	printf("Printing unused reads into %s\n", outFilename);
-	
+
 	for(nodeID = 1; nodeID <= nodeCount(graph); nodeID++) {
 		node = getNodeInGraph(graph, nodeID);
 		if (node == NULL || getNodeLength(node) < minContigKmerLength)
 			continue;
-		
+
 		// Long reads
 		for(marker = getMarker(node); marker != NULL; marker = getNextInNode(marker)) {
 			readID = getPassageMarkerSequenceID(marker);
 			if (readID < 0)
 				readID = -readID;
-			used[readID] = true;	
-		}	
+			used[readID] = true;
+		}
 
-		// Short reads		
+		// Short reads
 		if (!readStartsAreActivated(graph))
 			continue;
 
@@ -2906,21 +2906,21 @@ void exportUnusedReads(Graph* graph, ReadSet * reads, Coordinate minContigKmerLe
 		for (shortReadIndex = 0; shortReadIndex < shortReadCount; shortReadIndex++) {
 			shortReadMarker = getShortReadMarkerAtIndex(shortReadArray, shortReadIndex);
 			readID = getShortReadMarkerID(shortReadMarker);
-			used[readID] = true;	
+			used[readID] = true;
 		}
-		
+
 		shortReadArray = getNodeReads(getTwinNode(node), graph);
 		shortReadCount = getNodeReadCount(getTwinNode(node), graph);
 		for (shortReadIndex = 0; shortReadIndex < shortReadCount; shortReadIndex++) {
 			shortReadMarker = getShortReadMarkerAtIndex(shortReadArray, shortReadIndex);
 			readID = getShortReadMarkerID(shortReadMarker);
-			used[readID] = true;	
+			used[readID] = true;
 		}
 	}
 
-	for (readID = 1; readID <= sequenceCount(graph); readID++) 
+	for (readID = 1; readID <= sequenceCount(graph); readID++)
 		if (!used[readID]) {
-			exportTightString(outfile, reads->tSequences[readID - 1], readID);	
+			exportTightString(outfile, reads->tSequences[readID - 1], readID);
 			numUnusedReads++;
 		}
 
@@ -2929,7 +2929,7 @@ void exportUnusedReads(Graph* graph, ReadSet * reads, Coordinate minContigKmerLe
 	// Original
 
 	free(outFilename);
-	free(used);	
+	free(used);
 	fclose(outfile);
 }
 
@@ -2937,9 +2937,9 @@ void exportUnusedReads(Graph* graph, ReadSet * reads, Coordinate minContigKmerLe
 double getNodeDensity(Node * node)
 {
 	Coordinate nodeLength, nodeCoverage;
-	
+
 	nodeLength = getNodeLength(node);
-	nodeCoverage = (getVirtualCoverage(node, 0) 
+	nodeCoverage = (getVirtualCoverage(node, 0)
 			+ getVirtualCoverage(node, 1));
 
 	return nodeCoverage /(double) nodeLength;
@@ -2991,7 +2991,7 @@ int estimated_cov_multi(Graph * graph, int * subgraphMask, double expCovMulti[10
 			histo[bin] += getNodeLength(node);
 		}
 	}
-	
+
 	// Define length threshold of noise
 	 // Skip index = 0 to avoid the influence of long reads
 	for (index = LEN_HISTO_X - 2; index >= 1; index--) {
@@ -3004,7 +3004,7 @@ int estimated_cov_multi(Graph * graph, int * subgraphMask, double expCovMulti[10
 	// Detect peaks
 	for (index = LEN_HISTO_X - 2; index >= 1; index--) {
 		if (histo[index] > thresNoiseHeight) {
-			if (histo[index] > peakHeight 
+			if (histo[index] > peakHeight
 			    && histo[index] > lastPeakHeight) {
 				peakHeight = histo[index];
 				peakCov = (double) (index + 0.5) * binWidth;
@@ -3051,7 +3051,7 @@ static void eliminateNullNodes(Graph * graph, int * subgraphMask)
 	Node *node;
 	int index;
 	int lenSubgraphMask = 2 * nodeCount(graph) + 1;
-	
+
 	for (index = 0; index < lenSubgraphMask; index++) {
 		node = getNodeInGraph(graph, index - nodeCount(graph));
 		if (node == NULL || getNodeID(node) == 0)
@@ -3067,7 +3067,7 @@ static boolean checkLongReadExistence(Graph * graph)
 		if (getMarker(getNodeInGraph(graph, index)) != NULL)
 			return true;
 	}
-       
+
 	return false;
 }
 
@@ -3079,9 +3079,9 @@ static void depthFirstSearchSubgraph(int currentIndex, Graph * graph, int * subg
 	if (subgraphMask[currentIndex + nodeCount(graph)] == 0) {
 		// Mark "Visiting"
 		subgraphMask[currentIndex + nodeCount(graph)] = 1;
-		
+
 		// Find "Unvisited" Node
-		for (activeArc = getArc(getNodeInGraph(graph, currentIndex)); 
+		for (activeArc = getArc(getNodeInGraph(graph, currentIndex));
 		     activeArc != NULL; activeArc = getNextArc(activeArc)) {
 			nextIndex = getNodeID(getDestination(activeArc));
 			if (subgraphMask[nextIndex] == 0) {
@@ -3176,7 +3176,7 @@ static int estimated_cov_subgraph(Graph * graph, int * subgraphMask, double expC
 				sumLenSecondary += getNodeLength(node);
 		}
 	}
-       
+
 	sumLenTotal = sumLenPrimary + sumLenSecondary;
 	perPrimary = (double) sumLenPrimary / sumLenTotal;
 	perSecondary = (double) sumLenSecondary / sumLenTotal;
@@ -3225,7 +3225,7 @@ static void judgeChimericSubgraph(Graph * graph, int * subgraphMask, double expC
 
 	// Shelve not "Visiting" subgraphs
 	shelveSubgraphMask(subgraphMask, lenSubgraphMask, 1);
-	
+
 	while (!flagVisitedAllNodes) {
 		// Check Infinite Loop
 		numSubgraph++;
@@ -3234,20 +3234,20 @@ static void judgeChimericSubgraph(Graph * graph, int * subgraphMask, double expC
 			free(subgraphMask);
 			exit(1);
 		}
-		
+
 		// Choice starting unvisited node
 		nodeIndex = getUnvisitedNodeID(subgraphMask, lenSubgraphMask);
-		
+
 		printf("nodeIndex = %d\n", nodeIndex);
-		
+
 		// Depth-first search (node & twin)
 		depthFirstSearchSubgraph(nodeIndex, graph, subgraphMask);
 		depthFirstSearchSubgraph((nodeIndex * -1), graph, subgraphMask);
-		
+
 		// Estimate exp_cov in the Subgraph
 		judgeResult = estimated_cov_subgraph(graph, subgraphMask, expCovPandS,
 						     rateChimericSubgraph);
-		
+
 		if (judgeResult == 1) {
 			printf("NonChimeric Subgraph, belongs to Primary Species\n");
 			setSubgraphMask(subgraphMask, lenSubgraphMask, 1, 2);
@@ -3263,7 +3263,7 @@ static void judgeChimericSubgraph(Graph * graph, int * subgraphMask, double expC
 			else
 				forceSeparateChimericSubgraph(graph, subgraphMask, expCovPandS);
 		}
-	
+
 		// Judge whether all nodes in Subgraph have visited or not
 		if (getUnvisitedNodeID(subgraphMask, lenSubgraphMask) == 0)
 			flagVisitedAllNodes = true;
@@ -3293,7 +3293,7 @@ static boolean checkPrimaryExpCovExistence(double expCovMulti[2], double expCovP
 			return true;
 		}
 	}
-	
+
 	printf("Primary exp_cov (%f <-> %f), NOT exist\n", primary, secondary);
 	return false;
 }
@@ -3306,7 +3306,7 @@ static boolean judgeSkip(Graph * graph, int * subgraphMask)
 	double insertLen = getInsertLength(graph, 1);
 	double skipCandidateNodeLen = 0.0;
 	Node *node = NULL;
-		
+
 	for (nodeIndex = 1; nodeIndex < nodeCount(graph); nodeIndex++) {
 		if (subgraphMask[nodeIndex + nodeCount(graph)] == 1) {
 			countSkip++;
@@ -3333,12 +3333,12 @@ static void printActiveNodes(int * subgraphMask, int lenSubgraphMask)
 		if (subgraphMask[index] == 2)
 			printf("%d ", index - (lenSubgraphMask - 1) / 2);
 	}
-       
+
 	printf("\n");
 }
 
 void resolveRepeatOfAllSubgraphs(Graph * graph, ReadSet * reads, double expCovMulti[100],
-				 boolean * dubious, boolean force_jumps, int argPebbleRounds, 
+				 boolean * dubious, boolean force_jumps, int argPebbleRounds,
 				 double rateChimericSubgraph, boolean discardChimericSubgraph,
 				 double repeatNodeCovSD)
 {
@@ -3353,7 +3353,7 @@ void resolveRepeatOfAllSubgraphs(Graph * graph, ReadSet * reads, double expCovMu
 	int countInterRepeatLoop = 0, thresInterRepeatLoop = 20;
 	int pebbleRounds = argPebbleRounds;
 	boolean flagLongRead = false, flagVisitedAllNodes = false;
-	
+
 	puts("\nResolving Repeats for each subgraph\n");
 
 	// Eliminate NULL nodes
@@ -3381,7 +3381,7 @@ void resolveRepeatOfAllSubgraphs(Graph * graph, ReadSet * reads, double expCovMu
 			expCovPandS[1] = expCovMulti[ecmIndex];
 		}
 		printf("\nPrimary exp_cov : %f\n", expCovPandS[0]);
-			
+
 		// Resolve repeats for each Subgraph
 		while (true) {
 			// Check Infinite Loop
@@ -3391,7 +3391,7 @@ void resolveRepeatOfAllSubgraphs(Graph * graph, ReadSet * reads, double expCovMu
 				free(subgraphMask);
 				exit(1);
 			}
-			
+
 			// Choice starting unvisited node
 			nodeIndex = getUnvisitedNodeID(subgraphMask, lenSubgraphMask);
 
@@ -3409,7 +3409,7 @@ void resolveRepeatOfAllSubgraphs(Graph * graph, ReadSet * reads, double expCovMu
 			if (numPeaks >= 2) {
 				puts("Multiple Peaks Detected!");
 				// Identify and Separate InterRepeats
-				while (identifyAndSeparateInterRepeats(graph, expCovPandS, 
+				while (identifyAndSeparateInterRepeats(graph, expCovPandS,
 								       repeatNodeCovSD)) {
 					// Check Infinite Loop
 					if (countInterRepeatLoop++ >= thresInterRepeatLoop) {
@@ -3429,10 +3429,10 @@ void resolveRepeatOfAllSubgraphs(Graph * graph, ReadSet * reads, double expCovMu
 			}
 			else if (numPeaks == 1)
 				setSubgraphMask(subgraphMask, lenSubgraphMask, 1, 2);
-						
+
 			// Judge whether all nodes in Subgraphs have visited or not
 			if (getUnvisitedNodeID(subgraphMask, lenSubgraphMask) != 0) {
-				printf("Unvisited Node : %d\n", 
+				printf("Unvisited Node : %d\n",
 				       getUnvisitedNodeID(subgraphMask, lenSubgraphMask));
 				continue;
 			}
@@ -3445,8 +3445,8 @@ void resolveRepeatOfAllSubgraphs(Graph * graph, ReadSet * reads, double expCovMu
 
 			// -------------------- Assemble in the Subgraph --------------------
 			// Judge unique or repeat
-			identifyUniqueNodesSubgraph(graph, subgraphMask, 
-						    isUniqueSolexaSubgraph, expCovSubgraph); 
+			identifyUniqueNodesSubgraph(graph, subgraphMask,
+						    isUniqueSolexaSubgraph, expCovSubgraph);
 			// Rock Band in the Subgraph
 			if (flagLongRead)
 				readCoherentSubgraph(graph, expCovSubgraph, reads, subgraphMask);
@@ -3459,23 +3459,23 @@ void resolveRepeatOfAllSubgraphs(Graph * graph, ReadSet * reads, double expCovMu
 
 			// Eliminate NULL Nodes
 			eliminateNullNodes(graph, subgraphMask);
-			
+
 			// Reset uniqueness
 			resetUniqueness(graph);
-			
+
 			// Set "2" -> "-2", "-1" -> "0"
 			setSubgraphMask(subgraphMask, lenSubgraphMask, 2, -2);
 			setSubgraphMask(subgraphMask, lenSubgraphMask, -1, 0);
-			
+
 			// Judge whether all nodes in Graph have visited or not
 			if (getUnvisitedNodeID(subgraphMask, lenSubgraphMask) == 0)
 				flagVisitedAllNodes = true;
 			break;
 		}
 	}
-	
+
 	// Resolved Successfully
 	puts("Resolved Successfully!\n");
-	free(subgraphMask);	
+	free(subgraphMask);
 }
 // Original

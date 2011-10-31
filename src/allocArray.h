@@ -1,5 +1,5 @@
 /*
-Copyright 2009 Sylvain Foret (sylvain.foret@anu.edu.au) 
+Copyright 2009 Sylvain Foret (sylvain.foret@anu.edu.au)
 
     This file is part of Velvet.
 
@@ -71,10 +71,10 @@ static inline type* name##_I2P(ArrayIdx idx) \
 	if (idx != NULL_IDX) \
 		return name##_FI2P(idx); \
 	return NULL; \
-} 
+}
 
 #ifdef OPENMP
-// For multithreading: thread-specific alloc arrays 
+// For multithreading: thread-specific alloc arrays
 AllocArray *newAllocArrayArray(unsigned int n,
 			       size_t elementSize,
 			       char * name);

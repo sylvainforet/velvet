@@ -30,7 +30,7 @@ FibHeap *newFibHeap()
 	FibHeap * heap = fh_makekeyheap();
 	if (heap == NULL)
 		exitErrorf(EXIT_FAILURE, true, "Can't allocate FibHeap");
-	
+
 	return heap;
 }
 

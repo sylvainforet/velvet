@@ -41,4 +41,4 @@ void destroyKmerOccurenceTable(KmerOccurenceTable * kmerTable);
 KmerOccurence * getNextKmerOccurence(KmerOccurence * current);
 IDnum getKmerOccurenceNodeID(KmerOccurence * occurence);
 Coordinate getKmerOccurencePosition(KmerOccurence * occurence);
-#endif 
+#endif

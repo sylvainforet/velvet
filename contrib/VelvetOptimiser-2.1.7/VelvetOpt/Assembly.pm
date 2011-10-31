@@ -289,12 +289,12 @@ sub assmfunc2{ $_[0]->{assmfunc2}=$_[1] if defined $_[1]; $_[0]->{assmfunc2}}
 #assemblyScoreCalculator
 sub calcAssemblyScore {
     use Safe;
-	
+
 	my $self = shift;
 	my $func = shift;
-	
+
 	my $cpt = new Safe;
-	
+
 	#Basic variable IO and traversal
 	$cpt->permit(qw(null scalar const padany lineseq leaveeval rv2sv rv2hv helem hslice each values keys exists delete rv2cv));
 	#Comparators
@@ -312,16 +312,16 @@ sub calcAssemblyScore {
 
 	foreach my $key (keys %f_opts){
 		print "\nkey: $key\tintname: ", $f_opts{$key}->{'intname'}, "\n" if $interested;
-		
+
 		$func =~ s/\b$key\b/$self->{$f_opts{$key}->{'intname'}}/g;
 	}
-		
+
 	my $r = $cpt->reval($func);
 	warn $@ if $@;
 	$self->{assmscore} = $r;
-	unless($r =~ /^\d+/){ 
+	unless($r =~ /^\d+/){
 		warn "Optimisation function did not return a single float.\nOptimisation function was not evaluatable.\nOptfunc: $func";
-		warn "Setting assembly score to 0\n"; 
+		warn "Setting assembly score to 0\n";
 		$self->{assmscore} = 0;
 	}
 	if($r == 0){
@@ -361,17 +361,17 @@ sub getAssemblyDetails {
     my $self = shift;
 	my $file = $self->ass_dir . "/contigs.fa";
     unless(!(-e $file)){
-		
+
 		my $all = &contigStats($file,1);
 		my $large = &contigStats($file,1000);
-		
+
 		$self->{nconts} = defined $all->{numSeqs} ? $all->{numSeqs} : 0;
 		$self->{n50} = defined $all->{n50} ? $all->{n50} : 0;
 		$self->{maxlength} = defined $all->{maxLen} ? $all->{maxLen} : 0;
 		$self->{nconts1k} = defined $large->{numSeqs} ? $large->{numSeqs} : 0;
 		$self->{totalbp} = defined $all->{numBases} ? $all->{numBases} : 0;
 		$self->{totalbp1k} = defined $large->{numBases} ? $large->{numBases} : 0;
-		
+
 		if($self->pstringg =~ m/cov_cutoff/){
 			$self->calcAssemblyScore($self->{assmfunc2});
 		}
@@ -388,12 +388,12 @@ sub getAssemblyDetails {
 #Original script fa-show.pl by Torsten Seemann (Monash University, Melbourne, Australia)
 #Modified by Simon Gladman to suit.
 sub contigStats {
-	
+
 	my $file = shift;
 	my $minsize = shift;
-	
+
 	print "In contigStats with $file, $minsize\n" if $interested;
-	
+
 	my $numseq=0;
 	my $avglen=0;
 	my $minlen=1E9;
@@ -401,7 +401,7 @@ sub contigStats {
 	my @len;
 	my $toosmall=0;
 	my $nn=0;
-	
+
 	my $in = Bio::SeqIO->new(-file => $file, -format => 'Fasta');
 	while(my $seq = $in->next_seq()){
 		my $L = $seq->length;
@@ -432,7 +432,7 @@ sub contigStats {
 			last;
 		}
 	}
-	
+
 	my %out;
 	if($numseq > 0){
 		$out{numSeqs} = $numseq;
@@ -449,7 +449,7 @@ sub contigStats {
 	else {
 		$out{$numseq} = 0;
 	}
-	
+
 	print "Leaving contigstats!\n" if $interested;
 	return (\%out);
 }

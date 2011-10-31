@@ -83,7 +83,7 @@ orderInsertionMarkers(InsertionMarker ** insMarkers,
 	}
 }
 
-// Creates insertion marker lists 
+// Creates insertion marker lists
 static void
 setInsertionMarkers(RoadMapArray * rdmaps,
 		    IDnum * markerCounters,
@@ -126,7 +126,7 @@ setInsertionMarkers(RoadMapArray * rdmaps,
 	*insertionMarkers = callocOrExit(totalCount, InsertionMarker);
 	*veryLastMarker = *insertionMarkers + totalCount;
 
-	// Pointing each node to its space      
+	// Pointing each node to its space
 	nextMarker = *insertionMarkers;
 	for (sequenceIndex = 1; sequenceIndex < sequenceCounter + 1;
 	     sequenceIndex++) {
@@ -330,7 +330,7 @@ createPreNodes(RoadMapArray * rdmaps, PreGraph * preGraph,
 	IDnum annotIndex, lastAnnotIndex;
 	IDnum markerIndex, lastMarkerIndex;
 
-	if (file == NULL) 
+	if (file == NULL)
 		exitErrorf(EXIT_FAILURE, true, "Could not read %s", sequenceFilename);
 	// Reading sequence descriptor in first line
 	if (!fgets(line, lineLength, file))
@@ -370,7 +370,7 @@ createPreNodes(RoadMapArray * rdmaps, PreGraph * preGraph,
 					continue;
 				}
 			}
-			//printf("%c", c);      
+			//printf("%c", c);
 			switch (c) {
 			case 'A':
 				pushNucleotide(&initialKmer, ADENINE);

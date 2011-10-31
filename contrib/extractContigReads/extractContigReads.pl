@@ -22,11 +22,11 @@
 ##       A script to split out a single contig's reads from an LastGraph file
 ##       produced by the Velvet assembler.  The output is in fasta format.
 ##
-##       Usage:  ./extractContigReads.pl <contig number> <directory> 
+##       Usage:  ./extractContigReads.pl <contig number> <directory>
 ##
 ##
 ##       Where:  <contig number> is the number of the contig of interest.
-##		 <directory> is the Velvet directory 
+##		 <directory> is the Velvet directory
 ##
 ######################################################################
 
@@ -93,7 +93,7 @@ while(<GRAPH>) {
 
 close GRAPH;
 
-my $seqfile = "$directory/Sequences"; 
+my $seqfile = "$directory/Sequences";
 unless (-e $seqfile) {die "$seqfile does not exist, exiting.\n"};
 open SEQ, $seqfile;
 my $printRead = 0;

@@ -124,11 +124,11 @@ boolean isUniqueSolexa(Node * node)
 		    nodeLength / (2 * expected_coverage) *
 		    (expected_coverage * expected_coverage -
 		     nodeDensity * nodeDensity / 2);
- 
+
 		// Original
 		getStatusOfUniqueness(node, probability);
 		// Original
-			
+
 		return probability > PROBABILITY_CUTOFF;
 	} else {
 		return false;
@@ -317,14 +317,14 @@ static boolean uniqueNodesConnect(Node * startingNode)
 		return false;
 	}
 	// Aligning long reads to each other:
-	// TODO 
+	// TODO
 
 	// Merge pairwise alignments and produce consensus
 	// TODO
 
 	// Original
 	if (outputStartingNodeID != 0 && outputDestinationNodeID != 0) {
-                printf("RBConnection\tStarting : %d\tDestination : %d\n", 
+                printf("RBConnection\tStarting : %d\tDestination : %d\n",
 		       outputStartingNodeID, outputDestinationNodeID);
 	}
 	// Original
@@ -447,7 +447,7 @@ static Node *bypass()
 		if (next == NULL)
 			return bypass;
 
-		// Overall node update 
+		// Overall node update
 		if (!getUniqueness(next)) {
 			adjustShortReads(bypass, getNextInSequence(path));
 			appendSequence(bypass, sequences,
@@ -473,12 +473,12 @@ static Node *bypass()
 		// Members
 		updateMembers(bypass, next);
 
-		// Termination 
+		// Termination
 		if (isTerminal(path) || getUniqueness(next))
 			break;
 	}
 
-	// Remove unique groupies from arrival 
+	// Remove unique groupies from arrival
 	admitGroupies(next, bypass);
 
 	// Copy destination arcs
@@ -613,7 +613,7 @@ static void getStatusOfUniqueness(Node * node, double probability)
 	Arc *tmpArc = NULL;
 	Node *tmpNode = NULL;
 	char *arcDirection = "";
-	
+
 	if (probability > PROBABILITY_CUTOFF) {
 		repeatByProb = "Unique";
 	} else {
@@ -624,13 +624,13 @@ static void getStatusOfUniqueness(Node * node, double probability)
 		repeatByArcCount = "Repeat";
 	else
 		repeatByArcCount = "Unique";
-	
+
 	printf("Node : %d\tLen : %d\tCov : %6.2f\t",
 	       getNodeID(node), getNodeLength(node), getNodeDensity(node));
 	printf("F : %6.2f\tbyF : %s\tbyArc : %s\n",
 	       probability, repeatByProb, repeatByArcCount);
-	
-	if ( !(strcmp(repeatByProb, "Repeat") == 0 || 
+
+	if ( !(strcmp(repeatByProb, "Repeat") == 0 ||
 	       strcmp(repeatByArcCount, "Repeat") == 0) )
 		return;
 
@@ -639,16 +639,16 @@ static void getStatusOfUniqueness(Node * node, double probability)
 			arcDirection = "Out";
 		else
 			arcDirection = "In";
-			
+
 		tmpArc = getArc(arrayNode[index]);
 		while (tmpArc != NULL) {
 			tmpNode = getDestination(tmpArc);
-			
-			printf("\t%s\tNode : %d\t", 
+
+			printf("\t%s\tNode : %d\t",
 			       arcDirection, getNodeID(tmpNode));
-			printf("Len : %d\tCov : %6.2f\n", 
+			printf("Len : %d\tCov : %6.2f\n",
 			       getNodeLength(tmpNode), getNodeDensity(node));
-			
+
 			tmpArc = getNextArc(tmpArc);
 		}
 	}
@@ -677,8 +677,8 @@ boolean isUniqueSolexaSubgraph(Node * node, double expCovSubgraph)
 	}
 }
 
-void identifyUniqueNodesSubgraph(Graph * graph, int * subgraphMask, 
-				 boolean(*isUniqueSubgraph) (Node *, double), 
+void identifyUniqueNodesSubgraph(Graph * graph, int * subgraphMask,
+				 boolean(*isUniqueSubgraph) (Node *, double),
 				 double expCovSubgraph)
 {
         IDnum index;
@@ -689,7 +689,7 @@ void identifyUniqueNodesSubgraph(Graph * graph, int * subgraphMask,
 		if (node == NULL)
 			continue;
 		if (subgraphMask[index + 1 + nodeCount(graph)] == 2)
-			setUniqueness(node, 
+			setUniqueness(node,
 				      isUniqueSubgraph(node, expCovSubgraph));
 		else
 			setUniqueness(node, false);
@@ -710,12 +710,12 @@ static double getNearestExpCov(double argCov, double * expCovMulti)
 			resultExpCov = expCovMulti[index];
 		}
 	}
-			
+
 	return resultExpCov;
 }
 
-static boolean compareExpCovOutIn(Node * arrayOutInNode[][LEN_ARRAY_OUTIN], 
-				  double * expCovMulti, 
+static boolean compareExpCovOutIn(Node * arrayOutInNode[][LEN_ARRAY_OUTIN],
+				  double * expCovMulti,
 				  double repeatNodeCov, double repeatNodeCovSD)
 {
 	int outIndex, inIndex, arrayIndex, sortIndex;
@@ -725,7 +725,7 @@ static boolean compareExpCovOutIn(Node * arrayOutInNode[][LEN_ARRAY_OUTIN],
 	boolean flagChecked = false, flagOutInMatched = true;
 	double arrayCovOutIn[LEN_ARRAY_OUTIN * 2], tmpCovOutIn;
 	double aveCovOutInAll = 0.0, aveCovOutInPrimary = 0.0;
-	
+
 	// Initialize recordedInNode
 	for (inIndex = 0; inIndex < LEN_ARRAY_OUTIN; inIndex++)
 		recordedInNode[inIndex] = NULL;
@@ -756,7 +756,7 @@ static boolean compareExpCovOutIn(Node * arrayOutInNode[][LEN_ARRAY_OUTIN],
 	 // If Repeat Node Coverage is Too Small, "return false"
 	//printf("CovRepeat = %f, aveCovAll = %f, aveCovPrimary = %f -> ",
 	//       repeatNodeCov, aveCovOutInAll, aveCovOutInPrimary);
-	if ((aveCovOutInAll * (1.0 + repeatNodeCovSD) < repeatNodeCov) 
+	if ((aveCovOutInAll * (1.0 + repeatNodeCovSD) < repeatNodeCov)
 	    || (aveCovOutInAll * (1.0 - repeatNodeCovSD) > repeatNodeCov)) {
 		//printf("Dubious\n");
 		return false;
@@ -770,7 +770,7 @@ static boolean compareExpCovOutIn(Node * arrayOutInNode[][LEN_ARRAY_OUTIN],
 
 		if (!flagOutInMatched)
 			return false;
-		
+
 		// Judge whether this OutCov has been checked or not
 		flagChecked = false;
 		tmpExpCov = getNodeDensity(arrayOutInNode[0][outIndex]);
@@ -790,7 +790,7 @@ static boolean compareExpCovOutIn(Node * arrayOutInNode[][LEN_ARRAY_OUTIN],
 		for (inIndex = 0; inIndex < LEN_ARRAY_OUTIN; inIndex++) {
 			if (arrayOutInNode[1][inIndex] == NULL)
 				break;
-			
+
 			// Record corresponding In-Node
 			tmpExpCov = getNodeDensity(arrayOutInNode[1][inIndex]);
 			if (outExpCov == getNearestExpCov(tmpExpCov, expCovMulti)) {
@@ -826,13 +826,13 @@ static boolean isInterRepeat(Node * node, double * expCovMulti,
 	char *arcDirection = "";
 	boolean flagOutputNodeInfo = true;
 	boolean resultCompareECOI = false;
-	
+
 	// Judge Unique or Repeat by ArcCount
 	if (simpleArcCount(node) == 2 && simpleArcCount(twin) == 2)
 		isRepeat = "Repeat";
 	else
 		isRepeat = "Unique";
-	
+
 	// Not InterRepeat but Unique
 	if (strcmp(isRepeat, "Unique") == 0)
 		return false;
@@ -843,17 +843,17 @@ static boolean isInterRepeat(Node * node, double * expCovMulti,
 		tmpArc = getArc(arrayNode[nodeIndex]);
 		while (tmpArc != NULL) {
 			tmpNode = getDestination(tmpArc);
-			
+
 			// Record to array
 			if (nodeIndex == 0) {
-				arrayOutInNode[nodeIndex][arcIndex++] 
+				arrayOutInNode[nodeIndex][arcIndex++]
 					= tmpNode;
 			}
 			else {
 				arrayOutInNode[nodeIndex][arcIndex++]
 					= getTwinNode(tmpNode);
 			}
-			
+
 			tmpArc = getNextArc(tmpArc);
 		}
 	}
@@ -869,27 +869,27 @@ static boolean isInterRepeat(Node * node, double * expCovMulti,
 			tmpArc = getArc(arrayNode[nodeIndex]);
 			while (tmpArc != NULL) {
 				tmpNode = getDestination(tmpArc);
-				
+
 				if (nodeIndex == 0)
 					arcDirection = "Out";
 				else
 					arcDirection = "In";
-				
+
 				// Node Information
 				if (flagOutputNodeInfo) {
 					printf("Node : %d\tLen : %d \t",
 					       getNodeID(node), getNodeLength(node));
-					printf("Cov : %6.2f\tbyArc : %s\n", 
+					printf("Cov : %6.2f\tbyArc : %s\n",
 					       getNodeDensity(node), isRepeat);
 					flagOutputNodeInfo = false;
 				}
-				// Connecting Information 
-				printf("\t%s\tNode : %d\t", 
+				// Connecting Information
+				printf("\t%s\tNode : %d\t",
 				       arcDirection, getNodeID(tmpNode));
-				printf("Len : %d \tCov : %6.2f\n", 
-				       getNodeLength(tmpNode), 
+				printf("Len : %d \tCov : %6.2f\n",
+				       getNodeLength(tmpNode),
 				       getNodeDensity(tmpNode));
-				
+
 				tmpArc = getNextArc(tmpArc);
 			}
 		}
@@ -908,13 +908,13 @@ int identifyAndSeparateInterRepeats(Graph * argGraph, double * expCovMulti,
 	int numInterRepeat = 0;
 
 	puts("\nIdentifying and Separating InterRepeats");
-	
+
 	// Reset NodeStatus and Uniqueness
 	resetNodeStatus(graph); resetUniqueness(graph);
 
 	for (graphIndex = 0; graphIndex < nodeCount(graph); graphIndex++) {
 		node = getNodeInGraph(graph, graphIndex + 1);
-		
+
 		if (getNodeID(node) == 0)
 			continue;
 
@@ -924,13 +924,13 @@ int identifyAndSeparateInterRepeats(Graph * argGraph, double * expCovMulti,
 				arrayOutInNode[nodeIndex][arcIndex] = NULL;
 			}
 		}
-				
+
 		// Identify InterRepeats
 		if (!isInterRepeat(node, expCovMulti, arrayOutInNode, repeatNodeCovSD))
 			continue;
 		printf("Identified InterRepeat Node %d\n", getNodeID(node));
 		numInterRepeat++;
-		
+
 		// Separate the InterRepeat
 		for (arcIndex = 0; arcIndex < LEN_ARRAY_OUTIN; arcIndex++) {
 			if (arrayOutInNode[1][arcIndex] == NULL)
@@ -942,11 +942,11 @@ int identifyAndSeparateInterRepeats(Graph * argGraph, double * expCovMulti,
 			setNodeStatus(node, true); setUniqueness(node, false);
 			setNodeStatus(inNode, true); setUniqueness(inNode, true);
 			setNodeStatus(outNode, true); setUniqueness(outNode, true);
-		       			
+
 			if (!pushNeighboursInterRepeat(inNode, node, outNode, graph)) {
 				printf("Error!! Separating Failed at Node %d",
 					getNodeID(node));
-				printf(" -- In : %d Out : %d\n\n", 
+				printf(" -- In : %d Out : %d\n\n",
 					getNodeID(inNode), getNodeID(outNode));
 				exit(1);
 			}
@@ -1026,19 +1026,19 @@ static int computeNodeCount(Graph * argGraph)
 	return count;
 }
 
-void readCoherentSubgraph(Graph * inGraph, double expCovSubgraph, 
+void readCoherentSubgraph(Graph * inGraph, double expCovSubgraph,
 			  ReadSet * reads, int * subgraphMask)
 {
 	IDnum nodeIndex;
 	Node *node;
 	IDnum previousNodeCount = 0;
 	int checkModified = -1;
-	
+
 	graph = inGraph;
 	listMemory = newRecycleBin(sizeof(PassageMarkerList), 100000);
 	expected_coverage = expCovSubgraph;
 	sequences = reads->tSequences;
-	
+
 	//puts("Read coherency...");
 
 	if (!trimLongReadTipsSubgraph(subgraphMask)) {
@@ -1050,7 +1050,7 @@ void readCoherentSubgraph(Graph * inGraph, double expCovSubgraph,
 	while (previousNodeCount != computeNodeCount(graph)) {
 
 		previousNodeCount = computeNodeCount(graph);
-			
+
 		for (nodeIndex = 1; nodeIndex <= nodeCount(graph); nodeIndex++) {
 			node = getNodeInGraph(graph, nodeIndex);
 			if (node == NULL || !getUniqueness(node))
@@ -1058,7 +1058,7 @@ void readCoherentSubgraph(Graph * inGraph, double expCovSubgraph,
 
 			while (uniqueNodesConnect(node))
 				node = bypass();
-			
+
 			node = getTwinNode(node);
 			while (uniqueNodesConnect(node))
 				node = bypass();
@@ -1066,11 +1066,11 @@ void readCoherentSubgraph(Graph * inGraph, double expCovSubgraph,
 
 		checkModified++;
 	}
-	
+
 	destroyRecycleBin(listMemory);
 
 	//printf("readCoherentSubgraph checkModified = %d\n", checkModified);
- 
+
 	//puts("Read coherency over!");
 }
 // Original

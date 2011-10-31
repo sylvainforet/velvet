@@ -94,7 +94,7 @@ while($_){
 		print STDERR $_;
 		print STDERR $iid_line;
 		exit;
-	}	
+	}
         if($line =~ /^eid:$contig(-[0-9]*)?$/){
             #found the right contig..
             print STDERR "\nFound a part of contig $contig\n";
@@ -122,7 +122,7 @@ while($_){
 	}
     }
     elsif($_ =~ /\{SCF/){
-        #found a scaffold 
+        #found a scaffold
         $line = <IN>;
         if($line =~ /^eid:$contig$/){
             #found the right scaffold..
@@ -166,7 +166,7 @@ open IN, $file;
 my $currentread = shift @reads;
 my $currentread_copy = shift @reads_copy;
 my $foundreads = 0;
-my @foundfrags = ();  
+my @foundfrags = ();
 
 print STDERR "Reads to find = " . ($readcount - $foundreads) . "\tCurrent read: $currentread\n";
 
@@ -213,7 +213,7 @@ while(<IN>) {
 		# If we got to this line then both read IDs were recognized!
 		push @foundfrags, $read;
 		push @foundfrags, $read2;
-	
+
 		print OUT $frgString;
 		print OUT "$_\n";
 		while(<IN>){
@@ -247,7 +247,7 @@ while(<IN>) {
 			if (scalar( @reads) != 0) {
 			  $currentread = shift @reads;
 
-		
+
 			  if($foundreads % 100 == 0){
 			    print STDERR "Reads to find = " . ($readcount - $foundreads) . "\tCurrent read: $currentread\n";
 			  }
@@ -259,7 +259,7 @@ while(<IN>) {
 			  print STDERR 'No reads left in RED!';
 			  next;
 			}
-			      
+
 
 	}
 }

@@ -19,15 +19,15 @@ while($feature = $gffio->next_feature()) {
 	my $strand = $feature->strand;
 	my $seq_id = $feature->seq_id;
 	my $ref = $db->get_Seq_by_id($seq_id);
-	
+
 	my $seq;
 
 	if ($strand >= 0) {
-		$seq = Bio::PrimarySeq->new( 
+		$seq = Bio::PrimarySeq->new(
 			-seq => $ref->subseq($start,$end),
                         -id  => "$seq_id:$start-$end");
 	} else {
-		$seq = Bio::PrimarySeq->new( 
+		$seq = Bio::PrimarySeq->new(
 			-seq => $ref->subseq($start,$end),
                         -id => "$seq_id:$start-$end");
 	}

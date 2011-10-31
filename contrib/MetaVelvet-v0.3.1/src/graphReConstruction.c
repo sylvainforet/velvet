@@ -128,7 +128,7 @@ static inline KmerKey keyInAccelerationTable(Kmer * kmer,
 		key += ((KmerKey) popNucleotide(&copy)) << table->accelerationBits;
 		key >>= 2;
 	}
-	
+
 	return key;
 }
 
@@ -223,7 +223,7 @@ static KmerOccurenceTable *referenceGraphKmers(char *preGraphFilename,
 	while (line[0] == 'N') {
 		nodeID++;
 
-		// Fill in the initial word : 
+		// Fill in the initial word :
 		clearKmer(&word);
 		clearKmer(&antiWord);
 
@@ -241,7 +241,7 @@ static KmerOccurenceTable *referenceGraphKmers(char *preGraphFilename,
 				exitErrorf(EXIT_FAILURE, true, "PreGraph file incomplete");
 			else
 				nucleotide = ADENINE;
-				
+
 
 			pushNucleotide(&word, nucleotide);
 			if (double_strand) {
@@ -351,7 +351,7 @@ static KmerOccurence *findKmerOccurenceInSortedTable(Kmer * kmer,
 
 		if (leftIndex >= rightIndex)
 			return NULL;
-		else if (compareKmers(&(array[middleIndex]).kmer, kmer) == 0) 
+		else if (compareKmers(&(array[middleIndex]).kmer, kmer) == 0)
 			return &(array[middleIndex]);
 		else if (leftIndex == middleIndex)
 			return NULL;
@@ -404,7 +404,7 @@ static void ghostThreadSequenceThroughGraph(TightString * tString,
 	if (!readStartsAreActivated(graph))
 		activateReadStarts(graph);
 
-	// Fill in the initial word : 
+	// Fill in the initial word :
 	for (readNucleotideIndex = 0;
 	     readNucleotideIndex < wordLength - 1; readNucleotideIndex++) {
 		nucleotide = getNucleotide(readNucleotideIndex, tString);
@@ -438,7 +438,7 @@ static void ghostThreadSequenceThroughGraph(TightString * tString,
 			    	kmerOccurence =
 				findKmerOccurenceInSortedTable(&word,
 							       kmerOccurences);
-			} else { 
+			} else {
 				kmerOccurence =
 				       findKmerOccurenceInSortedTable(&antiWord,
 				        kmerOccurences);
@@ -449,22 +449,22 @@ static void ghostThreadSequenceThroughGraph(TightString * tString,
 			    	kmerOccurence =
 				findKmerOccurenceInSortedTable(&word,
 							       kmerOccurences);
-			} else { 
+			} else {
 				kmerOccurence =
 				       findKmerOccurenceInSortedTable(&antiWord,
 				        kmerOccurences);
 				reversed = true;
 			}
 		}
-		
+
 		if (kmerOccurence) {
-			if (!reversed) 
+			if (!reversed)
 				node = getNodeInGraph(graph, kmerOccurence->nodeID);
 			else
 				node = getNodeInGraph(graph, -kmerOccurence->nodeID);
 		} else {
 			node = NULL;
-			if (previousNode) 
+			if (previousNode)
 				break;
 		}
 
@@ -486,7 +486,7 @@ static void threadSequenceThroughGraph(TightString * tString,
 				       Graph * graph,
 				       IDnum seqID, Category category,
 				       boolean readTracking,
-				       boolean double_strand, 
+				       boolean double_strand,
 				       boolean second_in_pair)
 {
 	Kmer word;
@@ -512,7 +512,7 @@ static void threadSequenceThroughGraph(TightString * tString,
 	if (getLength(tString) < wordLength)
 		return;
 
-	// Fill in the initial word : 
+	// Fill in the initial word :
 	for (readNucleotideIndex = 0;
 	     readNucleotideIndex < wordLength - 1; readNucleotideIndex++) {
 		nucleotide = getNucleotide(readNucleotideIndex, tString);
@@ -545,7 +545,7 @@ static void threadSequenceThroughGraph(TightString * tString,
 			    	kmerOccurence =
 				findKmerOccurenceInSortedTable(&word,
 							       kmerOccurences);
-			} else { 
+			} else {
 				kmerOccurence =
 				       findKmerOccurenceInSortedTable(&antiWord,
 				        kmerOccurences);
@@ -556,14 +556,14 @@ static void threadSequenceThroughGraph(TightString * tString,
 			    	kmerOccurence =
 				findKmerOccurenceInSortedTable(&word,
 							       kmerOccurences);
-			} else { 
+			} else {
 				kmerOccurence =
 				       findKmerOccurenceInSortedTable(&antiWord,
 				        kmerOccurences);
 				reversed = true;
 			}
 		}
-		
+
 		if (kmerOccurence) {
 			if (!reversed) {
 				node = getNodeInGraph(graph, kmerOccurence->nodeID);
@@ -574,7 +574,7 @@ static void threadSequenceThroughGraph(TightString * tString,
 			}
 		} else {
 			node = NULL;
-			if (previousNode) 
+			if (previousNode)
 				break;
 		}
 
@@ -666,12 +666,12 @@ static void fillUpGraph(ReadSet * reads,
 						tSequences[readIndex],
 						kmerOccurences,
 						graph, readIndex + 1,
-						category, 
+						category,
 						readTracking, double_strand, second_in_pair);
 
-		if (category % 2) 
+		if (category % 2)
 			second_in_pair = (second_in_pair? false : true);
-		else 
+		else
 			second_in_pair = false;
 	}
 
@@ -690,9 +690,9 @@ static void fillUpGraph(ReadSet * reads,
 					   graph, readIndex + 1, category,
 					   readTracking, double_strand, second_in_pair);
 
-		if (category % 2) 
+		if (category % 2)
 			second_in_pair = (second_in_pair? false : true);
-		else 
+		else
 			second_in_pair = false;
 	}
 

@@ -70,4 +70,4 @@ struct kmer_st {
 #endif
 }  ATTRIBUTE_PACKED;
 
-#endif 
+#endif

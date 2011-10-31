@@ -65,4 +65,4 @@ struct kmer_st {
 #endif
 };
 
-#endif 
+#endif

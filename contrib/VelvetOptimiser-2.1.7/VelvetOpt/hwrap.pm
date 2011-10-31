@@ -141,11 +141,11 @@ my $inited = 0;
 sub init {
 	#run a velveth to get its help lines..
 	my $response = &_runVelveth(" ");
-	
+
 	$response =~ m/CATEGORIES = (\d+)/;
 	my $cats = $1;
 	unless($cats){$cats = 2;}
-	
+
 	$response =~ m/(File format options:(.*)Read type options)/s;
 	my @t = split /\n/, $1;
 	foreach(@t){
@@ -154,9 +154,9 @@ sub init {
 			push @Fileformats, $1;
 		}
 	}
-	
+
 	$response =~ m/(Read type options:(.*)Options:)/s;
-	
+
 	@t = ();
 	@t = split /\n/, $1;
 	foreach(@t){
@@ -165,12 +165,12 @@ sub init {
 			push @Readtypes, $1;
 		}
 	}
-	
+
 	for(my $i = 3; $i <= $cats; $i++){
 		push @Readtypes, "-short$i";
 		push @Readtypes, "-shortPaired$i";
 	}
-	
+
 	$usage = "Incorrect velveth parameter string: Needs to be of the form\n{[-file_format][-read_type] filename}\n";
 	$usage .= "Where:\n\tFile format options:\n";
 	foreach(@Fileformats){
@@ -181,7 +181,7 @@ sub init {
 		$usage .= "\t$_\n";
 	}
 	$usage .= "\nThere can be more than one filename specified as long as its a different type.\nStopping run\n";
-	
+
 	$inited = 1;
 }
 
@@ -199,12 +199,12 @@ sub _checkVHString {
     unless($inited){ &init(); }
 	my $line = shift;
 	my $cats = shift;
-	
-	
-	
+
+
+
 	my %fileform = ();
     my %readform = ();
-	
+
 	foreach(@Fileformats){ $fileform{$_} = 1;}
     foreach(@Readtypes){ $readform{$_} = 1;}
 

@@ -12,5 +12,5 @@ my $feature;
 while($feature = $gffio->next_feature()) {
 	$feature->start($feature->start - 100);
 	$feature->end($feature->end + 100);
-	$out->write_feature($feature);	
+	$out->write_feature($feature);
 }

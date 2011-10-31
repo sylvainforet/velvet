@@ -187,7 +187,7 @@ static void integrateDerivativeDistances(Connection * connect,
 	Connection *connect2;
 	MiniConnection *localConnect;
 
-	// debug 
+	// debug
 	IDnum counter = 0;
 
 	if (!getUniqueness(reference))
@@ -337,7 +337,7 @@ static void absorbExtension(Node * node, Node * extension)
 	appendNodeGaps(node, extension, graph);
 	appendDescriptors(node, extension);
 
-	// Destroy old nodes    
+	// Destroy old nodes
 	while (getArc(node) != NULL)
 		destroyArc(getArc(node), graph);
 
@@ -764,7 +764,7 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 			}
 		}
 
-		// In case of failure   
+		// In case of failure
 		if (candidate == NULL) {
 			for (arc = getArc(current); arc != NULL;
 			     arc = getNextArc(arc)) {
@@ -1179,7 +1179,7 @@ void exploitShortReadPairs(Graph * argGraph,
 	// Prepare graph
 	prepareGraphForLocalCorrections(graph);
 
-	// Prepare local scaffold 
+	// Prepare local scaffold
 	localScaffold =
 	    callocOrExit(2 * nodeCount(graph) + 1, MiniConnection);
 

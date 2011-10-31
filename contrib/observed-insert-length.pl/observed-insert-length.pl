@@ -1,11 +1,11 @@
 #!/usr/bin/perl -w
 
-#    observed-insert-length.pl             
+#    observed-insert-length.pl
 #
 #    Displays the insert lengths of the read pairs which happen to be on the same
 #    contig of a velvetg Graph2 file.
 #
-#    Copyright (C) 2009 Torsten Seeman 
+#    Copyright (C) 2009 Torsten Seeman
 #    Modified by Daniel Zerbino,  August 17, 2009
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -43,25 +43,25 @@ my $ins_length_median = math_median($insert_lengths);
 my $ins_length_sd = math_sd($insert_lengths);
 print "Observed median insert length: $ins_length_median\n";
 print "Observed mode of insert length: $ins_length_mode\n";
-print "Observed sample standard deviation: $ins_length_sd\n"; 
+print "Observed sample standard deviation: $ins_length_sd\n";
 if ($library == 1) {
 	$library = "";
 }
 if ($ins_length_sd == 0) {
 	$ins_length_sd = 1;
-}	
+}
 print "Suggested velvetg parameters: -ins_length$library $ins_length_median -ins_length${library}_sd $ins_length_sd\n";
 
 # END
 
 sub read_stats {
-  my $directory = shift; 
+  my $directory = shift;
 
   die "Directory $directory does not exist, please check your parameters.\n" unless (-e $directory);
   die "Sequence file $directory/Sequences does not exist, please check that you ran Velvetg correctly.\n" unless (-e "$directory/Sequences");
   die "Graph file $directory/Graph2 does not exist, please re-run velvetg with the -read_trkg parameter on.\n" unless (-e "$directory/Graph2");
 
-  open IN, "$directory/Sequences"; 
+  open IN, "$directory/Sequences";
   my %read_pair = ();
   my $unmatched_read = 0;
 
@@ -117,9 +117,9 @@ sub read_stats {
       my $read_no = $x[0];
       my $read_pos = $x[1];
       my $read_off = $x[2];
-	
+
       if ($read_pos > 0 && $read_pair{$read_no} && $read_position{$read_pair{$read_no}} && $read_position{ $read_pair{ $read_no }}->[0] == $node) {
-	my $length = abs($read_pos - $read_off - $read_position{ $read_pair{ $read_no} }->[1]); 	
+	my $length = abs($read_pos - $read_off - $read_position{ $read_pair{ $read_no} }->[1]);
 	push @insert_lengths, $length + $kmer - 1;
       }
     }
@@ -139,7 +139,7 @@ sub math_mode {
   for my $x (keys %freq_of) {
     $mode = $x if $freq_of{$x} > $freq_of{$mode};
   }
-  return $mode; 
+  return $mode;
 }
 
 # Mathematical median is the middle obersvation (center of the histogram)
@@ -147,7 +147,7 @@ sub math_mode {
 sub math_median {
   my($array_ref) = @_;
   my @sorted = sort { $a <=> $b } @{$array_ref};
-  return $sorted[int(@sorted/2)]; 
+  return $sorted[int(@sorted/2)];
 }
 
 # Standard error of dataset
@@ -167,8 +167,8 @@ sub math_sd {
 sub print_histogram {
   my($cov) = @_;
   my %freq_of;
-  for my $c (@$cov) { 
-    $freq_of{$c}++ 
+  for my $c (@$cov) {
+    $freq_of{$c}++
   }
   my $max = max(values %freq_of);
   for my $c (sort { $a <=> $b } keys %freq_of) {
@@ -212,5 +212,5 @@ sub usage {
   }
   exit(1);
 }
- 
+
 #----------------------------------------------------------------------

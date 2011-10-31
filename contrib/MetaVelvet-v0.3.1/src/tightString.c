@@ -376,7 +376,7 @@ void trimTightString(TightString * tString, Coordinate length)
 
 	tString->length = length;
 	tString->arrayLength = newArrayLength;
-	tString->sequence = 
+	tString->sequence =
 	    reallocOrExit(tString->sequence, newArrayLength, Codon);
 }
 

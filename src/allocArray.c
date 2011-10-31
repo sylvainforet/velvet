@@ -1,5 +1,5 @@
 /*
-Copyright 2009 Sylvain Foret (sylvain.foret@anu.edu.au) 
+Copyright 2009 Sylvain Foret (sylvain.foret@anu.edu.au)
 
     This file is part of Velvet.
 
@@ -49,7 +49,7 @@ struct AllocArrayFreeElement_st
 	ArrayIdx idx;
 };
 
-static void initAllocArray(AllocArray * array, size_t elementSize, char * name) 
+static void initAllocArray(AllocArray * array, size_t elementSize, char * name)
 {
 	array->freeElements = NULL;
 	array->elementSize = elementSize;
@@ -266,7 +266,7 @@ ArrayIdx allocArrayArrayAllocate(AllocArray *array)
 	}
 	if (array->currentElements >= array->maxElements)
 	{
-		#pragma omp critical 
+		#pragma omp critical
 		array->currentBlocks = lastArray->currentBlocks++;
 
 		if (array->currentBlocks >= array->maxBlocks)

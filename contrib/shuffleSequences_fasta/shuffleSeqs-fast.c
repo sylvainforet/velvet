@@ -1,23 +1,23 @@
-/* shuffle-fast - interleave two fasta or fastq files 
+/* shuffle-fast - interleave two fasta or fastq files
 *
-* Version 1.0 9/16/2009 by  Eric L. Cabot, Genome Center of Wisconsin 
+* Version 1.0 9/16/2009 by  Eric L. Cabot, Genome Center of Wisconsin
 *
 *   Usage:  shuffleSeqs-fast [file1] [file2]
 *
 *   Example: ./shuffleSeqs-fast s_1_1.fas s_1_2.fas > bigger.fas
 *
-*   
-*   Notes: 
-*     1. file1 and file2 are either fasta or fastq 
+*
+*   Notes:
+*     1. file1 and file2 are either fasta or fastq
 *        formatted. The two need not be of the same type.
 *
 *     2. Output goes to stdout.
-*   
-*     3. Reading gzipped 
 *
-*    This program is based on H. Li's kseq_test.c, modified 
+*     3. Reading gzipped
+*
+*    This program is based on H. Li's kseq_test.c, modified
 *    to mimic the behavior of Velvet's shuffleSequences-fasta.pl
-*	   and d shuffleSequences-fastq.pl. 
+*	   and d shuffleSequences-fastq.pl.
 *
 *    Please see kseq.h for  Li's copyright notice.
 **********************************************************************
@@ -30,7 +30,7 @@
 *      (there is a copy of zlib shipped with Velvet)
 *
 *   3. Typical complilation on linux/unix:
-*    
+*
 *       gcc -g -O2 shuffleSeqs-fasta.c -lz -o shuffleSeqs-fast
 *
 **********************************************************************/
@@ -42,7 +42,7 @@
 KSEQ_INIT(gzFile,gzread)
 
 
-int main (int argc, char *argv[]) 
+int main (int argc, char *argv[])
 {
 	gzFile  fpA,fpB;
   kseq_t  *seqA,*seqB;
@@ -64,25 +64,25 @@ int main (int argc, char *argv[])
 
   seqA = kseq_init(fpA);
   seqB = kseq_init(fpB);
-  
+
 	while ((lA = kseq_read(seqA)) >= 0) {
 		if (lB = kseq_read(seqB)) {
-			if (seqA->qual.l) 
+			if (seqA->qual.l)
 				printf("@%s\n%s\n+\n%s\n", seqA->name.s, seqA->seq.s, seqA->qual.s);
 			else
 				printf(">%s\n%s\n", seqA->name.s, seqA->seq.s);
-						
+
 			if (seqB->qual.l)
 				printf("@%s\n%s\n+\n%s\n", seqB->name.s, seqB->seq.s, seqB->qual.s);
 			else
 				printf(">%s\n%s\n", seqB->name.s, seqB->seq.s);
-			
+
 		}   /*  if   */
 	}    /* while */
 
 	kseq_destroy(seqA);
 	kseq_destroy(seqB);
-	
+
 	gzclose(fpA);
 	gzclose(fpB);
 	return 0;

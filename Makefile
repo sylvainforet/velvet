@@ -19,14 +19,14 @@ endif
 
 ifdef VBIGASSEMBLY
 override DEF := $(DEF) -D BIGASSEMBLY -D VBIGASSEMBLY
-endif 	
+endif
 
 
 ifdef LONGSEQUENCES
 override DEF := $(DEF) -D LONGSEQUENCES
 endif
 
-# OpenMP 
+# OpenMP
 ifdef OPENMP
 override CFLAGS := $(CFLAGS) -fopenmp
 override DEF := $(DEF) -D OPENMP
@@ -43,19 +43,19 @@ OBJDBG = $(subst obj,obj/dbg,$(OBJ))
 default : cleanobj zlib obj velveth velvetg doc
 
 clean : clean-zlib
-	-rm obj/*.o obj/dbg/*.o ./velvet* 
+	-rm obj/*.o obj/dbg/*.o ./velvet*
 	-rm -f doc/manual_src/Manual.toc doc/manual_src/Manual.aux doc/manual_src/Manual.out doc/manual_src/Manual.log
 	-rm -f doc/manual_src/Columbus_manual.aux doc/manual_src/Columbus_manual.out doc/manual_src/Columbus_manual.log
 
-cleanobj: 
-	-rm obj/*.o obj/dbg/*.o 
+cleanobj:
+	-rm obj/*.o obj/dbg/*.o
 
 ifdef BUNDLEDZLIB
 Z_LIB_DIR=third-party/zlib-1.2.3
 Z_LIB_FILES=$(Z_LIB_DIR)/*.o
 override DEF := $(DEF) -D BUNDLEDZLIB
 
-zlib : 
+zlib :
 	cd $(Z_LIB_DIR); ./configure; make; rm minigzip.o; rm example.o
 
 clean-zlib :
@@ -67,14 +67,14 @@ zlib :
 clean-zlib :
 endif
 
-velveth : obj 
+velveth : obj
 	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o velveth obj/tightString.o obj/run.o obj/recycleBin.o obj/splay.o obj/splayTable.o obj/readSet.o obj/utility.o obj/kmer.o obj/kmerOccurenceTable.o $(Z_LIB_FILES)
 
 
 velvetg : obj
 	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o velvetg obj/tightString.o obj/graph.o obj/run2.o obj/fibHeap.o obj/fib.o obj/concatenatedGraph.o obj/passageMarker.o obj/graphStats.o obj/correctedGraph.o obj/dfib.o obj/dfibHeap.o obj/recycleBin.o obj/readSet.o obj/shortReadPairs.o obj/scaffold.o obj/locallyCorrectedGraph.o obj/graphReConstruction.o obj/roadMap.o obj/preGraph.o obj/preGraphConstruction.o obj/concatenatedPreGraph.o obj/readCoherentGraph.o obj/utility.o obj/kmer.o obj/kmerOccurenceTable.o obj/allocArray.o $(Z_LIB_FILES)
 
-debug : override DEF := $(DEF) -D DEBUG 
+debug : override DEF := $(DEF) -D DEBUG
 debug : cleanobj obj/dbg
 	$(CC) $(CFLAGS) $(LDFLAGS) $(DEBUG) -o velveth obj/dbg/tightString.o obj/dbg/run.o obj/dbg/recycleBin.o obj/dbg/splay.o obj/dbg/splayTable.o obj/dbg/readSet.o obj/dbg/utility.o obj/dbg/kmer.o obj/dbg/kmerOccurenceTable.o obj/dbg/allocArray.o $(Z_LIB_FILES)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(DEBUG) -o velvetg obj/dbg/tightString.o obj/dbg/graph.o obj/dbg/run2.o obj/dbg/fibHeap.o obj/dbg/fib.o obj/dbg/concatenatedGraph.o obj/dbg/passageMarker.o obj/dbg/graphStats.o obj/dbg/correctedGraph.o obj/dbg/dfib.o obj/dbg/dfibHeap.o obj/dbg/recycleBin.o obj/dbg/readSet.o obj/dbg/shortReadPairs.o obj/dbg/scaffold.o obj/dbg/locallyCorrectedGraph.o obj/dbg/graphReConstruction.o obj/dbg/roadMap.o obj/dbg/preGraph.o obj/dbg/preGraphConstruction.o obj/dbg/concatenatedPreGraph.o obj/dbg/readCoherentGraph.o obj/dbg/utility.o obj/dbg/kmer.o obj/dbg/kmerOccurenceTable.o obj/dbg/allocArray.o $(Z_LIB_FILES)
@@ -97,20 +97,20 @@ obj: zlib cleanobj objdir $(OBJ)
 obj_de: override DEF := $(DEF) -D COLOR
 obj_de: zlib cleanobj objdir $(OBJ)
 
-obj/dbgdir: 
+obj/dbgdir:
 	mkdir -p obj/dbg
 
-obj/dbg: override DEF := $(DEF) -D DEBUG 
+obj/dbg: override DEF := $(DEF) -D DEBUG
 obj/dbg: zlib cleanobj obj/dbgdir $(OBJDBG)
 
 obj/dbg_de: override DEF := $(DEF) -D COLOR -D DEBUG
 obj/dbg_de: zlib cleanobj obj/dbgdir $(OBJDBG)
 
 obj/%.o: src/%.c
-	$(CC) $(CFLAGS) $(OPT) $(DEF) -c $? -o $@ 
+	$(CC) $(CFLAGS) $(OPT) $(DEF) -c $? -o $@
 
 obj/dbg/%.o: src/%.c
-	$(CC) $(CFLAGS) $(DEBUG) $(DEF) -c $? -o $@ 
+	$(CC) $(CFLAGS) $(DEBUG) $(DEF) -c $? -o $@
 
 doc: Manual.pdf
 

@@ -124,7 +124,7 @@ void *allocatePointer(RecycleBin * recycle_bin)
 		velvetLog("Null recycle bin!\n");
 #ifdef DEBUG
 		abort();
-#endif 
+#endif
 		exit(-1);
 	}
 	if (recycle_bin->recycle) {

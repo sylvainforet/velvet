@@ -338,7 +338,7 @@ static void tourBusArc_local(Node * origin, Arc * arc, Time originTime)
 	IDnum nodeIndex = getNodeID(destination) + nodeCount(graph);
 	Node *oldPrevious = previous[nodeIndex];
 
-	//printf("Trying arc from %li -> %li\n", getNodeID(origin), getNodeID(destination)); 
+	//printf("Trying arc from %li -> %li\n", getNodeID(origin), getNodeID(destination));
 
 	if (oldPrevious == origin)
 		return;
@@ -357,7 +357,7 @@ static void tourBusArc_local(Node * origin, Arc * arc, Time originTime)
 		previous[nodeIndex] = origin;
 		return;
 	} else if (destinationTime > totalTime) {
-		//printf("Previously visited from slower node %li\n", getNodeID(getNodePrevious(destination))); 
+		//printf("Previously visited from slower node %li\n", getNodeID(getNodePrevious(destination)));
 		if (dheapNodes[nodeIndex] == NULL) {
 			return;
 		}
@@ -369,7 +369,7 @@ static void tourBusArc_local(Node * origin, Arc * arc, Time originTime)
 		comparePaths_local(destination, oldPrevious);
 		return;
 	} else {
-		//printf("Previously visited by faster node %li\n", getNodeID(getNodePrevious(destination))); 
+		//printf("Previously visited by faster node %li\n", getNodeID(getNodePrevious(destination)));
 		comparePaths_local(destination, origin);
 	}
 }
@@ -387,7 +387,7 @@ static void tourBusNode_local(Node * node)
 	for (arc = getArc(node); arc != NULL; arc = getNextArc(arc)) {
 		destination = getDestination(arc);
 
-		// Node doesn't belong to the marked node area 
+		// Node doesn't belong to the marked node area
 		if (getNodeStatus(getDestination(arc)) != 1)
 			continue;
 
@@ -513,7 +513,7 @@ void prepareGraphForLocalCorrections(Graph * argGraph)
 	Fmatrix = callocOrExit(MAXREADLENGTH + 1, double *);
 	for (index = 0; index < MAXREADLENGTH + 1; index++)
 		Fmatrix[index] = callocOrExit(MAXREADLENGTH + 1, double);
-	//Done with memory 
+	//Done with memory
 }
 
 void correctGraphLocally(Node * argStart)

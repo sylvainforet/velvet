@@ -2,7 +2,7 @@
 Copyright 2011 Toshiaki Namiki (namiki@dna.bio.keio.ac.jp).
 
     This file is part of MetaVelvet.
-    This file is originally distributed as a part of the Velvet software, 
+    This file is originally distributed as a part of the Velvet software,
     and modified to solve de novo metagenome assembly problem.
 
     MetaVelvet is free software; you can redistribute it and/or modify
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 	int numECM = 0;
 	int ecmIndex;
 	char *tokenPointer, *manualECM[100];
-	const char *splitChar = "_";			
+	const char *splitChar = "_";
 	boolean flagManualECM = false;
 	int *dummyMask;
 	double rateChimericSubgraph = 0.0;
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	// Memory allocation 
+	// Memory allocation
 	directory = argv[1];
 	graphFilename = mallocOrExit(strlen(directory) + 100, char);
 	preGraphFilename =
@@ -278,15 +278,15 @@ int main(int argc, char **argv)
 			flagManualECM = true;
 			tokenPointer = argv[arg_index];
 			for (numECM = 0; numECM < 100; numECM++) {
-				if ((manualECM[numECM] 
+				if ((manualECM[numECM]
 				     = strtok(tokenPointer, splitChar)) == NULL)
 					break;
 				tokenPointer = NULL;
 			}
 			for (ecmIndex = 0; ecmIndex < numECM; ecmIndex++) {
-				sscanf(manualECM[ecmIndex], "%lf", 
+				sscanf(manualECM[ecmIndex], "%lf",
 				       &expectedCoverageMulti[ecmIndex]);
-				printf("Manual Expected Coverage : %lf\n", 
+				printf("Manual Expected Coverage : %lf\n",
 				       expectedCoverageMulti[ecmIndex]);
 			}
 			printf("numECM : %d\n", numECM);
@@ -295,7 +295,7 @@ int main(int argc, char **argv)
 		// Original
 		} else if (strcmp(arg, "--help") == 0) {
 			printUsage();
-			return 0;	
+			return 0;
 		} else {
 			printf("Unknown option: %s;\n", arg);
 			printUsage();
@@ -380,11 +380,11 @@ int main(int argc, char **argv)
 			coverageCutoff = expectedCoverage / 2;
 			estimateCutoff = true;
 		}
-	} else { 
+	} else {
 		estimateCoverage = false;
-		if (coverageCutoff < 0 && estimateCutoff) 
+		if (coverageCutoff < 0 && estimateCutoff)
 			coverageCutoff = estimated_cov(graph, directory) / 2;
-		else 
+		else
 			estimateCutoff = false;
 	}
 
@@ -413,18 +413,18 @@ int main(int argc, char **argv)
 
 	removeHighCoverageNodes(graph, maxCoverageCutoff);
 	clipTipsHard(graph);
-	
+
 	if (expectedCoverage > 0) {
 		if (sequences == NULL) {
 			sequences = importReadSet(seqFilename);
 			convertSequences(sequences);
 		}
-		
+
 		// Original
   		 // Outputting Graph Before Rock Band
 		strcpy(graphFilename, directory);
 		strcat(graphFilename, "/Graph_BeforeRockBand");
-		exportGraph(graphFilename, graph, sequences->tSequences);	
+		exportGraph(graphFilename, graph, sequences->tSequences);
 		 // Outputting G_BRB Node Sequences
 		if (minContigLength < 2 * getWordLength(graph))
 			minContigKmerLength = getWordLength(graph);
@@ -442,7 +442,7 @@ int main(int argc, char **argv)
 
 		// Paired ends module
 		createReadPairingArray(sequences);
-		for (cat = 0; cat < CATEGORIES; cat++) 
+		for (cat = 0; cat < CATEGORIES; cat++)
 			if(pairUpReads(sequences, 2 * cat + 1))
 				pebbleRounds++;
 
@@ -467,12 +467,12 @@ int main(int argc, char **argv)
 		// Outputting Graph After Separating InterRepeats
 		strcpy(graphFilename, directory);
 		strcat(graphFilename, "/Graph_AfterSeparation");
-		exportGraph(graphFilename, graph, sequences->tSequences);	
+		exportGraph(graphFilename, graph, sequences->tSequences);
 		// Original
 		*/
 
 		// Original
-		// Resolving Repeats for each subgraph 
+		// Resolving Repeats for each subgraph
 		resolveRepeatOfAllSubgraphs(graph, sequences, expectedCoverageMulti,
 					    dubious, scaffolding, pebbleRounds,
 					    rateChimericSubgraph, discardChimericSubgraph,
@@ -491,11 +491,11 @@ int main(int argc, char **argv)
 	if (minContigLength < 2 * getWordLength(graph))
 		minContigKmerLength = getWordLength(graph);
 	else
-		minContigKmerLength = minContigLength - getWordLength(graph) + 1;		
+		minContigKmerLength = minContigLength - getWordLength(graph) + 1;
 
 	strcpy(graphFilename, directory);
 	strcat(graphFilename, "/contigs.fa");
-	exportLongNodeSequences(graphFilename, graph, minContigKmerLength); 
+	exportLongNodeSequences(graphFilename, graph, minContigKmerLength);
 
 	if (sequences == NULL) {
 		sequences = importReadSet(seqFilename);
@@ -519,10 +519,10 @@ int main(int argc, char **argv)
 	if (unusedReads) {
 		exportUnusedReads(graph, sequences, minContigKmerLength, directory);
 	}
-	
-	if (estimateCoverage) 
+
+	if (estimateCoverage)
 		printf("Estimated Coverage = %f\n", expectedCoverage);
-	if (estimateCutoff) 
+	if (estimateCutoff)
 		printf("Estimated Coverage cutoff = %f\n", coverageCutoff);
 
 	logFinalStats(graph, minContigKmerLength, directory);
