@@ -26,34 +26,34 @@
 
 > ./velveth sillyDirectory 21 -shortPaired data/test_reads.fa
 > ./velvetg sillyDirectory
-	(Final graph has 16 nodes and n50 of 24184, max 44966, total 100080, 
+	(Final graph has 16 nodes and n50 of 24184, max 44966, total 100080,
 	using 0/142858 reads)
 > less sillyDirectory/stats.txt
 
 > ./velvetg sillyDirectory -cov_cutoff 5 -read_trkg yes -amos_file yes
-	(Final graph has 1 nodes and n50 of 99975, max 99975, total 99975, 
+	(Final graph has 1 nodes and n50 of 99975, max 99975, total 99975,
 	using 135862/142858 reads)
 > less sillyDirectory/velvet_asm.afg
 
 > ./velvetg sillyDirectory -cov_cutoff auto
-	(Final graph has 1 nodes and n50 of 99975, max 99975, total 99975, 
+	(Final graph has 1 nodes and n50 of 99975, max 99975, total 99975,
 	using 0/142858 reads)
 
 > ./velvetg sillyDirectory -exp_cov 19 -ins_length 100
-	(Final graph has 12 nodes and n50 of 99975, max 99975, total 100165, 
+	(Final graph has 12 nodes and n50 of 99975, max 99975, total 100165,
 	using 135855/142858 reads)
-	
+
 > ./velvetg sillyDirectory -exp_cov auto
-	(Final graph has 1 nodes and n50 of 99975, max 99975, total 99975, 
+	(Final graph has 1 nodes and n50 of 99975, max 99975, total 99975,
 	using 135862/142858 reads)
 
 > ./velveth sillyDirectory 21 -short data/test_reads.fa -long data/test_long.fa
 > ./velvetg sillyDirectory -exp_cov 19
-	(Final graph has 10 nodes and n50 of 80927, max 80927, total 100122, 
+	(Final graph has 10 nodes and n50 of 80927, max 80927, total 100122,
 	using 137863/144858 reads)
-	
+
 > ./velvetg sillyDirectory -exp_cov auto
-	(Final graph has 1 nodes and n50 of 99975, max 99975, total 99975, 
+	(Final graph has 1 nodes and n50 of 99975, max 99975, total 99975,
 	using 137862/144858 reads)
 
 \end{verbatim}
@@ -64,8 +64,8 @@
 
 	Velvet should function on any standard 64bit Linux environment with
 gcc. A good amount of physical memory (12GB to start with, more is no luxury)
-is recommended. 
-	
+is recommended.
+
 	It can in theory function on a 32bit environment, but such systems have memory limitations which might ultimately be a constraint for assembly.
 
 \subsection{Compiling instructions}
@@ -88,13 +88,13 @@ To produce the colorspace version of Velvet, compile with the instruction:
 > make color
 \end{verbatim}
 
-All the rest of the manual remains valid, except that the executables are now called velveth\_de and velveth\_de . 
+All the rest of the manual remains valid, except that the executables are now called velveth\_de and velveth\_de .
 
 \textbf{Beware} that color- and sequence space are incompatible, hence separate sets of executables. In other words, don't try to hash sequence files with colorspace velvet or vice-versa, under penalty of meaningless results!
 
 \subsubsection{CATEGORIES}
 
-Because of the use of fixed-length arrays, a number of variables have to be set at compilation time. 
+Because of the use of fixed-length arrays, a number of variables have to be set at compilation time.
 
 One of the is the number of channels, or categories of reads, which can be handled independently. This is for example useful is you want to distinguish reads from different insert libraries, or from different samples altogether.
 
@@ -106,13 +106,13 @@ make 'CATEGORIES=57'
 
 (Note the single quotes and absence of spacing.)
 
-Obviously, the greater the number, the longer the corresponding arrays, the more memory will be required to run Velvet. Adjust this variable according to your needs and your memory requirements. 
+Obviously, the greater the number, the longer the corresponding arrays, the more memory will be required to run Velvet. Adjust this variable according to your needs and your memory requirements.
 
 \subsubsection{MAXKMERLENGTH.}
 
 \label{sec:maxlength}
 
-Another useful compilation parameter is the MAXKMERLENGTH. As explained in \ref{sec:kmercov}, the hash length can be crucial to getting optimal assemblies. Depending on the dataset, you might wish to use long hash lengths. 
+Another useful compilation parameter is the MAXKMERLENGTH. As explained in \ref{sec:kmercov}, the hash length can be crucial to getting optimal assemblies. Depending on the dataset, you might wish to use long hash lengths.
 
 By default, hash-lengths are limited to 31bp, but you can push up this limit by adjusting the MAXKMERLENGTH parameter at compilation time:
 
@@ -122,7 +122,7 @@ make 'MAXKMERLENGTH=57'
 
 (Note the single quotes and absence of spacing.)
 
-By storing longer words, Velvet will be requiring more memory, so adjust this variable according to your needs and memory resources. 
+By storing longer words, Velvet will be requiring more memory, so adjust this variable according to your needs and memory resources.
 
 \subsubsection{BIGASSEMBLY}
 
@@ -134,11 +134,11 @@ make 'BIGASSEMBLY=1'
 
 (Note the single quotes and absence of spacing.)
 
-This will cost more memory overhead. 
+This will cost more memory overhead.
 
 \subsubsection{LONGSEQUENCES}
 
-Read lengths are stored on signed 16bit integers, meaning that if you are assembling contigs longer than 32kb long, then more memory is required to store coordinates. To do so, simply add the following option to the make command: 
+Read lengths are stored on signed 16bit integers, meaning that if you are assembling contigs longer than 32kb long, then more memory is required to store coordinates. To do so, simply add the following option to the make command:
 
 \begin{verbatim}
 make 'LONGSEQUENCES=1'
@@ -146,11 +146,11 @@ make 'LONGSEQUENCES=1'
 
 (Note the single quotes and absence of spacing.)
 
-This will cost more memory overhead. 
+This will cost more memory overhead.
 
 \subsubsection{OPENMP}
 
-To turn on multithreading, simply use the OPENMP option at compilation. This should not significantly affect the memory overhead or results: 
+To turn on multithreading, simply use the OPENMP option at compilation. This should not significantly affect the memory overhead or results:
 
 \begin{verbatim}
 make 'OPENMP=1'
@@ -185,7 +185,7 @@ If, on the command line, you forget the syntax, you can print out a short help m
 Velveth takes in a number of sequence files, produces a hashtable, then outputs two files in an output directory (creating it if necessary), Sequences and Roadmaps, which are necessary to velvetg. The syntax is as follows:
 
 \begin{verbatim}
-> ./velveth output_directory hash_length 
+> ./velveth output_directory hash_length
             [[-file_format][-read_type] filename]
 \end{verbatim}
 
@@ -193,7 +193,7 @@ The hash length, also known as $k$-mer length, corresponds to the length, in bas
 
 \underline{Supported file formats are:}
 \begin{description}
-\item[fasta] (default) 
+\item[fasta] (default)
 \item[fastq]
 \item[fasta.gz]
 \item[fastq.gz]
@@ -208,7 +208,7 @@ The hash length, also known as $k$-mer length, corresponds to the length, in bas
 \item[short] (default)
 \item[shortPaired]
 \item[short2] (same as short, but for a separate insert-size library)
-\item[shortPaired2] (see above) 
+\item[shortPaired2] (see above)
 \item[long] (for Sanger, 454 or even reference sequences)
 \item[longPaired]
 \end{description}
@@ -231,21 +231,21 @@ can also be written as:
 
 \subsubsection{Piping Velvet}
 
-If you wish to run velveth directly on the output of another program, without the cost of creating and reading a new sequence file, then you can pipe it. In that case the character `-' is used to represent the standard input within the command line. 
+If you wish to run velveth directly on the output of another program, without the cost of creating and reading a new sequence file, then you can pipe it. In that case the character `-' is used to represent the standard input within the command line.
 
 Therefore, instead of having:
 
 \begin{verbatim}
 > myprogram > selected_reads.fa
 > velveth directory 21 -fastq other_reads.fastq -fasta selected_reads
-> velvetg directory (... parameters...) 
+> velvetg directory (... parameters...)
 \end{verbatim}
 
 You can simply do:
 
 \begin{verbatim}
 > myprogram | velveth directory 21 -fastq other_reads.fastq -fasta -
-> velvetg directory (... parameters...) 
+> velvetg directory (... parameters...)
 \end{verbatim}
 
 \subsubsection{Strand specific sequencing}
@@ -312,10 +312,10 @@ Finally, if you have any doubt at the command line, you can obtain a short help 
 \end{verbatim}
 
 	\subsubsection{Single reads}
-	
+
 	\label{sec:velvetg}
 
-Initally, you simply run: 
+Initally, you simply run:
 \begin{verbatim}
 > ./velvetg output_directory/
 \end{verbatim}
@@ -342,11 +342,11 @@ The coverage cutoff can also be set automatically to half the length weighted me
 Note that typing $-exp\_cov$ $auto$ (cf. next subsection) is equivalent to typing $-exp\_cov$ $auto$ $-cov\_cutoff$ $auto$, unless you decide to manually set the coverage cutoff. On the contrary, $-cov\_cutoff$ $auto$ does not affect the expected coverage setting.
 
 	\subsubsection{Adding long reads}
-	
+
 \textbf{Reminder:} you must have flagged your long reads as such when running
 velveth (cf. \ref{sec:hashing}).
-	
-If you have a sufficient coverage of short reads, and any quantity of long reads (obviously the deeper the coverage and the longer the reads, the better), you can use the long reads to resolve repeats in a greedy fashion. 
+
+If you have a sufficient coverage of short reads, and any quantity of long reads (obviously the deeper the coverage and the longer the reads, the better), you can use the long reads to resolve repeats in a greedy fashion.
 
 To do this, Velvet needs to have a reasonable estimate of the expected coverage \emph{in short reads} of unique sequence (see \ref{sec:kmercov} for a definition of k-mer coverage). The simplest way to obtain this value is simply to observe the distribution of contig coverages (as described in \ref{sec:expcov}), and see around which value the coverages of nodes seem to cluster (especially the longer nodes in your dataset). Supposing the expected coverage is 19x, them you indicate it with the $exp\_cov$ marker:
 
@@ -372,14 +372,14 @@ velveth (cf. \ref{sec:hashing}).
 To activate the use of read pairs, you must specify two parameters: the \emph{expected} (i.e. average) insert length (or at least a rough estimate), and the expected \emph{short-read k-mer coverage} (see \ref{sec:kmercov} for more information). The insert length is understood to be the length of the sequenced fragment, i.e. it includes the length of the reads themselves. If you expect your insert length to be around 400bp, and your coverage to be around 21.3x, you would type:
 
 \begin{verbatim}
-> ./velvetg output_directory/ -ins_length 400 -exp_cov 21.3 
+> ./velvetg output_directory/ -ins_length 400 -exp_cov 21.3
 	          (... other parameters ...)
 \end{verbatim}
 
 If one of the libraries is a mate-pair library made by circularization, and you have reasons to suspect the presence of read pair contamination, then you can flag that library to velvetg:
 
 \begin{verbatim}
-> ./velvetg output_directory/ -shortMatePaired yes 
+> ./velvetg output_directory/ -shortMatePaired yes
 	          (... other parameters ...)
 \end{verbatim}
 
@@ -388,7 +388,7 @@ Velvet will then use any available (short) paired-end library to filter out pair
 If you happen to have hashed paired long reads and you ordered them as explained in \ref{sec:pairedformat} you can also tell Velvet to use this information for scaffolding by indicating the corresponding insert length (remember that you still need to indicate the short-read k-mer coverage):
 
 \begin{verbatim}
-> ./velvetg output_directory/ -exp_cov 21 -ins_length_long 40000 
+> ./velvetg output_directory/ -exp_cov 21 -ins_length_long 40000
 		 (... other parameters ...)
 \end{verbatim}
 
@@ -402,7 +402,7 @@ This will set $exp\_cov$ to the length weighted median contig coverage, and $cov
 
 \textbf{Caveat emptor:} if this option is used on datasets with very heterogeneous coverage (e.g. transcriptomes, ChIP-seq, etc) then the results are simply unpredictable, and mis-assemblies are to be expected. This option is intended mainly for standard genomic sequencing.
 
-\textbf{Automatically measuring the insert length} 
+\textbf{Automatically measuring the insert length}
 
 If the insert length of a library is unspecified, Velvet will attempt to measure it for you, based on the read-pairs which happen to map onto a common node. The corresponding $ins\_length*$ and $ins_length*\_sd$ parameters are thus set for you. This option is designed as a convenience if your assembly is initially good enough to provide long contigs to bootstrap the process. If that is not the case, the library insert length will be determined from a small sample size, and is liable to produce a poor estimate. You should check the Velvet console output to make sure the insert length estimates are not absurd.
 
@@ -418,7 +418,7 @@ If the insert length of a library is unspecified, Velvet will attempt to measure
 Velvet does not use the absolute values of the insert-length SDs, but their relative values. Therefore, you do not need to spend too much time on the estimation of the SDs, as long as you are consistent. You can then enter your own \emph{a priori} SD's. To do so simply indicate them as follows:
 
 \begin{verbatim}
-> ./velvetg output_directory/ -exp_cov 21 
+> ./velvetg output_directory/ -exp_cov 21
 		-ins_length 200 -ins_length_sd 20
 		-ins_length2 20000 -ins_length2_sd 5000
 		-ins_length_long 40000 -ins_length_long_sd 1000
@@ -435,8 +435,8 @@ By default, Velvet will print out as many contigs as possible. This has the draw
 > ./velvetg -min_contig_lgth 100 (... other parameters ...)
 \end{verbatim}
 
-	\paragraph{Using read tracking} 
-	
+	\paragraph{Using read tracking}
+
 Velvet's read tracking can be turned on with the read-tracking option. This will cost slightly more memory and calculation time, but will have the advantage of producing in the end a more detailed description of the assembly:
 
 \begin{verbatim}
@@ -444,7 +444,7 @@ Velvet's read tracking can be turned on with the read-tracking option. This will
 \end{verbatim}
 
 	\paragraph{Producing an .afg file}
-	
+
 If you turn on the read tracking, you might also want to have all the  assembly information in one datastructure. For this purpose Velvet can produce AMOS files (cf \ref{sec:amos}). Because the .afg files tend to be very large, they are only produced on demand:
 
 \begin{verbatim}
@@ -463,23 +463,23 @@ To do so, you simply need to use the appropriate options when hashing the
 reads (see \ref{sec:hashing}). Put the shorter inserts in the first category. Supposing your first  readset has an insert length around 400bp and the second one a insert length around 10,000bp, you should type:
 
 \begin{verbatim}
-> ./velvetg output_directory/  -ins_length 400 -ins_length2 10000  
+> ./velvetg output_directory/  -ins_length 400 -ins_length2 10000
 		(... other parameters ...)
 \end{verbatim}
 
 \textbf{Note:} Increasing the amount of categories is possible. It's simply a bit more
-expensive memory-wise. 
+expensive memory-wise.
 
 \textbf{Note:} In the stats.txt file, you will find all three categories (long,
 short1 and short2) treated separately.
 
 	\paragraph{Obtaining reads unused in the assembly}
-	
+
 	If you wish to obtain the reads which do not belong in the assembly, you should type:
-	
+
 \begin{verbatim}
 > ./velvetg output_directory/  -unused_reads yes (... other parameters ...)
-\end{verbatim}	
+\end{verbatim}
 
 	The reads will be copied into a FastA file called UnusedReads.fa .
 
@@ -487,15 +487,15 @@ short1 and short2) treated separately.
 
 \paragraph{Caveat Emptor}
 \begin{quotation}
-\underline{The following parameters are probably best left untouched}. If set unwisely, Velvet's behaviour may be unpredictable. 
+\underline{The following parameters are probably best left untouched}. If set unwisely, Velvet's behaviour may be unpredictable.
 
 Nonetheless, some users are curious to control the way in which Tour Bus (cf. \ref{sec:paper}) decides whether to merge polymorphisms or not.
 
-Before we go into the actual details, it is worth discussing the pros and cons of bubble smoothing. The original idea is that a few SNPs, in the case of diploid assembly, should not prevent the construction of an overall contig. Detecting them post assembly is just a matter of scanning the assembly files and detecting discrepancies between the consensus sequence and the reads.  
+Before we go into the actual details, it is worth discussing the pros and cons of bubble smoothing. The original idea is that a few SNPs, in the case of diploid assembly, should not prevent the construction of an overall contig. Detecting them post assembly is just a matter of scanning the assembly files and detecting discrepancies between the consensus sequence and the reads.
 
 On the other hand, if you have two copies of a repeat in a haploid genome, you want to reduce the merging to a minimum, so that later analysis with paired-end reads or long reads may allow you to retrieve both individual copies, instead of just one artificial ``consensus'' sequence.
 
-Hopefully, these issues will eventually be resolved by further thought and experiment. In the mean time, Velvet allows direct access to these parameters for those who want to play around, or maybe tailor Velvet to specific needs (e.g. multi-strain sequencing). 
+Hopefully, these issues will eventually be resolved by further thought and experiment. In the mean time, Velvet allows direct access to these parameters for those who want to play around, or maybe tailor Velvet to specific needs (e.g. multi-strain sequencing).
 \end{quotation}
 
 \paragraph{Maximum branch length}
@@ -504,7 +504,7 @@ Partly for engineering issues and partly to avoid aberrant transformations, ther
 
 \begin{verbatim}
 > ./velvetg output_directory/ -max_branch_length 200 (...other parameters...)
-\end{verbatim} 
+\end{verbatim}
 
 \paragraph{Maximum divergence rate}
 
@@ -512,7 +512,7 @@ After aligning the two sequences with a standard dynamic alignment, Velvet compa
 
 \begin{verbatim}
 > ./velvetg output_directory/ -max_divergence 0.33 (...other parameters...)
-\end{verbatim} 
+\end{verbatim}
 
 \paragraph{Maximum gap count}
 
@@ -520,7 +520,7 @@ After aligning the two sequences with a standard dynamic alignment, Velvet compa
 
 \begin{verbatim}
 > ./velvetg output_directory/ -max_gap_count 5 (...other parameters...)
-\end{verbatim} 
+\end{verbatim}
 
 \subsection{Advanced parameters: Rock Band}
 
@@ -536,7 +536,7 @@ Velvet will by default assume that paired end reads are perfectly placed. With e
 
 \begin{verbatim}
 > ./velvetg output_directory/ -min_pair_count 20 (...other parameters...)
-\end{verbatim}  
+\end{verbatim}
 
 \section{File formats}
 
@@ -544,11 +544,11 @@ Velvet will by default assume that paired end reads are perfectly placed. With e
 
 \label{sec:pairedformat}
 
-Velvet works mainly with fasta and fastq formats. 
+Velvet works mainly with fasta and fastq formats.
 
 For paired-end reads, the assumption is that each read is next to its mate
 read. In other words, if the reads are indexed from 0, then reads 0 and 1 are
-paired, 2 and 3, 4 and 5, etc.  
+paired, 2 and 3, 4 and 5, etc.
 
 If for some reason you have forward and reverse reads in two different FASTA files
 but in corresponding order, the bundled Perl script \emph{shuffleSequences\_fasta.pl} will
@@ -561,7 +561,7 @@ There is also a \emph{shuffleSequences\_fastq.pl} script for Sanger-style FastQ 
 
 Concerning read orientation, Velvet expects paired-end reads to come from opposite strands facing each other, as in the traditional Sanger format. If you have paired-end reads produced from circularisation (i.e. from the same strand), it will be necessary to replace the first read in each pair by its reverse complement before running velveth.
 
-\subsection{Output files} 
+\subsection{Output files}
 
 \label{sec:output}
 
@@ -595,7 +595,7 @@ Also, the difference between $*\_cov$ and $*\_Ocov$ is the way these values are 
 
 This file is mainly designed to be read by the open-source AMOS genome assembly package. Nonetheless, a number of programs are available to transform this kind of file into other assembly file formats (namely ACE, TIGR, Arachne and Celera). See \href{http://amos.sourceforge.net/}{http://amos.sourceforge.net/} for more information.
 
-The file describes all the contigs contained in the contigs.fa file (cf \ref{sec:fasta}). 
+The file describes all the contigs contained in the contigs.fa file (cf \ref{sec:fasta}).
 
 If you are overwhelmed by the size of the file, two bundled scripts provided by Simon Gladman can help you out:
 \begin{itemize}
@@ -608,7 +608,7 @@ If you are overwhelmed by the size of the file, two bundled scripts provided by 
 This file describes in its entirety the graph produced by Velvet, in an idiosyncratic format which evolved with my PhD project. The format of this file is briefly as follows:
 
 \begin{itemize}
-\item One header line for the graph: 
+\item One header line for the graph:
 \begin{verbatim}
 $NUMBER_OF_NODES    $NUMBER_OF_SEQUENCES    $HASH_LENGTH
 \end{verbatim}
@@ -648,7 +648,7 @@ $READ_ID2	etc.
 \end{verbatim}
 \end{itemize}
 
-\section{Practical considerations / Frequently asked questions} 
+\section{Practical considerations / Frequently asked questions}
 
 \subsection{Choice of hash length k}
 
@@ -665,7 +665,7 @@ Firstly, you must observe three technical constraints:
 
 Now you still have quite a lot of possibilities. As is often the case, it's a trade-off between specificity and sensitivity. Longer kmers bring you more specificity (i.e. less spurious overlaps) but lowers coverage (cf. below)\ldots so there's a sweet spot to be found with time and experience.
 
-We like to think in terms of ``k-mer coverage'', i.e. how many times has a k-mer been seen among the reads. The relation between k-mer coverage $C_k$ and standard (nucleotide-wise) coverage $C$ is $C_k = C * (L - k + 1) / L$ where k is your hash length, and L you read length. 
+We like to think in terms of ``k-mer coverage'', i.e. how many times has a k-mer been seen among the reads. The relation between k-mer coverage $C_k$ and standard (nucleotide-wise) coverage $C$ is $C_k = C * (L - k + 1) / L$ where k is your hash length, and L you read length.
 
 Experience shows that this kmer coverage should be above 10 to start getting decent results. If $C_k$ is above 20, you might be ``wasting'' coverage. Experience also shows that empirical tests with different values for $k$ are not that costly to run!
 
@@ -675,7 +675,7 @@ Experience shows that this kmer coverage should be above 10 to start getting dec
 
 Velvet was designed to be explicitly cautious when correcting the assembly, to lose as little information as possible. This consequently will leave some obvious errors lying behind after the Tour Bus algorithm (cf. \ref{sec:paper}) was run. To detect them, you can plot out the distribution of k-mer coverages (\ref{sec:kmercov}), using plotting software (I use R).
 
-The examples below are produced using the S. suis P1/7 data available from the Sanger Institute (\href{http://www.sanger.ac.uk/Projects/S_suis/}{www.sanger.ac.uk/Projects/S\_suis/}) (Note: a simple script is necessary to convert the sequence files to FastA).  I used a k-mer length of 21 and no cutoff. 
+The examples below are produced using the S. suis P1/7 data available from the Sanger Institute (\href{http://www.sanger.ac.uk/Projects/S_suis/}{www.sanger.ac.uk/Projects/S\_suis/}) (Note: a simple script is necessary to convert the sequence files to FastA).  I used a k-mer length of 21 and no cutoff.
 
 With the R instruction:
 \begin{verbatim}
@@ -705,7 +705,7 @@ If you have read-pair information, or long reads, it may be profitable to set a 
 
 \label{sec:expcov}
 
-From the previous weighted histogram it must be pretty clear that the expected coverage of contigs is near 14x. 
+From the previous weighted histogram it must be pretty clear that the expected coverage of contigs is near 14x.
 
 \subsection{Visualising contigs and assemblies}
 
@@ -731,10 +731,10 @@ The Velvet package is bundled with programs developed by other programers which 
 These two scripts allow you to examine the (generally) large .afg files which can be produced by Velvet:
 
 \begin{description}
- 
+
 \item[asmbly\_splitter] allows you to choose a specific scaffold from the assembly and produce a self-standing .afg file for that scaffold.
 
-\item[snp\_view] produces an ASCII pileup display of the reads above a given locus 
+\item[snp\_view] produces an ASCII pileup display of the reads above a given locus
 
 \end{description}
 
@@ -752,7 +752,7 @@ This script automatically determines the expected coverage value as described in
 
 \item[fasta2agp] by David Studholme (david.studholme@tsl.ac.uk )
 
-This script converts a Velvet assembly in FastA format with N's in the gaps 
+This script converts a Velvet assembly in FastA format with N's in the gaps
 into a AGP file which can be submitted to the EMBL or the NCBI.
 
 \item[extractContigReads] by Daniel Zerbino (zerbino@ebi.ac.uk), suggested by Jasper Rees
@@ -782,9 +782,9 @@ one.
 \section{For more information}
 
 \paragraph{Publication:}
- 
+
  \label{sec:paper}
- 
+
 For more information on the theory behind Velvet, you can turn to:
 \begin{quote}
 D.R. Zerbino and E. Birney. 2008. Velvet: algorithms for de novo short read assembly using de Bruijn graphs. \emph{Genome Research}, \textbf{18}: 821-829
@@ -793,7 +793,7 @@ Please use the above reference when citing Velvet.
 
 \paragraph{Webpage:}
 
-For general information and FAQ, you can first take a look at 
+For general information and FAQ, you can first take a look at
 \href{http://www.ebi.ac.uk/~zerbino/velvet/}{www.ebi.ac.uk/$\sim$zerbino/velvet}.
 
 \paragraph{Mailing list:}

@@ -788,7 +788,7 @@ static void remapNodeMarkersOntoNeighbour(Node * source,
 		}
 	}
 
-	// Short read markers 
+	// Short read markers
 	if (readStartsAreActivated(graph)) {
 		// Update Coordinates
 		sourceArray = getNodeReads(source, graph);
@@ -1261,7 +1261,7 @@ static void foldSymmetricalNode(Node * node)
 		twinNode = node;
 		node = tmp;
 	}
-	// Destroy link to old markers 
+	// Destroy link to old markers
 	setMarker(node, NULL);
 
 	// Reinsert markers properly
@@ -1977,7 +1977,7 @@ static void transferNodeData(Node * source, Node * target)
 	if (getNode(fastPath) == twinSource)
 		fastPath = getNextInSequence(fastPath);
 
-	// Next node 
+	// Next node
 	if (source == activeNode) {
 		activeNode = target;
 		todo =
@@ -2042,7 +2042,7 @@ static void concatenateNodesAndVaccinate(Node * nodeA, Node * nodeB,
 	// Read starts
 	concatenateReadStarts(nodeA, nodeB, graph);
 
-	// Descriptor management 
+	// Descriptor management
 	appendDescriptors(nodeA, nodeB);
 
 	// Update uniqueness:
@@ -2191,7 +2191,7 @@ static void cleanUpRedundancy()
 
 	//puts("Concatenation");
 
-	// Freeing up memory  
+	// Freeing up memory
 	if (slowMarker != NULL)
 		concatenatePathNodes(slowPath);
 	else
@@ -2467,7 +2467,7 @@ static boolean isMinorityChoice(Node * node)
 	if (current == NULL)
 		return true;
 
-	// Joined tips  
+	// Joined tips
 	if (simpleArcCount(getTwinNode(current)) < 2)
 		return false;
 
@@ -2651,7 +2651,7 @@ void correctGraph(Graph * argGraph, Coordinate * argSequenceLengths)
 	eligibleStartingPoints = mallocOrExit(2 * nodes + 1, IDnum);
 	progressStatus = callocOrExit(2 * nodes + 1, boolean);
 	todoLists = callocOrExit(2 * nodes + 1, Ticket *);
-	//Done with memory 
+	//Done with memory
 
 	resetNodeStatus(graph);
 	determineEligibleStartingPoints();

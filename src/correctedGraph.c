@@ -764,7 +764,7 @@ static void remapNodeMarkersOntoNeighbour(Node * source,
 		}
 	}
 
-	// Short read markers 
+	// Short read markers
 	if (readStartsAreActivated(graph)) {
 		// Update Coordinates
 		sourceArray = getNodeReads(source, graph);
@@ -1250,7 +1250,7 @@ static void foldSymmetricalNode(Node * node)
 		twinNode = node;
 		node = tmp;
 	}
-	// Destroy link to old markers 
+	// Destroy link to old markers
 	setMarker(node, NULL_IDX);
 
 	// Reinsert markers properly
@@ -1952,7 +1952,7 @@ static void transferNodeData(Node * source, Node * target)
 	if (getNode(fastPath) == twinSource)
 		fastPath = getNextInSequence(fastPath);
 
-	// Next node 
+	// Next node
 	if (source == activeNode) {
 		activeNode = target;
 		todo =
@@ -2014,7 +2014,7 @@ static void concatenateNodesAndVaccinate(Node * nodeA, Node * nodeB,
 	// Read starts
 	concatenateReadStarts(nodeA, nodeB, graph);
 
-	// Descriptor management 
+	// Descriptor management
 	appendDescriptors(nodeA, nodeB);
 
 	// Update uniqueness:
@@ -2166,7 +2166,7 @@ static void cleanUpRedundancy()
 
 	//velvetLog("Concatenation\n");
 
-	// Freeing up memory  
+	// Freeing up memory
 	if (slowMarker != NULL_IDX)
 		concatenatePathNodes(slowPath);
 	else
@@ -2556,7 +2556,7 @@ void correctGraph(Graph * argGraph, IDnum * argSequenceLengths, Category * argSe
 	eligibleStartingPoints = mallocOrExit(2 * nodes + 1, IDnum);
 	progressStatus = callocOrExit(2 * nodes + 1, boolean);
 	todoLists = callocOrExit(2 * nodes + 1, Ticket *);
-	//Done with memory 
+	//Done with memory
 
 	resetNodeStatus(graph);
 	determineEligibleStartingPoints();
@@ -2603,9 +2603,9 @@ void setMaxReadLength(int value)
 	if (value < 0) {
 		velvetLog("Negative branch length %i!\n", value);
 		velvetLog("Exiting...\n");
-#ifdef DEBUG 
+#ifdef DEBUG
 		abort();
-#endif 
+#endif
 		exit(1);
 	}
 	MAXREADLENGTH = value;
@@ -2617,9 +2617,9 @@ void setMaxGaps(int value)
 	if (value < 0) {
 		velvetLog("Negative max gap count %i!\n", value);
 		velvetLog("Exiting...\n");
-#ifdef DEBUG 
+#ifdef DEBUG
 		abort();
-#endif 
+#endif
 		exit(1);
 	}
 	MAXGAPS = value;
@@ -2631,9 +2631,9 @@ void setMaxDivergence(double value)
 		velvetLog("Divergence rate %lf out of bounds [0,1]!\n",
 		       value);
 		velvetLog("Exiting...\n");
-#ifdef DEBUG 
+#ifdef DEBUG
 		abort();
-#endif 
+#endif
 		exit(1);
 	}
 	MAXDIVERGENCE = value;

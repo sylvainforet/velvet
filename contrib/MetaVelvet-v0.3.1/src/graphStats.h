@@ -21,8 +21,8 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #ifndef _GRAPHSTATS_H_
 #define _GRAPHSTATS_H_
 
-// This header file and the corresponding code file contain a load of 
-// miscellaneous functions, many of which coded quickly and used only once 
+// This header file and the corresponding code file contain a load of
+// miscellaneous functions, many of which coded quickly and used only once
 // for reasons long forgotten since.
 // Sorry for the mess ;-)
 
@@ -71,7 +71,7 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 void exportAMOSContigs(char *filename, Graph * graph,
 		       Coordinate cutoff_length, ReadSet * reads);
 
-IDnum usedReads(Graph * graph, Coordinate minContigLength); 
+IDnum usedReads(Graph * graph, Coordinate minContigLength);
 
 Coordinate totalAssemblyLength(Graph * graph);
 

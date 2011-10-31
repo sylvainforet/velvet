@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-#    velvet-estimate-exp_cov.pl             
+#    velvet-estimate-exp_cov.pl
 #
 #    Estimates the expected k-mer coverage parameter (-exp_cov) for velvetg
 #    by finding the mode of coverage distribution as presented in stats.txt
@@ -73,7 +73,7 @@ sub math_mode {
   for my $x (keys %freq_of) {
     $mode = $x if $freq_of{$x} > $freq_of{$mode};
   }
-  return $mode; 
+  return $mode;
 }
 
 # Print a bar graph of an array of values
@@ -81,8 +81,8 @@ sub math_mode {
 sub print_histogram {
   my($cov) = @_;
   my %freq_of;
-  for my $c (@$cov) { 
-    $freq_of{$c}++ 
+  for my $c (@$cov) {
+    $freq_of{$c}++
   }
   my $max = max(values %freq_of);
   for my $c (sort { $a <=> $b } keys %freq_of) {
@@ -127,5 +127,5 @@ sub usage {
   }
   exit(1);
 }
- 
+
 #----------------------------------------------------------------------

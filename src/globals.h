@@ -40,7 +40,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #define RELEASE_NUMBER 1
 #define UPDATE_NUMBER 04
 
-#define MAXLINE 5000 
+#define MAXLINE 5000
 
 #define LONG 2 * CATEGORIES
 #define LONG_PAIRED 2 * CATEGORIES + 1

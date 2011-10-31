@@ -16,7 +16,7 @@ Since its 1.0 release, the Velvet short-read assembler contains a module called 
 
 > head myRegions.fa
 >chr1:123456789-123457789
-ATGTGTGTACTAGCTAGCGCGCTAGCTAGTCATGTGTGTACTAGCTAGCGCGCTAGCTAGTC 
+ATGTGTGTACTAGCTAGCGCGCTAGCTAGTCATGTGTGTACTAGCTAGCGCGCTAGCTAGTC
 [etc ...]
 
 > sort myReads.sam > mySortedReads.sam
@@ -41,12 +41,12 @@ If you are confounded by some form of heterzygocity at the breakpoint, then you 
 overlapping sequences with different concentrations... a lot like transcripts! You would therefore use the Oases package to deconvolute the different
 ``isoforms'' of your ``gene'' (it sounds pretty roundabout, but from an assembly point of view it actually makes sense).
 
-\item[Assisted transcriptome assembly] 
+\item[Assisted transcriptome assembly]
 
 You sequenced the transcriptome of a new species, strain or individual, and you happen to know the gene sequences of a nearby species, strain or reference individual.
 
 You would then map the reads onto the reference genome, using the short-read mapper of your choice, and provide the alignments along with the known exonic sequences to Velvet. It would rebuild contigs based on the alignments, which could then be used by the Oases package.
- 
+
 \end{description}
 
 \section{Overview of the process}
@@ -54,7 +54,7 @@ You would then map the reads onto the reference genome, using the short-read map
 \begin{enumerate}
 \item Map the reads against a set of \emph{target sequences} (typically, an entire reference genome, made up of chromosomal sequences).
 \item Select \emph{reference regions} within the target sequence (optionally, a reference region can be an entire target sequence) (e.g.: exon regions or SV regions).
-\item Prepare a FASTA file containing the sequences of the reference regions, along with their coordinates within the target sequences. 
+\item Prepare a FASTA file containing the sequences of the reference regions, along with their coordinates within the target sequences.
 \item Provide this FASTA file along with the SAM/BAM alignment file (or selected lines thereof).
 \item Run \emph{velvetg} as usual.
 \item If applicable, run Oases as usual.
@@ -65,7 +65,7 @@ You would then map the reads onto the reference genome, using the short-read map
 
 Just like like in Velvet, you can provide paired or unpaired read alignments in SAM or BAM format, as produced by most short read aligners. You
 should simply remember to sort the reads by read name. If you turn on strand specificity (more on this later), you must sort your reads
-such that the forward read of each pair comes right before the reverse read of that pair. 
+such that the forward read of each pair comes right before the reverse read of that pair.
 
 Because it is possible to specify regions within the target sequences, the mapping need not be specifically against the selected reference sequences.
 For example, if you wish to use exons as reference sequences, you can perform an alignment against the whole genome. Velvet will then sort out which
@@ -77,7 +77,7 @@ Beware that some read-aligners (e.g. Tophat) only report aligned reads in their 
 
 \subsection{How to choose reference sequences}
 
-The reference sequences can be any subset of the target sequences (whether whole genome, contigs, etc) used during the mapping process. 
+The reference sequences can be any subset of the target sequences (whether whole genome, contigs, etc) used during the mapping process.
 
 \subsection{How \textbf{NOT} to choose reference sequences}
 
@@ -90,7 +90,7 @@ This is because when reading the alignment files, Velvet must be able to assign 
 
 This is more a question of performance. If you load as reference large chunks of the reference genome (as in 100's of Mb) which contain large amounts of repeats, then Velvet will have to make many loops comparing identical sequences. This will slow down the assembly considerably.
 
-\item The coordinate system must \textbf{NOT} change between input files. 
+\item The coordinate system must \textbf{NOT} change between input files.
 
 This is a very obvious point, but it is important to that the coordinate system in the alignment file must be the same as that in the reference regions' file. If the coordinates are off, then Velvet will be unable to use the alignments (it will still be able to function and use the reference sequences, but not as efficiently as if it had reliable alignments). For example, if you align your reads to the human genome assembly HG19, then the reference regions must also be selected from HG19.
 
@@ -106,10 +106,10 @@ sequences correspond to a subset of one of the target sequences, then its header
 \subsection{Strand specificity in Columbus}
 
 If doing a strand specific analysis on Columbus, then the ``-strand\_specific'' velveth flag must be provided before any option, i.e. right after the
-hash length. 
+hash length.
 
 In this case, the reference sequences are taken from the desired strand. The headers of the regions on the negative strand have their
-start and end coordinates reversed, i.e. the 3' coordinate comes before the 5' coordinate. 
+start and end coordinates reversed, i.e. the 3' coordinate comes before the 5' coordinate.
 
 For example, if the positive strand of a toy example is:
 \begin{verbatim}
@@ -134,7 +134,7 @@ overlaps just because one reference region happens to end at a homologous region
 
 \item[merge\_gtf\_exons.pl] This script sorts regions, and merges overlapping ones (it assumes no strand specificity).
 
-\item[gff2fasta.pl] Once you have the GFF file you desire, it can be converted into a fasta with the appropriate headers with this script. 
+\item[gff2fasta.pl] Once you have the GFF file you desire, it can be converted into a fasta with the appropriate headers with this script.
 
 \end{description}
 

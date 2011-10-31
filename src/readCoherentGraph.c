@@ -264,7 +264,7 @@ static boolean uniqueNodesConnect(Node * startingNode)
 		return false;
 	}
 	// Aligning long reads to each other:
-	// TODO 
+	// TODO
 
 	// Merge pairwise alignments and produce consensus
 	// TODO
@@ -393,7 +393,7 @@ static Node *bypass()
 		if (next == NULL)
 			return bypass;
 
-		// Overall node update 
+		// Overall node update
 		if (!getUniqueness(next)) {
 			adjustShortReads(bypass, getNextInSequence(path));
 			appendSequence(bypass, sequences,
@@ -420,12 +420,12 @@ static Node *bypass()
 		// Members
 		updateMembers(bypass, next);
 
-		// Termination 
+		// Termination
 		if (isTerminal(path) || getUniqueness(next))
 			break;
 	}
 
-	// Remove unique groupies from arrival 
+	// Remove unique groupies from arrival
 	admitGroupies(next, bypass);
 
 	// Copy destination arcs
@@ -545,9 +545,9 @@ void setMultiplicityCutoff(int value)
 		velvetLog("Negative long read multiplicity cutoff %i!\n",
 		       value);
 		velvetLog("Exiting...\n");
-#ifdef DEBUG 
+#ifdef DEBUG
 		abort();
-#endif 
+#endif
 		exit(1);
 	}
 	MULTIPLICITY_CUTOFF = value;

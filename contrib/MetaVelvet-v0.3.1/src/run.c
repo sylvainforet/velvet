@@ -37,7 +37,7 @@ static void printUsage()
 	puts("");
 	puts("\tdirectory\t\t: directory name for output files");
 	printf("\thash_length\t\t: odd integer (if even, it will be decremented) <= %i (if above, will be reduced)\n", MAXKMERLENGTH);
-	puts("\tfilename\t\t: path to sequence file or - for standard input");	
+	puts("\tfilename\t\t: path to sequence file or - for standard input");
 	puts("");
 	puts("File format options:");
 	puts("\t-fasta");
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 		printf("Invalid hash length: %s\n", argv[2]);
 		printUsage();
 		return 0;
-	} 
+	}
 
 	if (hashLength % 2 == 0) {
 		printf
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 	strcpy(filename, directory);
 	strcat(filename, "/Roadmaps");
 	inputSequenceArrayIntoSplayTableAndArchive(allSequences,
-						   splayTable, filename, 
+						   splayTable, filename,
 						   double_strand);
 
 	destroySplayTable(splayTable);

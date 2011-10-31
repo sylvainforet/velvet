@@ -12,19 +12,19 @@ LICENCE
 =======
 
 Copyright 2009 - Simon Gladman - CSIRO.
-	
+
 simon.gladman@csiro.au
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
-    
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-        
+
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -58,11 +58,11 @@ GNU utilities: grep sed free cut
 
 COMMAND LINE
 ============
-	
+
 	VelvetOptimiser.pl [options] -f 'velveth input line'
-  
+
   Options:
-  
+
   --help          	This help.
   --v|verbose+    	Verbose logging, includes all velvet output in the logfile. (default '0').
   --s|hashs=i     	The starting (lower) hash value (default '19').
@@ -108,7 +108,7 @@ and we estimate our assembled genome to be 4.5 megabases long:
 
 % VelvetOptimiser.pl -s 27 -e 31 -f '-short -fastq s_1_sequence.txt' -g 4.5
 
-Find the best assembly for Illumina paired end reads just for k=31, using four threads (eg. quad core CPU), 
+Find the best assembly for Illumina paired end reads just for k=31, using four threads (eg. quad core CPU),
 but optimizing for N50 for k-mer length rather than sum of large contig sizes:
 
 % VelvetOptimiser.pl -s 31 -e 31 -f '-shortPaired -fasta interleaved.fasta' -t 4 --optFuncKmer 'n50'
@@ -130,31 +130,31 @@ DETAILED OPTIONS
 
 	Parameter type required: odd integer > 0 & <= the MAXKMERLENGTH velvet was compiled with.
 	Default: 19
-	
+
 	This is the lower end of the hash value range that the optimiser will search for the optimum.
 	If the supplied value is even, it will be lowered by 1.
 	If the supplied value is higher than MAXKMERLENGTH, it will be dropped to MAXKMERLENGTH.
-	
+
 -e or --hashe
 
 	Parameter type required: odd integer >= 'hashs' & <= the MAXKMERLENGTH velvet was compiled with.
 	Default: MAXKMERLENGTH
-	
+
 	This is the upper end of the hash value range that the optimiser will search for the optimum.
 	If the supplied value is even, it will be lowered by 1.
 	If the supplied value is higher than MAXKMERLENGTH, it will be dropped to MAXKMERLENGTH.
 	If the supplied value is lower than 'hashs' then it will be set to equal 'hashs'.
-	
+
 -f or --velvethfiles
 
 	Parameter type required: string with '' or ""
 	No default.
-	
+
 	This is a required parameter.  If this option is not specified, then the optimisers usage will be displayed.
-	
-	You need to supply everything you would normally supply velveth at this point except for the hash size and the 
-        directory name in the following format.  
-		
+
+	You need to supply everything you would normally supply velveth at this point except for the hash size and the
+        directory name in the following format.
+
 	{[-file_format][-read_type] filename} repeated for as many read files as you have.
 
 
@@ -177,20 +177,20 @@ DETAILED OPTIONS
 		-longPaired
 
 	At this stage the optimiser does not support more than the 2 standard CATEGORIES but this will be added in the near future.
-	
+
 	Examples:
-	
+
 	-f 'reads.fna'
 		reads.fna is short not paired and fasta.  (these are the defaults: -short and -fasta)
-		
+
 	-f '-shortPaired -fastq paired_reads.fastq -long long_reads.fna'
 		Two read files supplied, first one is a paired end fastq file and the second is a long single ended read file.
-		
+
 	-f '-shortPaired paired_reads_1.fna -shortPaired2 paired_reads_2.fna'
 		Two read files supplied, both are short paired fastas but come from two different libraries, therefore needing two different CATEGORIES.
-		
+
 	There is a fairly extensive checker built into the optimiser to check if the format of the string is correct.  However, it won't check the read files for their format (fasta, fastq, eland etc.)
-	
+
 -a or --amosfile
 
 	Turns on Velvets read tracking and amos file output.
@@ -200,39 +200,39 @@ DETAILED OPTIONS
 
 	Parameter type required: string.
 	No default
-	
+
 	String should contain extra options to be passed to velvetg as required such as "-long_mult_cutoff 1" or "-max_coverage 50" etc.  Warning, there is no sanity check, so be careful.  The optimiser will crash if you give velvetg something it doesn't handle.
-	
+
 -t or --threads
 
 	Parameter type required: integer
-	
+
 	Specifies the maximum number of threads (simulataneous Velvet instances) to run.  It defaults to the number of CPUs in the current computer.
 
 -g or --genomesize
 
 	Parameter type required: float.
 	No default.
-	
+
 	This option will run the Optimiser's memory estimator.  It will estimate the memory required to run Velvet with the current -f parameter and number of threads.  Once the estimator has finsihed its calulations, it will display the required memory, make a recommendation and then exit the script.  This is useful for determining if you will have sufficient free RAM to run the assembly before you start.
 	You need to supply the approximate size of the genome you are assembling in mega bases.  For example, for a Salmonella genome I would use: -g 5
-	
+
 -k or --optFuncKmer
 
 	Parameter type required: string.
 	Default: 'n50'
-		
+
 	This option will change the function that the Optimiser uses to find the best hash value from the given range.  The default is to use the n50.  I have found this function to work for me better than the previous single optimisation function, but you may wish to change it.  A list of possible variables to use in your optimisation function and some examples are shown below.
 
 -c or --optFuncCov
 
 	Parameter type required: string.
 	Default: 'Lbp'
-		
+
 	This option will change the function that the Optimiser uses to find the best hash value from the given range.  The default is to use the number of basepairs in contigs greater than 1 kilobase in length.  I have found this function to work for me but you may wish to change it.  A list of possible variables to use in your optimisation function and some examples are shown below.
-		
+
 	Velvet optimiser assembly optimisation functions can be built from the following variables:
-		
+
 		Lbp = The total number of base pairs in large contigs
 		Lcon = The number of large contigs
 		max = The length of the longest contig
@@ -241,7 +241,7 @@ DETAILED OPTIONS
 		tbp = The total number of basepairs in contigs
 
 	Examples are:
-	
+
 		'Lbp' = Just the total basepairs in contigs longer than 1kb
 		'n50*Lcon' = The n50 times the number of long contigs.
 		'n50*Lcon/tbp+log(Lbp)' = The n50 times the number of long contigs divided
@@ -249,12 +249,12 @@ DETAILED OPTIONS
 			in long contigs.
 
 	Be warned! The optimiser doesn't care what you supply in this string and will attempt to run anyway.  If you give it a nonsensical optimisation function be prepared to receive a nonsensical assembly!
-	
+
 -p or --prefix
 
 	Parameter type required: string
 	Default: The current date and time in the format "DD-MM-YYYY-HH-MM-SS_"
-	
+
 	Names the logfile and the output directory with whatever prefix is supplied followed by "_logfile.txt" for the logfile and "_data_k" where k is the optimum hash value for the ouput data directory.
 
 
@@ -311,8 +311,8 @@ Changes since Version 2.0:
 
 TO DO
 =====
-	
-	* Add the number of N's in the assembly output to the list of variables available to the optimisation function.  
+
+	* Add the number of N's in the assembly output to the list of variables available to the optimisation function.
 
 
 CONTACT

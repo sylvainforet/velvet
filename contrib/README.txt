@@ -14,7 +14,7 @@ These two scripts allow you to examine the (generally) large .afg files which ca
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 - VelvetOptimiser by Simon Gladman (Simon.Gladman@csiro.au)
 
-This script automatically finds the optimal parameter settings for Velvet. 
+This script automatically finds the optimal parameter settings for Velvet.
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 - estimate-exp_cov by Torsten Seeman (torsten.seemann@infotech.monash.edu.au)
@@ -32,7 +32,7 @@ into a AGP file which can be submitted to the EMBL or the NCBI.
   Jasper Rees
 
 This script scans the Graph2 file produced by Velvet and produces a FastA file
-of all the reads which belong to a given contig. 
+of all the reads which belong to a given contig.
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 - observed-insert-length by Daniel Zerbino (zerbino@ebi.ac.uk)
@@ -50,7 +50,7 @@ your choice: C, BioPython, Perl or Bash
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 - show_repeats by Ken Doig (kdd@doig.org)
 
-Plots out the length of the larger repeated contigs in the assembly. 
+Plots out the length of the larger repeated contigs in the assembly.
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 - AssemblyAssembler by Jacob Crawford (jc598@cornell.edu)

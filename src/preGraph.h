@@ -30,7 +30,7 @@ void destroyPreNode_pg(IDnum preNode, PreGraph * preGraph);
 // Locator
 PreNode *getPreNodeInPreGraph_pg(PreGraph * preGraph, IDnum preNodeID);
 
-// PreArc info 
+// PreArc info
 PreArcI getPreArc_pg(IDnum preNodeID, PreGraph * preGraph);
 boolean hasSinglePreArc_pg(IDnum preNodeID, PreGraph * graph);
 char simplePreArcCount_pg(IDnum preNodeID, PreGraph * preGraph);

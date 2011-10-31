@@ -11,7 +11,7 @@ my @features = ();
 
 #Record entries
 while($feature = $gffio->next_feature()) {
-	push @features, $feature; 
+	push @features, $feature;
 }
 $gffio->close();
 
@@ -24,7 +24,7 @@ my @sorted_features = sort {
 
 #Merge redundant elements
 my $current_index = 0;
-my $next_index = 1; 
+my $next_index = 1;
 while ($next_index <= $#sorted_features) {
 	my $current_feature = $sorted_features[$current_index];
 	my $next_feature = $sorted_features[$next_index];
@@ -33,7 +33,7 @@ while ($next_index <= $#sorted_features) {
 	    || $next_feature->start > $current_feature->end) {
 		$current_index = $next_index;
 		$next_index++;
-		next;	
+		next;
 	}
 
 	if ($next_feature->end > $current_feature->end) {
@@ -48,7 +48,7 @@ while ($next_index <= $#sorted_features) {
 my $index;
 for ($index = 0; $index < @sorted_features; $index++) {
 	if (defined $sorted_features[$index]) {
-		$out->write_feature($sorted_features[$index]);	
+		$out->write_feature($sorted_features[$index]);
 	}
 }
 

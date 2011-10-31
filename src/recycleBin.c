@@ -80,9 +80,9 @@ RecycleBin *newRecycleBin(size_t node_size, int nodes_per_chunk)
 
 	if (node_size < sizeof(RecycleBin_Node)) {
 		velvetLog("Too small elements to create a recycle bin!\n");
-#ifdef DEBUG 
+#ifdef DEBUG
 		abort();
-#endif 
+#endif
 		exit(-1);
 	}
 	recycleBin = mallocOrExit(1, RecycleBin);
@@ -119,9 +119,9 @@ void *allocatePointer(RecycleBin * recycle_bin)
 
 	if (recycle_bin == NULL) {
 		velvetLog("Null recycle bin!\n");
-#ifdef DEBUG 
+#ifdef DEBUG
 		abort();
-#endif 
+#endif
 		exit(-1);
 	}
 
@@ -136,9 +136,9 @@ void *allocatePointer(RecycleBin * recycle_bin)
 			       * recycle_bin->node_size);
 		if (chunk == NULL) {
 			velvetLog("No more memory for memory chunk!\n");
-#ifdef DEBUG 
+#ifdef DEBUG
 			abort();
-#endif 
+#endif
 			exit(-1);
 		}
 		chunk->next = recycle_bin->chunk_list;

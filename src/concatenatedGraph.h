@@ -21,7 +21,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #ifndef _CONCATENATEDGRAPH_H_
 #define _CONCATENATEDGRAPH_H_
 
-// Concatenates short read markers from node B to the end of nodeA 
+// Concatenates short read markers from node B to the end of nodeA
 void concatenateReadStarts(Node * nodeA, Node * nodeB, Graph * graph);
 
 // Concatenates all pairs of nodes which form a linear structure

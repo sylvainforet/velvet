@@ -47,7 +47,7 @@ static void concatenatePreNodes(IDnum preNodeAID, PreArcI oldPreArc,
 		       hasSinglePreArc_pg(getOtherEnd_pg
 					  (preArc, preNodeBID),
 					  preGraph)
-		       && !isLoop_pg(preArc) 
+		       && !isLoop_pg(preArc)
 		       && getDestination_pg(preArc, preNodeBID) != preNodeAID) {
 
 		totalLength += getPreNodeLength_pg(preNodeBID, preGraph);
@@ -99,11 +99,11 @@ static void concatenatePreNodes(IDnum preNodeAID, PreArcI oldPreArc,
 		appendDescriptors_pg(&ptr, &writeOffset ,currentPreNodeID, preGraph, false);
 	}
 
-	if (writeOffset != 0) 
+	if (writeOffset != 0)
 		while (writeOffset++ != 4)
 			(*ptr) >>= 2;
 
-	setPreNodeDescriptor_pg(descr, totalLength - wordLength + 1, preNodeAID, preGraph); 
+	setPreNodeDescriptor_pg(descr, totalLength - wordLength + 1, preNodeAID, preGraph);
 
 	// Correct preArcs
 	for (preArc = getPreArc_pg(preNodeBID, preGraph); preArc != NULL_IDX;
@@ -208,7 +208,7 @@ static boolean isEligibleTip(IDnum index, PreGraph * preGraph, Coordinate
 	if (currentIndex == 0)
 		return true;
 
-	// Joined tips  
+	// Joined tips
 	if (simplePreArcCount_pg(-currentIndex, preGraph) < 2)
 		return false;
 

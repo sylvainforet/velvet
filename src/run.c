@@ -39,7 +39,7 @@ static void printUsage()
 	printf("\thash_length\t: EITHER an odd integer (if even, it will be decremented) <= %i (if above, will be reduced)\n", MAXKMERLENGTH);
 	printf("\t\t\t: OR: m,M,s where m and M are odd integers (if not, they will be decremented) with m < M <= %i (if above, will be reduced)\n", MAXKMERLENGTH);
 	puts("\t\t\t\tand s is a step (even number). Velvet will then hash from k=m to k=M with a step of s");
-	puts("\tfilename\t: path to sequence file or - for standard input");	
+	puts("\tfilename\t: path to sequence file or - for standard input");
 	puts("");
 	puts("File format options:");
 	puts("\t-fasta\t-fastq\t-raw\t-fasta.gz\t-fastq.gz\t-raw.gz\t-sam\t-bam");
@@ -47,7 +47,7 @@ static void printUsage()
 	puts("Read type options:");
 	puts("\t-short\t-shortPaired");
 #if CATEGORIES <= 5
-	Category cat; 
+	Category cat;
 	for (cat = 2; cat <= CATEGORIES; cat++)
 	    printf("\t-short%i\t-shortPaired%i\n", cat, cat);
 #else
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 		velvetLog("hashLengthMin <= hashLengthMax is required %s", argv[2]);
 		printUsage();
 		return 0;
-	} 
+	}
 
 	if (hashLength % 2 == 0) {
 		velvetLog
@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 			sprintf(buf,"%s_%d",argv[1],h);
 			directory = mallocOrExit(strlen(buf) + 100, char);
 			strcpy(directory,buf);
-		} else 
+		} else
 			directory = argv[1];
 
 		filename = mallocOrExit(strlen(directory) + 100, char);

@@ -37,7 +37,7 @@ IDnum getNodeID(Node * node);
 Node *getNodeInGraph(Graph * graph, IDnum nodeID);
 Node *getTwinNode(Node * node);
 
-// Arc info 
+// Arc info
 int arcCount(Node * node);
 int simpleArcCount(Node * node);
 Arc *getArc(Node * node);
@@ -162,7 +162,7 @@ void activateArcLookupTable(Graph * graph);
 void deactivateArcLookupTable(Graph * graph);
 
 ////////////////////////////////////////////////////////////
-// Short read marker functions 
+// Short read marker functions
 ////////////////////////////////////////////////////////////
 
 ShortReadMarker *getShortReadMarkerAtIndex(ShortReadMarker * array,
@@ -179,7 +179,7 @@ extern inline void setShortReadMarkerOffset(ShortReadMarker * marker,
 				     ShortLength offset);
 
 ////////////////////////////////////////////////////////////
-// Gap marker functions 
+// Gap marker functions
 ////////////////////////////////////////////////////////////
 
 GapMarker *getGap(Node * node, Graph * graph);
@@ -204,7 +204,7 @@ void renumberNodes(Graph * graph);
 int getWordLength(Graph * graph);
 boolean doubleStrandedGraph(Graph * graph);
 
-// Element status 
+// Element status
 void resetNodeStatus(Graph * graph);
 
 // File IO

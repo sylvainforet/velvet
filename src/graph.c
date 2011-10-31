@@ -908,7 +908,7 @@ void appendDescriptors(Node * destination, Node * source)
 	twinDestination->length = newLength;
 }
 
-static void catDescriptors(Descriptor * descr, Coordinate destinationLength, Descriptor * copy, Coordinate sourceLength) 
+static void catDescriptors(Descriptor * descr, Coordinate destinationLength, Descriptor * copy, Coordinate sourceLength)
 {
 	Coordinate index;
 	Nucleotide nucleotide;
@@ -919,7 +919,7 @@ static void catDescriptors(Descriptor * descr, Coordinate destinationLength, Des
 	}
 }
 
-static void reverseCatDescriptors(Descriptor * descr, Coordinate destinationLength, Descriptor * copy, Coordinate sourceLength, Coordinate totalLength) 
+static void reverseCatDescriptors(Descriptor * descr, Coordinate destinationLength, Descriptor * copy, Coordinate sourceLength, Coordinate totalLength)
 {
 	Coordinate shift = totalLength - destinationLength - sourceLength;
 	Coordinate index;
@@ -2054,7 +2054,7 @@ Graph *importGraph(char *filename)
 	short short_var;
 	char c;
 
-	if (file == NULL) 
+	if (file == NULL)
 		exitErrorf(EXIT_FAILURE, true, "Could not open %s", filename);
 
 	velvetLog("Reading graph file %s\n", filename);
@@ -2206,9 +2206,9 @@ Graph *importGraph(char *filename)
 				velvetLog
 				    ("ERROR: reading in graph - only %d items read for line '%s'",
 				     sCount, line);
-#ifdef DEBUG 
+#ifdef DEBUG
 				abort();
-#endif 
+#endif
 				exit(1);
 			}
 			newMarker =
@@ -2406,7 +2406,7 @@ Graph *readPreGraphFile(char *preGraphFilename, boolean * double_strand)
 #endif
 				}
 			}
-			
+
 			index++;
 		}
 
@@ -3777,7 +3777,7 @@ void reallocateNodeDescriptor(Node * node, Coordinate length) {
 		nucleotide = getNucleotideInDescriptor(twin->descriptor, index);
 		writeNucleotideInDescriptor(nucleotide, array, index + shift);
 	}
-	
+
 	free(twin->descriptor);
 	twin->descriptor = array;
 }

@@ -172,7 +172,7 @@ void concatenateStringOfNodes(Node * nodeA, Graph * graph)
 	reallocateNodeDescriptor(nodeA, totalLength);
 
 	currentNode = nodeA;
-	while (currentNode != nodeB) {		
+	while (currentNode != nodeB) {
 		currentNode = getDestination(getArc(currentNode));
 
 		// Passage marker management in node A:

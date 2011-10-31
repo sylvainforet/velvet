@@ -55,7 +55,7 @@ void removeLowCoverageReferenceNodes(Graph * graph, double minCov, double minLon
 void exportAMOSContigs(char *filename, Graph * graph,
 		       Coordinate cutoff_length, ReadSet * reads);
 
-IDnum usedReads(Graph * graph, Coordinate minContigLength); 
+IDnum usedReads(Graph * graph, Coordinate minContigLength);
 
 Coordinate totalAssemblyLength(Graph * graph);
 

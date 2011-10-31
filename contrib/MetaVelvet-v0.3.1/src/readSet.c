@@ -76,7 +76,7 @@ static void velvetifySequence(char * str) {
 		default:
 			str[i] = 'A';
 		}
-	} 
+	}
 }
 
 static void reverseComplementSequence(char * str)
@@ -119,7 +119,7 @@ static void writeFastaSequence(FILE * outfile, const char * str)
        for (start = 0; start < length; start += 60)
 	       fprintf(outfile, "%.60s\n", &str[start]);
 }
- 
+
 ReadSet *newReadSetAroundTightStringArray(TightString ** array,
 					  IDnum length)
 {
@@ -134,7 +134,7 @@ void concatenateReadSets(ReadSet * A, ReadSet * B)
 	ReadSet tmp;
 	IDnum index;
 
-	// Read count:  
+	// Read count:
 	tmp.readCount = A->readCount + B->readCount;
 
 	// Sequences
@@ -236,7 +236,7 @@ void concatenateReadSets(ReadSet * A, ReadSet * B)
 	} else
 		tmp.confidenceScores = NULL;
 
-	// Kmer probabilities 
+	// Kmer probabilities
 	if (A->kmerProbabilities != NULL || B->kmerProbabilities != NULL) {
 		tmp.kmerProbabilities =
 		    mallocOrExit(tmp.readCount, Quality *);
@@ -263,7 +263,7 @@ void concatenateReadSets(ReadSet * A, ReadSet * B)
 	} else
 		tmp.kmerProbabilities = NULL;
 
-	// Mate reads 
+	// Mate reads
 	if (A->mateReads != NULL || B->mateReads != NULL) {
 		tmp.mateReads = mallocOrExit(tmp.readCount, IDnum);
 
@@ -385,7 +385,7 @@ void categorizeReads(ReadSet * readSet, Category category)
 {
 	IDnum index;
 
-	if (readSet->categories == NULL) 
+	if (readSet->categories == NULL)
 		readSet->categories =
 		    mallocOrExit(readSet->readCount, Category);
 
@@ -444,7 +444,7 @@ static int int32(const unsigned char * ptr)
 	return x;
 }
 
-// Imports sequences from a fastq file 
+// Imports sequences from a fastq file
 // Memory space allocated within this function.
 static void readSolexaFile(FILE* outfile, char *filename, Category cat, IDnum * sequenceIndex)
 {
@@ -543,7 +543,7 @@ void goToEndOfLine(char *line, FILE * file)
 		c = fgetc(file);
 }
 
-// Imports sequences from a fastq file 
+// Imports sequences from a fastq file
 // Memory space allocated within this function.
 static void readFastQFile(FILE* outfile, char *filename, Category cat, IDnum * sequenceIndex)
 {
@@ -557,7 +557,7 @@ static void readFastQFile(FILE* outfile, char *filename, Category cat, IDnum * s
 
 	if (strcmp(filename, "-"))
 		file = fopen(filename, "r");
-	else 
+	else
 		file = stdin;
 
 	if (file != NULL)
@@ -567,11 +567,11 @@ static void readFastQFile(FILE* outfile, char *filename, Category cat, IDnum * s
 
 	// Checking if FastQ
 	c = getc(file);
-	if (c != '@') 
+	if (c != '@')
 		exitErrorf(EXIT_FAILURE, false, "%s does not seem to be in FastQ format", filename);
-	ungetc(c, file);	
+	ungetc(c, file);
 
-	while(fgets(line, maxline, file)) { 
+	while(fgets(line, maxline, file)) {
 
 		for (i = strlen(line) - 1;
 		     i >= 0 && (line[i] == '\n' || line[i] == '\r'); i--) {
@@ -605,7 +605,7 @@ static void readFastQFile(FILE* outfile, char *filename, Category cat, IDnum * s
 	puts("Done");
 }
 
-// Imports sequences from a zipped rfastq file 
+// Imports sequences from a zipped rfastq file
 // Memory space allocated within this function.
 static void readFastQGZFile(FILE * outfile, char *filename, Category cat, IDnum *sequenceIndex)
 {
@@ -619,7 +619,7 @@ static void readFastQGZFile(FILE * outfile, char *filename, Category cat, IDnum 
 
 	if (strcmp(filename, "-"))
 		file = gzopen(filename, "rb");
-	else { 
+	else {
 		file = gzdopen(fileno(stdin), "rb");
 		SET_BINARY_MODE(stdin);
 	}
@@ -631,9 +631,9 @@ static void readFastQGZFile(FILE * outfile, char *filename, Category cat, IDnum 
 
 	// Checking if FastQ
 	c = gzgetc(file);
-	if (c != '@') 
+	if (c != '@')
 		exitErrorf(EXIT_FAILURE, false, "%s does not seem to be in FastQ format", filename);
-	gzungetc(c, file);	
+	gzungetc(c, file);
 
 	while (gzgets(file, line, maxline)) {
 		for (i = strlen(line) - 1;
@@ -665,8 +665,8 @@ static void readFastQGZFile(FILE * outfile, char *filename, Category cat, IDnum 
 	puts("Done");
 }
 
-// Imports sequences from a fasta file 
-// Memory is allocated within the function 
+// Imports sequences from a fasta file
+// Memory is allocated within the function
 static void readFastAFile(FILE* outfile, char *filename, Category cat, IDnum * sequenceIndex)
 {
 	FILE *file;
@@ -691,9 +691,9 @@ static void readFastAFile(FILE* outfile, char *filename, Category cat, IDnum * s
 
 	// Checking if FastA
 	c = getc(file);
-	if (c != '>') 
+	if (c != '>')
 		exitErrorf(EXIT_FAILURE, false, "%s does not seem to be in FastA format", filename);
-	ungetc(c, file);	
+	ungetc(c, file);
 
 	while (fgets(line, maxline, file)) {
 		if (line[0] == '>') {
@@ -704,7 +704,7 @@ static void readFastAFile(FILE* outfile, char *filename, Category cat, IDnum * s
 				exit(1);
 			}
 
-			if (offset != 0) { 
+			if (offset != 0) {
 				fprintf(outfile, "\n");
 				offset = 0;
 			}
@@ -733,7 +733,7 @@ static void readFastAFile(FILE* outfile, char *filename, Category cat, IDnum * s
 		}
 	}
 
-	if (offset != 0) 
+	if (offset != 0)
 		fprintf(outfile, "\n");
 	fclose(file);
 
@@ -741,8 +741,8 @@ static void readFastAFile(FILE* outfile, char *filename, Category cat, IDnum * s
 	puts("Done");
 }
 
-// Imports sequences from a zipped fasta file 
-// Memory is allocated within the function 
+// Imports sequences from a zipped fasta file
+// Memory is allocated within the function
 static void readFastAGZFile(FILE* outfile, char *filename, Category cat, IDnum * sequenceIndex)
 {
 	gzFile file;
@@ -756,7 +756,7 @@ static void readFastAGZFile(FILE* outfile, char *filename, Category cat, IDnum *
 
 	if (strcmp(filename, "-"))
 		file = gzopen(filename, "rb");
-	else { 
+	else {
 		file = gzdopen(fileno(stdin), "rb");
 		SET_BINARY_MODE(stdin);
 	}
@@ -768,13 +768,13 @@ static void readFastAGZFile(FILE* outfile, char *filename, Category cat, IDnum *
 
 	// Checking if FastA
 	c = gzgetc(file);
-	if (c != '>') 
+	if (c != '>')
 		exitErrorf(EXIT_FAILURE, false, "%s does not seem to be in FastA format", filename);
-	gzungetc(c, file);	
+	gzungetc(c, file);
 
 	while (gzgets(file, line, maxline)) {
 		if (line[0] == '>') {
-			if (offset != 0) { 
+			if (offset != 0) {
 				fprintf(outfile, "\n");
 				offset = 0;
 			}
@@ -784,7 +784,7 @@ static void readFastAGZFile(FILE* outfile, char *filename, Category cat, IDnum *
 				line[i] = '\0';
 			}
 
-			fprintf(outfile, "%s\t%ld\t%d\n", line, (long) ((*sequenceIndex)++), (int) cat);	
+			fprintf(outfile, "%s\t%ld\t%d\n", line, (long) ((*sequenceIndex)++), (int) cat);
 			counter++;
 		} else {
 			velvetifySequence(line);
@@ -804,7 +804,7 @@ static void readFastAGZFile(FILE* outfile, char *filename, Category cat, IDnum *
 		}
 	}
 
-	if (offset != 0) 
+	if (offset != 0)
 		fprintf(outfile, "\n");
 	gzclose(file);
 
@@ -826,7 +826,7 @@ static void readMAQGZFile(FILE* outfile, char *filename, Category cat, IDnum * s
 
 	if (strcmp(filename, "-"))
 		file = gzopen(filename, "rb");
-	else { 
+	else {
 		file = gzdopen(fileno(stdin), "rb");
 		SET_BINARY_MODE(stdin);
 	}
@@ -932,7 +932,7 @@ static void readSAMFile(FILE *outfile, char *filename, Category cat, IDnum *sequ
 							previous_paired = false;
 						}
 					} else {
-						// Unpaired dataset 
+						// Unpaired dataset
 						fprintf(outfile, ">%s%s\t%ld\t%d\n", previous_qname, previous_qname_pairing,
 							(long) ((*sequenceIndex)++), (int) cat);
 						writeFastaSequence(outfile, previous_seq);
@@ -962,7 +962,7 @@ static void readSAMFile(FILE *outfile, char *filename, Category cat, IDnum *sequ
 				writeFastaSequence(outfile, previous_seq);
 			}
 		} else {
-			// Unpaired dataset 
+			// Unpaired dataset
 			fprintf(outfile, ">%s%s\t%ld\t%d\n", previous_qname, previous_qname_pairing,
 				(long) ((*sequenceIndex)++), (int) cat);
 			writeFastaSequence(outfile, previous_seq);
@@ -1096,7 +1096,7 @@ static void readBAMFile(FILE *outfile, char *filename, Category cat, IDnum *sequ
 						previous_paired = false;
 					}
 				} else {
-					// Unpaired dataset 
+					// Unpaired dataset
 					fprintf(outfile, ">%s%s\t%ld\t%d\n", previous_qname, previous_qname_pairing,
 						(long) ((*sequenceIndex)++), (int) cat);
 					writeFastaSequence(outfile, previous_seq);
@@ -1126,7 +1126,7 @@ static void readBAMFile(FILE *outfile, char *filename, Category cat, IDnum *sequ
 				writeFastaSequence(outfile, previous_seq);
 			}
 		} else {
-			// Unpaired dataset 
+			// Unpaired dataset
 			fprintf(outfile, ">%s%s\t%ld\t%d\n", previous_qname, previous_qname_pairing,
 				(long) ((*sequenceIndex)++), (int) cat);
 			writeFastaSequence(outfile, previous_seq);
@@ -1229,7 +1229,7 @@ void parseDataAndReadFiles(char * filename, int argc, char **argv, boolean * dou
 			else if (strcmp(argv[argIndex], "-longPaired") ==
 				 0)
 				cat = CATEGORIES * 2 + 1;
-			else if (strcmp(argv[argIndex], "-strand_specific") 
+			else if (strcmp(argv[argIndex], "-strand_specific")
 				 == 0)
 				*double_strand = false;
 			else {
@@ -1285,7 +1285,7 @@ void createReadPairingArray(ReadSet* reads) {
 	IDnum index;
 	IDnum *mateReads = mallocOrExit(reads->readCount, IDnum);
 
-	for (index = 0; index < reads->readCount; index++) 
+	for (index = 0; index < reads->readCount; index++)
 		mateReads[index] = -1;
 
 	reads->mateReads = mateReads;
@@ -1418,11 +1418,11 @@ ReadSet *importReadSet(char *filename)
 	printf("%d sequences found\n", sequenceCount);
 
 	reads->readCount = sequenceCount;
-	
+
 	if (reads->readCount == 0) {
 		reads->sequences = NULL;
 		reads->categories = NULL;
-		return reads;	
+		return reads;
 	}
 
 	reads->sequences = callocOrExit(sequenceCount, char *);
@@ -1574,7 +1574,7 @@ Coordinate *getSequenceLengthsFromFile(char *filename, int wordLength)
 
 	if (file != NULL)
 		printf("Reading read set file %s;\n", filename);
-	else 
+	else
 		exitErrorf(EXIT_FAILURE, true, "Could not open %s", filename);
 
 	// Count number of separate sequences

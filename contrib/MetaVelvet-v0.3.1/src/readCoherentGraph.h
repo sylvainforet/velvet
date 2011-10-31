@@ -25,10 +25,10 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 boolean isUniqueSolexaSubgraph(Node * node, double expCovSubgraph);
 int identifyAndSeparateInterRepeats(Graph * argGraph, double * expCovMulti,
 				    double repeatNodeCovSD);
-void identifyUniqueNodesSubgraph(Graph * graph, int * subgraphMask, 
-				 boolean(*isUniqueSubgraph) (Node *, double), 
+void identifyUniqueNodesSubgraph(Graph * graph, int * subgraphMask,
+				 boolean(*isUniqueSubgraph) (Node *, double),
 				 double expCovSubgraph);
-void readCoherentSubgraph(Graph * inGraph, double expCovSubgraph, 
+void readCoherentSubgraph(Graph * inGraph, double expCovSubgraph,
 			  ReadSet * reads, int * subgraphMask);
 // Original
 

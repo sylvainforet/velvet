@@ -115,7 +115,7 @@ sub estExpCov {
         next unless @x >= 7;
         next unless $x[1] =~ m/^\d+$/;
         next unless $x[1] >= $minlen;
-		
+
 		#add all the short_cov columns..
 		my $cov = 0;
 		for(my $i = 5; $i < $len; $i += 2){
@@ -195,8 +195,8 @@ sub getReadSizeNum {
 	foreach my $k (keys %reads){
 		$totlength += ($reads{$k} * $k);
 	}
-	
-	
+
+
 	my @results;
 	push @results, floor($totlength/$num);
 	push @results, ($num/1000000);

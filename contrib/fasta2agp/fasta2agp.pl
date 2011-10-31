@@ -94,4 +94,4 @@ while (my $seq_obj = $inseq->next_seq ) {
        print "$object1\t$object_beg2\t$object_end3\t$part_number4\t$component_type5\t$component_id6a\t$component_beg7a\t$component_end8a\t$orientation9a\n";
          }
    }
-} 
+}

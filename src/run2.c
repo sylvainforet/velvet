@@ -154,7 +154,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	// Memory allocation 
+	// Memory allocation
 	directory = argv[1];
 	graphFilename = mallocOrExit(strlen(directory) + 100, char);
 	preGraphFilename =
@@ -169,9 +169,9 @@ int main(int argc, char **argv)
 		if (arg_index >= argc) {
 			velvetLog("Unusual number of arguments!\n");
 			printUsage();
-#ifdef DEBUG 
+#ifdef DEBUG
 			abort();
-#endif 
+#endif
 			exit(1);
 		}
 
@@ -198,9 +198,9 @@ int main(int argc, char **argv)
 			if (insertLength[0] < 0) {
 				velvetLog("Invalid insert length: %lli\n",
 				       (long long) insertLength[0]);
-#ifdef DEBUG 
+#ifdef DEBUG
 				abort();
-#endif 
+#endif
 				exit(1);
 			}
 		} else if (strcmp(arg, "-ins_length_sd") == 0) {
@@ -209,9 +209,9 @@ int main(int argc, char **argv)
 			if (std_dev[0] < 0) {
 				velvetLog("Invalid std deviation: %lli\n",
 				       (long long) std_dev[0]);
-#ifdef DEBUG 
+#ifdef DEBUG
 				abort();
-#endif 
+#endif
 				exit(1);
 			}
 		} else if (strcmp(arg, "-ins_length_long") == 0) {
@@ -226,9 +226,9 @@ int main(int argc, char **argv)
 			cat = (Category) short_var;
 			if (cat < 1 || cat > CATEGORIES) {
 				velvetLog("Unknown option: %s\n", arg);
-#ifdef DEBUG 
+#ifdef DEBUG
 				abort();
-#endif 
+#endif
 				exit(1);
 			}
 			sscanf(argv[arg_index], "%lli", &longlong_var);
@@ -236,9 +236,9 @@ int main(int argc, char **argv)
 			if (insertLength[cat - 1] < 0) {
 				velvetLog("Invalid insert length: %lli\n",
 				       (long long) insertLength[cat - 1]);
-#ifdef DEBUG 
+#ifdef DEBUG
 				abort();
-#endif 
+#endif
 				exit(1);
 			}
 		} else if (strncmp(arg, "-ins_length", 11) == 0) {
@@ -246,9 +246,9 @@ int main(int argc, char **argv)
 			cat = (Category) short_var;
 			if (cat < 1 || cat > CATEGORIES) {
 				velvetLog("Unknown option: %s\n", arg);
-#ifdef DEBUG 
+#ifdef DEBUG
 				abort();
-#endif 
+#endif
 				exit(1);
 			}
 			sscanf(argv[arg_index], "%lli", &longlong_var);
@@ -256,9 +256,9 @@ int main(int argc, char **argv)
 			if (std_dev[cat - 1] < 0) {
 				velvetLog("Invalid std deviation: %lli\n",
 				       (long long) std_dev[cat - 1]);
-#ifdef DEBUG 
+#ifdef DEBUG
 				abort();
-#endif 
+#endif
 				exit(1);
 			}
 		} else if (strcmp(arg, "-read_trkg") == 0) {
@@ -407,9 +407,9 @@ int main(int argc, char **argv)
 		exportGraph(graphFilename, graph, sequences->tSequences);
 	} else {
 		velvetLog("No Roadmap file to build upon! Please run velveth (see manual)\n");
-#ifdef DEBUG 
+#ifdef DEBUG
 		abort();
-#endif 
+#endif
 		exit(1);
 	}
 
@@ -433,11 +433,11 @@ int main(int argc, char **argv)
 			coverageCutoff = expectedCoverage / 2;
 			estimateCutoff = true;
 		}
-	} else { 
+	} else {
 		estimateCoverage = false;
-		if (coverageCutoff < 0 && estimateCutoff) 
+		if (coverageCutoff < 0 && estimateCutoff)
 			coverageCutoff = estimated_cov(graph, directory) / 2;
-		else 
+		else
 			estimateCutoff = false;
 	}
 
@@ -455,7 +455,7 @@ int main(int argc, char **argv)
 	if (minContigLength < 2 * getWordLength(graph))
 		minContigKmerLength = getWordLength(graph);
 	else
-		minContigKmerLength = minContigLength - getWordLength(graph) + 1;		
+		minContigKmerLength = minContigLength - getWordLength(graph) + 1;
 
 	dubious =
 	    removeLowCoverageNodesAndDenounceDubiousReads(graph,
@@ -504,7 +504,7 @@ int main(int argc, char **argv)
 
 	strcpy(graphFilename, directory);
 	strcat(graphFilename, "/contigs.fa");
-	exportLongNodeSequences(graphFilename, graph, minContigKmerLength); 
+	exportLongNodeSequences(graphFilename, graph, minContigKmerLength);
 
 	if (exportAlignments) {
 		strcpy(graphFilename, directory);
@@ -532,9 +532,9 @@ int main(int argc, char **argv)
 	if (unusedReads)
 		exportUnusedReads(graph, sequences, minContigKmerLength, directory);
 
-	if (estimateCoverage) 
+	if (estimateCoverage)
 		velvetLog("Estimated Coverage = %f\n", expectedCoverage);
-	if (estimateCutoff) 
+	if (estimateCutoff)
 		velvetLog("Estimated Coverage cutoff = %f\n", coverageCutoff);
 
 	logFinalStats(graph, minContigKmerLength, directory);
@@ -542,25 +542,25 @@ int main(int argc, char **argv)
 	if (clean > 0) {
 		strcpy(graphFilename, directory);
 		strcat(graphFilename, "/Roadmaps");
-		remove(graphFilename);	
+		remove(graphFilename);
 
 		strcpy(graphFilename, directory);
 		strcat(graphFilename, "/LastGraph");
-		remove(graphFilename);	
-	} 
+		remove(graphFilename);
+	}
 
 	if (clean > 1) {
 		strcpy(graphFilename, directory);
 		strcat(graphFilename, "/Sequences");
-		remove(graphFilename);	
+		remove(graphFilename);
 
 		strcpy(graphFilename, directory);
 		strcat(graphFilename, "/Graph2.txt");
-		remove(graphFilename);	
+		remove(graphFilename);
 
 		strcpy(graphFilename, directory);
 		strcat(graphFilename, "/Graph.txt");
-		remove(graphFilename);	
+		remove(graphFilename);
 	}
 
 	destroyGraph(graph);

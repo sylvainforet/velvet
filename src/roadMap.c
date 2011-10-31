@@ -339,4 +339,4 @@ void destroyRoadMapArray(RoadMapArray * rdmaps) {
 	free(rdmaps->array);
 	free(rdmaps->annotations);
 	free(rdmaps);
-} 
+}

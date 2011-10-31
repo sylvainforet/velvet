@@ -5,18 +5,18 @@
 use strict;
 
 my $usage = "This script is designed to be used after filtering paired-end
-Illumina reads. Such filtering can end up removing one member of a pair. To 
+Illumina reads. Such filtering can end up removing one member of a pair. To
 ensure compatibility with the shuffleSequences_fasta.pl script, the reads in
-the forward and reverse file must be in the same order. 
- 
+the forward and reverse file must be in the same order.
+
 This script will take the forward reads and reverse read files in FASTA format
 and ensures the reads are presented in the correct order. Reads which appear in
 the forward or reverse direction ONLY will be put into the singletons file. The
 output files can then be run through the shuffleSequences_fasta.pl script. The
 singletons can be added as an additional channel to aid in the velvet assembly
 using the -short2 parameter in velveth.
- 
-USAGE: 
+
+USAGE:
 
 select_paired.pl <file containing forward reads in FASTA format> <name of output file for sorted forward reads> <name of file containing reverse reads in FASTA format> <name of output file for sorted reverse reads> <singletons output file (i.e. reads present in only one of the input files>
 ";

@@ -621,7 +621,7 @@ static inline Descriptor *mergeDescriptorsH2H_pg(Descriptor * descr,
 
 	//puts("");
 
-	// Going to end of second descriptor 
+	// Going to end of second descriptor
 	readPtr = &(copy[(sourceLength - 1) / 4]);
 	readCopy = *readPtr;
 	readOffset = (sourceLength - 1) % 4;
@@ -709,7 +709,7 @@ static inline Descriptor *mergeDescriptorsF2F_pg(Descriptor * descr,
 	writePtr = new;
 	writeOffset = 0;
 
-	// Going to end of first descriptor 
+	// Going to end of first descriptor
 	readPtr = &(copy[(sourceLength + wordLength - 2) / 4]);
 	readCopy = *readPtr;
 	readOffset = (sourceLength + wordLength - 2) % 4;
@@ -1104,13 +1104,13 @@ boolean isLoop_pg(PreArc * preArc)
 void setPreNodeDescriptor_pg(Descriptor * descr, Coordinate length, IDnum preNodeID, PreGraph * preGraph) {
 	PreNode * preNode;
 
-	if (preNodeID < 0) 
+	if (preNodeID < 0)
 		preNodeID = -preNodeID;
 
 	preNode = getPreNodeInPreGraph_pg(preGraph, preNodeID);
 	free(preNode->descriptor);
 	preNode->descriptor = descr;
-	preNode->length = length;	
+	preNode->length = length;
 }
 
 static void appendPositiveDescriptor_pg(Descriptor ** writePtr, int * writeOffset, IDnum preNodeID, PreGraph * preGraph, boolean initial) {
@@ -1163,7 +1163,7 @@ static void appendNegativeDescriptor_pg(Descriptor ** writePtr, int * writeOffse
 	Coordinate index;
 	int readOffset;
 
-	if (initial) 
+	if (initial)
 		length += wordLength - 1;
 
 	readPtr = &(preNode->descriptor[(length - 1) / 4]);

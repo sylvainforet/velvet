@@ -106,10 +106,10 @@ void inputSequenceIntoSplayTable(TightString * tString,
 		destroyTightString(tString);
 		return;
 	}
-	// Fill in the initial word : 
+	// Fill in the initial word :
 	for (readNucleotideIndex = 0;
 	     readNucleotideIndex < table->WORDLENGTH - 1;
-	     readNucleotideIndex++) { 
+	     readNucleotideIndex++) {
 		nucleotide = getNucleotide(readNucleotideIndex, tString);
 		pushNucleotide(&word, nucleotide);
 		if (double_strand) {
@@ -234,7 +234,7 @@ void inputSequenceIntoSplayTable(TightString * tString,
 
 void inputSequenceArrayIntoSplayTableAndArchive(ReadSet * reads,
 						SplayTable * table,
-						char *filename, 
+						char *filename,
 						boolean double_strand)
 {
 	IDnum index;
@@ -264,9 +264,9 @@ void inputSequenceArrayIntoSplayTableAndArchive(ReadSet * reads,
 		}
 		inputSequenceIntoSplayTable(array[index], table, outfile, double_strand, second_in_pair);
 
-		if (reads->categories[index] % 2) 
+		if (reads->categories[index] % 2)
 			second_in_pair = (second_in_pair? false : true);
-		else 
+		else
 			second_in_pair = false;
 	}
 
@@ -295,7 +295,7 @@ void inputMaskIntoSplayTable(TightString * tString, SplayTable * table)
 		destroyTightString(tString);
 		return;
 	}
-	// Fill in the initial word : 
+	// Fill in the initial word :
 	for (readNucleotideIndex = 0;
 	     readNucleotideIndex < table->WORDLENGTH - 1;
 	     readNucleotideIndex++) {

@@ -519,7 +519,7 @@ void displayGeneralStatistics(Graph * graph, char *filename, ReadSet * reads)
 		}
 
 		velvetFprintf(outfile, "\t%li", (long) markerCount(node));
-		printShortCounts(outfile, node, graph, reads); 
+		printShortCounts(outfile, node, graph, reads);
 
 		velvetFprintf(outfile, "\n");
 	}
@@ -576,7 +576,7 @@ void displayLocalBreakpoint(PassageMarkerI strainMarker,
 	if (destination == NULL)
 		return;
 
-	// Eliminate those that point to uniquely strain sequences 
+	// Eliminate those that point to uniquely strain sequences
 	if (nodeGenomicMultiplicity(destination, firstStrain) != 1) {
 //              velvetLog("Multiple genome reads\n");
 		return;
@@ -597,7 +597,7 @@ void displayLocalBreakpoint(PassageMarkerI strainMarker,
 	if (destination == destination2)
 		return;
 
-	// Eliminate those that point to uniquely strain sequences 
+	// Eliminate those that point to uniquely strain sequences
 	if (isOnlyGenome(destination2, firstStrain))
 		return;
 
@@ -741,7 +741,7 @@ static void exportLongNodeSequence(FILE * outfile, Node * node, Graph * graph) {
 	gap = getGap(node, graph);
 	for (position = 0; position < WORDLENGTH; position++) {
 		if (position % 60 == 0 && position > 0)
-			velvetFprintf(outfile, "\n"); 
+			velvetFprintf(outfile, "\n");
 		nucleotide = getNucleotideChar(position, tString);
 		velvetFprintf(outfile, "%c", nucleotide);
 	}
@@ -850,7 +850,7 @@ int compareNodeCovs(const void * A, const void * B) {
 	Node * nodeB = *((Node **) B);
 	double covA;
 	double covB;
-	
+
 	if (getNodeLength(nodeA) == 0)
 		nodeA = NULL;
 
@@ -866,8 +866,8 @@ int compareNodeCovs(const void * A, const void * B) {
 		return -1;
 
 	// Deal with real coverage numbers:
-	covA = getTotalCoverage(nodeA) / (double) getNodeLength(nodeA);	
-	covB = getTotalCoverage(nodeB) / (double) getNodeLength(nodeB);	
+	covA = getTotalCoverage(nodeA) / (double) getNodeLength(nodeA);
+	covB = getTotalCoverage(nodeB) / (double) getNodeLength(nodeB);
 
 	if (covA > covB)
 		return 1;
@@ -878,14 +878,14 @@ int compareNodeCovs(const void * A, const void * B) {
 
 double estimated_cov(Graph * graph, char * directory)
 {
-	Node ** nodeArray = callocOrExit(nodeCount(graph), Node*); 
+	Node ** nodeArray = callocOrExit(nodeCount(graph), Node*);
 	IDnum index;
 	Coordinate halfTotalLength = 0;
 	Coordinate sumLength = 0;
 	Node *node;
 	char *logFilename =
 	    mallocOrExit(strlen(directory) + 100, char);
-	char *statsLine = 
+	char *statsLine =
 	    mallocOrExit(5000, char);
 	FILE *logFile;
 
@@ -955,7 +955,7 @@ static boolean terminalReferenceMarker(Node * node, ReadSet * reads) {
 
 static boolean hasReferenceMarker(Node * node, ReadSet * reads) {
 	PassageMarkerI marker;
-	
+
 	for (marker = getMarker(node); marker != NULL_IDX; marker = getNextInNode(marker))
 		if (reads->categories[getAbsolutePassMarkerSeqID(marker) - 1] == REFERENCE)
 			return true;
@@ -973,7 +973,7 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 	IDnum index;
 	Node *node;
 	boolean denounceReads = readStartsAreActivated(graph);
-	boolean *res = NULL; 
+	boolean *res = NULL;
 	ShortReadMarker *nodeArray, *shortMarker;
 	PassageMarkerI marker;
 	IDnum maxIndex;
@@ -982,10 +982,10 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 	FILE * outfile = NULL;
 
 	velvetLog("Removing contigs with coverage < %f...\n", minCov);
-		
+
 	if (denounceReads)
 		res = callocOrExit(sequenceCount(graph), boolean);
-		
+
 	if (export) {
 		outfile = fopen(filename, "w");
 
@@ -1004,7 +1004,7 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 		if (getNodeLength(node) == 0)
 			continue;
 
-		if (getTotalCoverage(node) / getNodeLength(node) < minCov 
+		if (getTotalCoverage(node) / getNodeLength(node) < minCov
 		    && !hasReferenceMarker(node, reads)) {
 			if (denounceReads) {
 				nodeArray = getNodeReads(node, graph);
@@ -1046,7 +1046,7 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 				destroyPassageMarker(marker);
 			}
 
-			if (export && getNodeLength(node) > minLength) 
+			if (export && getNodeLength(node) > minLength)
 				exportLongNodeSequence(outfile, node, graph);
 
 			destroyNode(node, graph);
@@ -1061,7 +1061,7 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 		if (getNodeLength(node) == 0)
 			continue;
 
-		if (getTotalCoverage(node) / getNodeLength(node) < minCov 
+		if (getTotalCoverage(node) / getNodeLength(node) < minCov
 		    && !terminalReferenceMarker(node, reads)) {
 			if (denounceReads) {
 				nodeArray = getNodeReads(node, graph);
@@ -1103,7 +1103,7 @@ boolean *removeLowCoverageNodesAndDenounceDubiousReads(Graph * graph,
 				destroyPassageMarker(marker);
 			}
 
-			if (export && getNodeLength(node) > minLength) 
+			if (export && getNodeLength(node) > minLength)
 				exportLongNodeSequence(outfile, node, graph);
 
 			destroyNode(node, graph);
@@ -1123,7 +1123,7 @@ static Coordinate getLongCoverage(Node * node) {
 
 	for (marker = getMarker(node); marker; marker = getNextInNode(marker))
 		total += getPassageMarkerLength(marker);
-	
+
 	return total;
 }
 
@@ -1141,7 +1141,7 @@ void removeLowCoverageReferenceNodes(Graph * graph, double minCov, double minLon
 		if (getNodeLength(node) == 0)
 			continue;
 
-		if ((getTotalCoverage(node) / getNodeLength(node) < minCov 
+		if ((getTotalCoverage(node) / getNodeLength(node) < minCov
 		    || getLongCoverage(node) / getNodeLength(node) < minLongCov)
 		    && hasReferenceMarker(node, reads)) {
 			while ((marker = getMarker(node))) {
@@ -1163,7 +1163,7 @@ void removeLowCoverageReferenceNodes(Graph * graph, double minCov, double minLon
 void removeLowLongCoverageNodesAndDenounceDubiousReads(Graph * graph,
 						       double minCov,
 						       ReadSet * reads,
-						       boolean * res, 
+						       boolean * res,
 						       boolean export,
 						       Coordinate minLength,
 						       char *filename)
@@ -1182,7 +1182,7 @@ void removeLowLongCoverageNodesAndDenounceDubiousReads(Graph * graph,
 		return;
 
 	velvetLog("Removing contigs with coverage < %f...\n", minCov);
-		
+
 	if (export) {
 		outfile = fopen(filename, "a");
 
@@ -1200,7 +1200,7 @@ void removeLowLongCoverageNodesAndDenounceDubiousReads(Graph * graph,
 		if (getNodeLength(node) == 0)
 			continue;
 
-		if (getLongCoverage(node) / getNodeLength(node) < minCov 
+		if (getLongCoverage(node) / getNodeLength(node) < minCov
 		    && !hasReferenceMarker(node, reads)) {
 			if (denounceReads) {
 				nodeArray = getNodeReads(node, graph);
@@ -1242,7 +1242,7 @@ void removeLowLongCoverageNodesAndDenounceDubiousReads(Graph * graph,
 				destroyPassageMarker(marker);
 			}
 
-			if (export && getNodeLength(node) > minLength) 
+			if (export && getNodeLength(node) > minLength)
 				exportLongNodeSequence(outfile, node, graph);
 
 			destroyNode(node, graph);
@@ -1257,7 +1257,7 @@ void removeLowLongCoverageNodesAndDenounceDubiousReads(Graph * graph,
 		if (getNodeLength(node) == 0)
 			continue;
 
-		if (getLongCoverage(node) / getNodeLength(node) < minCov 
+		if (getLongCoverage(node) / getNodeLength(node) < minCov
 		    && !terminalReferenceMarker(node, reads)) {
 			if (denounceReads) {
 				nodeArray = getNodeReads(node, graph);
@@ -1299,7 +1299,7 @@ void removeLowLongCoverageNodesAndDenounceDubiousReads(Graph * graph,
 				destroyPassageMarker(marker);
 			}
 
-			if (export && getNodeLength(node) > minLength) 
+			if (export && getNodeLength(node) > minLength)
 				exportLongNodeSequence(outfile, node, graph);
 
 			destroyNode(node, graph);
@@ -1323,7 +1323,7 @@ void removeHighCoverageNodes(Graph * graph, double maxCov, boolean export, Coord
 		return;
 
 	velvetLog("Applying an upper coverage cutoff of %f...\n", maxCov);
-		
+
 	if (export) {
 		outfile = fopen(filename, "w");
 
@@ -1350,7 +1350,7 @@ void removeHighCoverageNodes(Graph * graph, double maxCov, boolean export, Coord
 				destroyPassageMarker(marker);
 			}
 
-			if (export && getNodeLength(node) > minLength) 
+			if (export && getNodeLength(node) > minLength)
 				exportLongNodeSequence(outfile, node, graph);
 
 			destroyNode(node, graph);
@@ -1711,7 +1711,7 @@ Coordinate totalAssemblyLength(Graph * graph)
 	return total;
 }
 
-IDnum usedReads(Graph * graph, Coordinate minContigLength) 
+IDnum usedReads(Graph * graph, Coordinate minContigLength)
 {
 	IDnum res = 0;
 	boolean * used = callocOrExit(sequenceCount(graph) + 1, boolean);
@@ -1725,16 +1725,16 @@ IDnum usedReads(Graph * graph, Coordinate minContigLength)
 		node = getNodeInGraph(graph, nodeID);
 		if (node == NULL || getNodeLength(node) < minContigLength)
 			continue;
-		
+
 		// Long reads
 		for(marker = getMarker(node); marker != NULL_IDX; marker = getNextInNode(marker)) {
 			readID = getPassageMarkerSequenceID(marker);
 			if (readID < 0)
 				readID = -readID;
-			used[readID] = true;	
-		}	
+			used[readID] = true;
+		}
 
-		// Short reads		
+		// Short reads
 		if (!readStartsAreActivated(graph))
 			continue;
 
@@ -1743,23 +1743,23 @@ IDnum usedReads(Graph * graph, Coordinate minContigLength)
 		for (shortReadIndex = 0; shortReadIndex < shortReadCount; shortReadIndex++) {
 			shortReadMarker = getShortReadMarkerAtIndex(shortReadArray, shortReadIndex);
 			readID = getShortReadMarkerID(shortReadMarker);
-			used[readID] = true;	
+			used[readID] = true;
 		}
-		
+
 		shortReadArray = getNodeReads(getTwinNode(node), graph);
 		shortReadCount = getNodeReadCount(getTwinNode(node), graph);
 		for (shortReadIndex = 0; shortReadIndex < shortReadCount; shortReadIndex++) {
 			shortReadMarker = getShortReadMarkerAtIndex(shortReadArray, shortReadIndex);
 			readID = getShortReadMarkerID(shortReadMarker);
-			used[readID] = true;	
+			used[readID] = true;
 		}
 	}
 
-	for (readID = 1; readID <= sequenceCount(graph); readID++) 
+	for (readID = 1; readID <= sequenceCount(graph); readID++)
 		if (used[readID])
 			res++;
 
-	free(used);	
+	free(used);
 
 	return res;
 }
@@ -1768,7 +1768,7 @@ void logFinalStats(Graph * graph, Coordinate minContigKmerLength, char *director
 {
 	char *logFilename =
 	    mallocOrExit(strlen(directory) + 100, char);
-	char *statsLine = 
+	char *statsLine =
 	    mallocOrExit(5000, char);
 	FILE *logFile;
 
@@ -1815,16 +1815,16 @@ void exportUnusedReads(Graph* graph, ReadSet * reads, Coordinate minContigKmerLe
 		node = getNodeInGraph(graph, nodeID);
 		if (node == NULL || getNodeLength(node) < minContigKmerLength)
 			continue;
-		
+
 		// Long reads
 		for(marker = getMarker(node); marker != NULL_IDX; marker = getNextInNode(marker)) {
 			readID = getPassageMarkerSequenceID(marker);
 			if (readID < 0)
 				readID = -readID;
-			used[readID] = true;	
-		}	
+			used[readID] = true;
+		}
 
-		// Short reads		
+		// Short reads
 		if (!readStartsAreActivated(graph))
 			continue;
 
@@ -1833,31 +1833,31 @@ void exportUnusedReads(Graph* graph, ReadSet * reads, Coordinate minContigKmerLe
 		for (shortReadIndex = 0; shortReadIndex < shortReadCount; shortReadIndex++) {
 			shortReadMarker = getShortReadMarkerAtIndex(shortReadArray, shortReadIndex);
 			readID = getShortReadMarkerID(shortReadMarker);
-			used[readID] = true;	
+			used[readID] = true;
 		}
-		
+
 		shortReadArray = getNodeReads(getTwinNode(node), graph);
 		shortReadCount = getNodeReadCount(getTwinNode(node), graph);
 		for (shortReadIndex = 0; shortReadIndex < shortReadCount; shortReadIndex++) {
 			shortReadMarker = getShortReadMarkerAtIndex(shortReadArray, shortReadIndex);
 			readID = getShortReadMarkerID(shortReadMarker);
-			used[readID] = true;	
+			used[readID] = true;
 		}
 	}
 
-	for (readID = 1; readID <= sequenceCount(graph); readID++) 
+	for (readID = 1; readID <= sequenceCount(graph); readID++)
 		if (!used[readID])
 			exportTightString(outfile, getTightStringInArray(reads->tSequences, readID - 1), readID);
 
 	free(outFilename);
-	free(used);	
+	free(used);
 	fclose(outfile);
 }
 
 static IDnum getReferenceCount(ReadSet * reads) {
 	IDnum index;
 
-	for (index = 0; index < reads->readCount; index++) 
+	for (index = 0; index < reads->readCount; index++)
 		if (reads->categories[index] != REFERENCE)
 			break;
 
@@ -1895,7 +1895,7 @@ static ReferenceCoord * collectReferenceCoords(char * sequencesFilename, IDnum r
 				start = longlongvar;
 				sscanf(strtok(NULL, ":-\r\n"), "%lli", &longlongvar);
 				finish = longlongvar;
-				refCoords[refIndex].name = callocOrExit(strlen(name) + 1, char);  
+				refCoords[refIndex].name = callocOrExit(strlen(name) + 1, char);
 				if (start <= finish) {
 					strcpy(refCoords[refIndex].name, name);
 					refCoords[refIndex].start = start;
@@ -1914,17 +1914,17 @@ static ReferenceCoord * collectReferenceCoords(char * sequencesFilename, IDnum r
 				}
 
 				strcpy(name, line + 1);
-				refCoords[refIndex].name = callocOrExit(strlen(name) + 1, char);  
+				refCoords[refIndex].name = callocOrExit(strlen(name) + 1, char);
 				strcpy(refCoords[refIndex].name, name);
 				refCoords[refIndex].start = 1;
 				refCoords[refIndex].finish = -1;
 				refCoords[refIndex].positive_strand = true;
 			}
 			if (++refIndex == referenceCount)
-				break;	
+				break;
 		}
 	}
-	
+
 	fclose(file);
 	return refCoords;
 }
@@ -1935,23 +1935,23 @@ typedef struct refMap_st {
 	IDnum refID;
 	IDnum refStart;
 	IDnum refFinish;
-} ATTRIBUTE_PACKED ReferenceMapping; 
+} ATTRIBUTE_PACKED ReferenceMapping;
 
 static int compareReferenceMappings(const void * A, const void * B) {
 	ReferenceMapping * refMapA = (ReferenceMapping *) A;
 	ReferenceMapping * refMapB = (ReferenceMapping *) B;
-	
+
 	if (refMapA->start < refMapB->start)
 		return -1;
 	else if (refMapA->start == refMapB->start)
 		return 0;
-	else 
+	else
 		return 1;
 }
 
 static void initializeReferenceMapping(ReferenceMapping * refMap, PassageMarkerI marker, Node * node) {
 	refMap->start = getStartOffset(marker);
-	refMap->finish = getNodeLength(node) - getFinishOffset(marker); 
+	refMap->finish = getNodeLength(node) - getFinishOffset(marker);
 	refMap->refID = getPassageMarkerSequenceID(marker);
 	refMap->refStart = getPassageMarkerStart(marker);
 	refMap->refFinish = getPassageMarkerFinish(marker);
@@ -1961,7 +1961,7 @@ static void velvetFprintfReferenceMapping(FILE * file, ReferenceMapping * mappin
 	ReferenceCoord * refCoord;
 	Coordinate start, finish;
 
-	if (mapping->refID > 0) 
+	if (mapping->refID > 0)
 		refCoord = &refCoords[mapping->refID - 1];
 	else
 		refCoord = &refCoords[-mapping->refID - 1];
@@ -1979,13 +1979,13 @@ static void velvetFprintfReferenceMapping(FILE * file, ReferenceMapping * mappin
 			start = refCoord->start + mapping->refStart + wordLength - 1;
 			finish = refCoord->start + mapping->refFinish + 1;
 		} else {
-			start = refCoord->finish - mapping->refStart; 
-			finish = refCoord->finish - mapping->refFinish + wordLength;  
+			start = refCoord->finish - mapping->refStart;
+			finish = refCoord->finish - mapping->refFinish + wordLength;
 		}
 	}
-		
+
 	velvetFprintf(file, "%lli\t%lli\t%s\t%lli\t%lli\n",
-		(long long) mapping->start + 1, (long long) mapping->finish + wordLength - 1, 
+		(long long) mapping->start + 1, (long long) mapping->finish + wordLength - 1,
 		refCoord->name, (long long) start, (long long) finish);
 }
 
@@ -2004,7 +2004,7 @@ static void exportLongNodeMapping(FILE * outfile, Node * node, ReadSet * reads, 
 	velvetFprintf(outfile, ">contig_%li\n", (long) getNodeID(node));
 
 	// Create table
-	referenceMappings = callocOrExit(referenceCount, ReferenceMapping);	
+	referenceMappings = callocOrExit(referenceCount, ReferenceMapping);
 
 	// Initialize table
 	referenceCount = 0;
@@ -2030,9 +2030,9 @@ void exportLongNodeMappings(char *filename, Graph * graph, ReadSet * reads,
 	IDnum nodeIndex, refIndex;
 	Node *node;
 	ReferenceCoord * refCoords;
-	IDnum referenceCount = getReferenceCount(reads); 
+	IDnum referenceCount = getReferenceCount(reads);
 
-	if (referenceCount == 0)	
+	if (referenceCount == 0)
 		return;
 
 	refCoords = collectReferenceCoords(sequencesFilename, referenceCount);
@@ -2050,7 +2050,7 @@ void exportLongNodeMappings(char *filename, Graph * graph, ReadSet * reads,
 
 		if (node == NULL || getNodeLength(node) < minLength)
 			continue;
-		
+
 		exportLongNodeMapping(outfile, node, reads, refCoords, getWordLength(graph));
 	}
 

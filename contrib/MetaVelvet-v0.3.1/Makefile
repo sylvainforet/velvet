@@ -24,16 +24,16 @@ OBJDBG = $(subst obj,obj/dbg,$(OBJ))
 default : cleanobj zlib obj meta-velveth meta-velvetg
 
 clean :
-	-rm obj/*.o obj/dbg/*.o ./meta-velvet* 
+	-rm obj/*.o obj/dbg/*.o ./meta-velvet*
 	cd $(Z_LIB_DIR) && make clean
 
-cleanobj: 
-	-rm obj/*.o obj/dbg/*.o 
+cleanobj:
+	-rm obj/*.o obj/dbg/*.o
 
-zlib : 
+zlib :
 	cd $(Z_LIB_DIR); ./configure; make; rm minigzip.o; rm example.o
 
-meta-velveth : obj 
+meta-velveth : obj
 	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o meta-velveth obj/tightString.o obj/run.o obj/recycleBin.o obj/splay.o obj/splayTable.o obj/readSet.o obj/crc.o obj/utility.o obj/kmer.o $(Z_LIB_FILES)
 
 
@@ -60,7 +60,7 @@ obj: zlib objdir $(OBJ)
 obj_de: override DEF := $(DEF) -D COLOR
 obj_de: zlib cleanobj objdir $(OBJ)
 
-obj/dbgdir: 
+obj/dbgdir:
 	mkdir -p obj/dbg
 
 obj/dbg: zlib obj/dbgdir $(OBJDBG)
@@ -69,8 +69,8 @@ obj/dbg_de: override DEF := $(DEF) -D COLOR
 obj/dbg_de: zlib cleanobj obj/dbgdir $(OBJDBG)
 
 obj/%.o: src/%.c
-	$(CC) $(CFLAGS) $(OPT) $(DEF) -c $? -o $@ 
+	$(CC) $(CFLAGS) $(OPT) $(DEF) -c $? -o $@
 
 obj/dbg/%.o: src/%.c
-	$(CC) $(CFLAGS) $(DEBUG) $(DEF) -c $? -o $@ 
+	$(CC) $(CFLAGS) $(DEBUG) $(DEF) -c $? -o $@
 

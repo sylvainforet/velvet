@@ -229,7 +229,7 @@ static void integrateDerivativeDistances(Connection * connect,
 	Connection *connect2;
 	MiniConnection *localConnect;
 
-	// debug 
+	// debug
 	IDnum counter = 0;
 
 	if (!getUniqueness(reference))
@@ -379,7 +379,7 @@ static void absorbExtension(Node * node, Node * extension)
 	appendNodeGaps(node, extension, graph);
 	appendDescriptors(node, extension);
 
-	// Destroy old nodes    
+	// Destroy old nodes
 	while (getArc(node) != NULL)
 		destroyArc(getArc(node), graph);
 
@@ -618,7 +618,7 @@ static void adjustShortReads(Node * target, Node * source)
 	ShortReadMarker *targetArray, *marker;
 	IDnum targetLength, index;
 	Coordinate position, nodeLength;
-	
+
 	if (!readStartsAreActivated(graph))
 		return;
 
@@ -812,7 +812,7 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 				}
 			}
 		}
-		// In case of failure   
+		// In case of failure
 		if (candidate == NULL) {
 			for (arc = getArc(current); arc != NULL;
 			     arc = getNextArc(arc)) {
@@ -879,7 +879,7 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 					    getNodeStatus(candidate) - 1);
 
 
-		// DEBUG 
+		// DEBUG
 		if (abs_bool(getNodeStatus(candidate)) > 100
 		    || counter > nodeCount(graph)) {
 			while (path) {
@@ -1015,7 +1015,7 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 						   localConnect);
 				}
 				// Original
-				printf("Pebble Concatenated Node %d -- ", 
+				printf("Pebble Concatenated Node %d -- ",
 				       getNodeID(node));
 				printf("Node %d\n", getNodeID(candidate));
 				// Original
@@ -1096,7 +1096,7 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 				   localConnect);
 		}
 		// Original
-		printf("Pebble Scaffolded Node %d -- Node %d\n", 
+		printf("Pebble Scaffolded Node %d -- Node %d\n",
 		       getNodeID(node), getNodeID(oppositeNode));
 		// Original
 
@@ -1167,7 +1167,7 @@ static boolean expandLongNode(Node * node, boolean force_jumps)
 	while (hit) {
 		correctGraphLocally(node);
 		findOppositeNode(node, &oppositeNode, &distance);
-		hit = pushNeighbours(node, oppositeNode, 
+		hit = pushNeighbours(node, oppositeNode,
 				     distance, force_jumps);
 		modified = modified || hit;
 	}
@@ -1221,7 +1221,7 @@ void exploitShortReadPairs(Graph * argGraph, ReadSet * reads,
 
 	if (!readStartsAreActivated(graph))
 		return;
-	
+
 	// Original
 	/*
 	puts("Starting pebble resolution...");
@@ -1235,7 +1235,7 @@ void exploitShortReadPairs(Graph * argGraph, ReadSet * reads,
 	// Prepare scaffold
 	buildScaffold(graph, reads, dubious);
 
-	// Prepare local scaffold 
+	// Prepare local scaffold
 	localScaffold =
 	    callocOrExit(2 * nodeCount(graph) + 1, MiniConnection);
 
@@ -1264,7 +1264,7 @@ static void adjustShortReadsInterRepeat(Node * target, Node * source,
 	IDnum targetLength, index;
 	Coordinate position, nodeLength;
 	Graph * graph = argGraph;
-	
+
 	if (!readStartsAreActivated(graph))
 		return;
 
@@ -1290,7 +1290,7 @@ static void absorbExtensionInterRepeat(Node * node, Node * extension,
 	appendNodeGaps(node, extension, graph);
 	appendDescriptors(node, extension);
 
-	// Destroy old nodes    
+	// Destroy old nodes
 	while (getArc(node) != NULL)
 		destroyArc(getArc(node), graph);
 
@@ -1299,7 +1299,7 @@ static void absorbExtensionInterRepeat(Node * node, Node * extension,
 		createAnalogousArc(node, getDestination(arc), arc, graph);
 }
 
-boolean pushNeighboursInterRepeat(Node * node, Node * nodeInterRepeat, 
+boolean pushNeighboursInterRepeat(Node * node, Node * nodeInterRepeat,
 				  Node * oppositeNode, Graph * argGraph)
 {
 	Node *candidate;
@@ -1307,7 +1307,7 @@ boolean pushNeighboursInterRepeat(Node * node, Node * nodeInterRepeat,
 	Category cat;
 	NodeList *path, *tmp;
 	Graph * graph = argGraph;
-	
+
 	// Make path (= NodeList of node and oppositeNode)
 	path = allocateNodeList();
 	path->node = nodeInterRepeat;
@@ -1321,7 +1321,7 @@ boolean pushNeighboursInterRepeat(Node * node, Node * nodeInterRepeat,
 		tmp = path->next;
 		deallocateNodeList(path);
 		path = tmp;
-		
+
 		if (getUniqueness(candidate)) {
 			concatenateReadStarts(node, candidate, graph);
 			concatenateLongReads(node, candidate, graph);
@@ -1338,10 +1338,10 @@ boolean pushNeighboursInterRepeat(Node * node, Node * nodeInterRepeat,
 			}
 
 			// Original
-			printf("\tConcatenated InNode %d -- OutNode %d\n", 
+			printf("\tConcatenated InNode %d -- OutNode %d\n",
 			       getNodeID(node), getNodeID(candidate));
 			// Original
-			
+
 			destroyNode(candidate, graph);
 			return true;
 		} else {

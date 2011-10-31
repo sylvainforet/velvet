@@ -1,31 +1,31 @@
 #!/usr/bin/perl -w
 #
 #   snp_view.pl
-#       
+#
 #   Copyright 2008 Simon Gladman <gla048@localhost.localdomain>
-#   
+#
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation; either version 2 of the License, or
 #   (at your option) any later version.
-#   
+#
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-#      
+#
 #   You should have received a copy of the GNU General Public License
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #   MA 02110-1301, USA.
 #
 #	A script to take a single contig AFG file and a position in that
-#	contig and show the reads aligned with the consensus sequence 
+#	contig and show the reads aligned with the consensus sequence
 #	centred on that position.  It outputs a text file called "snp_view.txt"
 #
 #	Usage: ./snp_view.pl <afg file> <position>
 #
-#	Where: 	<afg file> is a single contig AFG file extracted from the 
+#	Where: 	<afg file> is a single contig AFG file extracted from the
 #			velvet_assy.afg file (produced by Velvet) using asmbly_splitter.pl
 #			<position> is the position in the contig about which the view
 #			will be centred.  The position must be >= a full read length from
@@ -38,7 +38,7 @@
 #
 #			$outfile: set this parameter to whatever output filename you want.
 #
-# Modified by Daniel Zerbino (Aug 28 2009) to display reverse strand reads in the 
+# Modified by Daniel Zerbino (Aug 28 2009) to display reverse strand reads in the
 # snp_view_reads file and to better handle the display of snps near the end of contigs
 
 use strict;
@@ -129,7 +129,7 @@ for(my $i = 0; $i < $num_spaces; $i ++){
 }
 print OUT "$high\n";
 print OUT "Read #\t\tdir\t";
-if ($low < 0) { 
+if ($low < 0) {
 	for(my $i = 0; $i > $low; $i--){
 	print OUT ".";
 	}
