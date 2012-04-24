@@ -24,11 +24,11 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 void clipTipsHard(Graph * graph, boolean conserveLong);
 
 void correctGraph(Graph * graph,
-		  IDnum * sequenceLengths,
+		  ShortLength * sequenceLengths,
 		  Category * sequenceCategories,
 		  boolean conserveLong);
 void correctHapLoopGraph(Graph * graph,
-			 IDnum * sequenceLengths,
+			 ShortLength * sequenceLengths,
 			 Time maxHapCov,
 			 Time maxDipCov,
 			 Time divergence,

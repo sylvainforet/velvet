@@ -2522,7 +2522,7 @@ static void tourBus(Node * startingPoint)
 }
 
 void correctGraph(Graph * argGraph,
-		  IDnum * argSequenceLengths,
+		  ShortLength * argSequenceLengths,
 		  Category * argSequenceCategories,
 		  boolean conserveLong)
 {
@@ -2982,15 +2982,8 @@ comparePathsDeadEnd(Node *origin,
 		    Node *hapA,
 		    Node *hapB)
 {
-	IDnum slowLength, fastLength;
-	Node *fastNode, *slowNode;
 	PassageMarkerI marker;
 	Hirschberg *aln;
-
-	//Measure lengths
-	slowLength = fastLength = 0;
-	fastNode = hapA;
-	slowNode = hapB;
 
 	//Backtracking to record actual paths
 	fastPath = addUncertainPassageMarker(1, hapA);
@@ -3093,7 +3086,6 @@ resolveLoop(Node *origin,
 	Node *twin;
 	Node *twinA;
 	Node *twinB;
-	Node *twinDest;
 	Time tmpTime;
 	IDnum nodes;
 
@@ -3113,8 +3105,6 @@ resolveLoop(Node *origin,
 	    || hapB == twin
 	    || hapB == getTwinNode(hapA))
 		return;
-
-	twinDest = getTwinNode(dest);
 
 	if (dest == origin
 	    || dest == twin
@@ -3330,7 +3320,7 @@ hapDeadEnd2(Node *origin)
 
 void
 correctHapLoopGraph(Graph * argGraph,
-		    IDnum * argSequenceLengths,
+		    ShortLength * argSequenceLengths,
 		    Time maxHapCov,
 		    Time maxDipCov,
 		    Time divergence,

@@ -311,12 +311,11 @@ ReadSet *importCnyReadSet(char *filename)
 			seqReadInfo.m_refCnt = readCnySeqUint32(&seqReadInfo);
 			// now the next ptr is advanced
 			seqReadInfo.m_pNextReadPtr += (sizeof(RefInfo) * seqReadInfo.m_refCnt);
-			RefInfo refElem;
 			uint32_t refIdx;
 			for (refIdx = 0; refIdx < seqReadInfo.m_refCnt; refIdx++) {
 				// not actually used so just read past refs
-				refElem.m_referenceID = readCnySeqUint32(&seqReadInfo);
-				refElem.m_pos = readCnySeqUint32(&seqReadInfo);
+				readCnySeqUint32(&seqReadInfo);
+				readCnySeqUint32(&seqReadInfo);
 			}
 		}
 		tmp += arrayLength;

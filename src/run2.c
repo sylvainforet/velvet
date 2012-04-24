@@ -484,7 +484,7 @@ int main(int argc, char **argv)
 		sequenceLengths =
 		    getSequenceLengths(sequences, getWordLength(graph));
 		correctGraph(graph, sequenceLengths, sequences->categories, conserveLong);
-		exportGraph(graphFilename, graph, sequences->tSequences);
+		exportGraph(graphFilename, graph, sequences->tSequences, true);
 	} else if ((file = fopen(preGraphFilename, "r")) != NULL) {
 		fclose(file);
 		if (seqReadInfo->m_bIsBinary) {
@@ -499,7 +499,7 @@ int main(int argc, char **argv)
 				   roadmapFilename, readTracking, accelerationBits);
 		sequenceLengths =
 		    getSequenceLengths(sequences, getWordLength(graph));
-		correctGraph(graph, sequenceLengths, sequences->categories);
+		correctGraph(graph, sequenceLengths, sequences->categories, conserveLong);
 		if (doHapLoop) {
 			correctHapLoopGraph(graph,
 					    sequenceLengths,
@@ -572,7 +572,7 @@ int main(int argc, char **argv)
 				   roadmapFilename, readTracking, accelerationBits);
 		sequenceLengths =
 		    getSequenceLengths(sequences, getWordLength(graph));
-		correctGraph(graph, sequenceLengths, sequences->categories);
+		correctGraph(graph, sequenceLengths, sequences->categories, conserveLong);
 		if (doHapLoop) {
 			correctHapLoopGraph(graph,
 					    sequenceLengths,
@@ -679,10 +679,10 @@ int main(int argc, char **argv)
 				    hapLoopWindow);
 		free(sequenceLengths);
 	}
-	clipTipsHard(graph);
+	clipTipsHard(graph, conserveLong);
 	strcpy(graphFilename, directory);
 	strcat(graphFilename, "/contigs_noscaf.fa");
-	exportLongNodeSequences(graphFilename, graph, minContigKmerLength);
+	exportLongNodeSequences(graphFilename, graph, minContigKmerLength, sequences, sequenceLengths, coverageMask); 
 	strcpy(graphFilename, directory);
 	strcat(graphFilename, "/Graph3");
 	exportGraph(graphFilename, graph, sequences->tSequences, false);
