@@ -371,7 +371,6 @@ static void tourBusArc_local(Node * origin, Arc * arc, Time originTime)
 static void tourBusNode_local(Node * node)
 {
 	Arc *arc;
-	Node *destination;
 	Time nodeTime = getNodeTime(node);
 
 	//velvetLog("Node %li %f %i %p\n", getNodeID(node),
@@ -379,8 +378,6 @@ static void tourBusNode_local(Node * node)
 	//       node);
 
 	for (arc = getArc(node); arc != NULL; arc = getNextArc(arc)) {
-		destination = getDestination(arc);
-
 		// Node doesn't belong to the marked node area 
 		if (getNodeStatus(getDestination(arc)) != 1)
 			continue;
@@ -505,7 +502,7 @@ void prepareGraphForLocalCorrections(Graph * argGraph)
 
 void correctGraphLocally(Node * argStart)
 {
-	IDnum index, nodeIndex;
+	IDnum nodeIndex;
 	NodeList *nodeList;
 
 	start = argStart;
@@ -513,7 +510,6 @@ void correctGraphLocally(Node * argStart)
 
 	clipTipsVeryHardLocally();
 
-	index = 0;
 	for (nodeList = getMarkedNodeList(); nodeList != NULL;
 	     nodeList = nodeList->next) {
 		nodeIndex = getNodeID(nodeList->node) + nodeCount(graph);

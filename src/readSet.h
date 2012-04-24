@@ -34,9 +34,15 @@ struct readSet_st {
 	IDnum readCount;
 };
 
+struct mask_st {
+	Coordinate start;
+	Coordinate finish;
+	Mask* next;
+}; 
+
 ReadSet *newReadSet();
 
-IDnum *getSequenceLengths(ReadSet * reads, int wordLength);
+ShortLength *getSequenceLengths(ReadSet * reads, int wordLength);
 
 void convertSequences(ReadSet * rs);
 
@@ -54,4 +60,8 @@ boolean isSecondInPair(ReadSet * reads, IDnum index);
 void detachDubiousReads(ReadSet * reads, boolean * dubiousReads);
 
 void destroyReadSet(ReadSet * reads);
+
+inline boolean isCreateBinary();
+void setCreateBinary(boolean val);
+
 #endif

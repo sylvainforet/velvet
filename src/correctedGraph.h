@@ -21,11 +21,12 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #ifndef _CORRECTEDGRAPH_H_
 #define _CORRECTEDGRAPH_H_
 
-void clipTipsHard(Graph * graph);
+void clipTipsHard(Graph * graph, boolean conserveLong);
 
 void correctGraph(Graph * graph,
 		  IDnum * sequenceLengths,
-		  Category * sequenceCategories);
+		  Category * sequenceCategories,
+		  boolean conserveLong);
 void correctHapLoopGraph(Graph * graph,
 			 IDnum * sequenceLengths,
 			 Time maxHapCov,

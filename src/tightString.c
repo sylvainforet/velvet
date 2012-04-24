@@ -26,13 +26,6 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #include "tightString.h"
 #include "utility.h"
 
-typedef unsigned char Codon;
-
-struct tString_st {
-	Codon *sequence;
-	IDnum length;
-}  ATTRIBUTE_PACKED;
-
 static const Nucleotide Adenine = 0;
 static const Nucleotide Cytosine = 1;
 static const Nucleotide Guanine = 2;
@@ -97,6 +90,9 @@ void writeNucleotide(Nucleotide nucleotide, Codon * codonPtr, int position)
 	case 'T':
 		nucleotideNum = Thymine;
 		break;
+	case 'N':
+		nucleotideNum = Adenine;
+		break;
 	case 'a':
 		nucleotideNum = Adenine;
 		break;
@@ -109,6 +105,8 @@ void writeNucleotide(Nucleotide nucleotide, Codon * codonPtr, int position)
 	case 't':
 		nucleotideNum = Thymine;
 		break;
+	case 'n':
+		nucleotideNum = Adenine;
 	default:
 		nucleotideNum = Adenine;
 	}

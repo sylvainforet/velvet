@@ -88,7 +88,7 @@ static Ticket **todo;
 static Ticket *done;
 static boolean *progressStatus;
 
-static IDnum *sequenceLengths;
+static ShortLength *sequenceLengths;
 static Category *sequenceCategories;
 
 static boolean hapLoopResolution = false;
@@ -924,16 +924,14 @@ remapBackOfNodeMarkersOntoNeighbour(Node * source,
 			continue;
 
 		// Markers which are downstream of the breakpoint
-		if (isInitial(marker)
-		    && getStartOffset(marker) > halfwayPoint) {
+		if (getStartOffset(marker) > halfwayPoint) {
 			newStartOffset =
 			    getStartOffset(marker) - halfwayPoint;
 			setStartOffset(marker, newStartOffset);
 			continue;
 		}
 		// Markers which are upstream of the breakpoint
-		if (isTerminal(marker)
-		    && getFinishOffset(marker) > halfwayPointOffset) {
+		if (getFinishOffset(marker) > halfwayPointOffset) {
 			if (slowToFast) {
 				if (realSourceLength > 0
 				    && alignedTargetLength > 0) {
@@ -984,6 +982,8 @@ remapBackOfNodeMarkersOntoNeighbour(Node * source,
 			breakpoint /= realSourceLength -
 			    getStartOffset(marker) -
 			    getFinishOffset(marker);
+			if (breakpoint > getPassageMarkerLength(marker))
+				breakpoint = getPassageMarkerLength(marker);
 			breakpoint *= passageMarkerDirection(marker);
 			breakpoint += getPassageMarkerStart(marker);
 		} else {
@@ -1286,6 +1286,7 @@ static void foldSymmetricalNode(Node * node)
 			     getPassageMarkerFinish(currentMarker))
 			    / 2;
 			setPassageMarkerFinish(newMarker, halfwayPoint);
+
 			setPassageMarkerStart(currentMarker, halfwayPoint);
 
 			setStartOffset(newMarker,
@@ -1646,7 +1647,6 @@ static void remapEmptyPathMarkersOntoMiddlePathSimple(PassageMarkerI emptyPath,
 					       (marker));
 			setPassageMarkerStart(newMarker, markerStart);
 			setPassageMarkerFinish(newMarker, markerStart);
-
 			setNextInSequence(previousMarker, newMarker);
 			setPreviousInSequence(previousMarker, newMarker);
 
@@ -1785,7 +1785,6 @@ static void remapEmptyPathMarkersOntoMiddlePathDevious(PassageMarkerI emptyPath,
 					       (marker));
 			setPassageMarkerStart(newMarker, markerStart);
 			setPassageMarkerFinish(newMarker, markerStart);
-
 			setNextInSequence(previousMarker, newMarker);
 			setPreviousInSequence(previousMarker, newMarker);
 
@@ -2193,8 +2192,8 @@ static boolean pathContainsReference(PassageMarkerI path) {
 
 	for (marker = getNextInSequence(path); !isTerminal(marker);
 	     marker = getNextInSequence(marker))
-		for (marker2 = getMarker(getNode(marker)); marker2; marker2 = getNextInNode(marker2))
-			if (marker2 != marker && sequenceCategories[getAbsolutePassMarkerSeqID(marker)] == REFERENCE)
+		for (marker2 = getMarker(getNode(marker)); marker2 != NULL_IDX; marker2 = getNextInNode(marker2))
+			if (marker2 != marker && sequenceCategories[getAbsolutePassMarkerSeqID(marker2) - 1] == REFERENCE)
 				return true;
 
 	return false;
@@ -2448,7 +2447,7 @@ static Coordinate getTipLength(Node * node)
 	return length;
 }
 
-void clipTipsHard(Graph * graph)
+void clipTipsHard(Graph * graph, boolean conserveLong)
 {
 	IDnum index;
 	Node *current, *twin;
@@ -2465,6 +2464,9 @@ void clipTipsHard(Graph * graph)
 
 			if (current == NULL)
 				continue;
+	
+			if (conserveLong && getMarker(current))
+				continue;
 
 			twin = getTwinNode(current);
 
@@ -2473,7 +2475,7 @@ void clipTipsHard(Graph * graph)
 				while ((marker = getMarker(current))) {
 					if (!isInitial(marker)
 					    && !isTerminal(marker))
-						disconnectNextPassageMarker
+						deleteNextPassageMarker
 						    (getPreviousInSequence
 						     (marker), graph);
 					destroyPassageMarker(marker);
@@ -2486,7 +2488,7 @@ void clipTipsHard(Graph * graph)
 				while ((marker = getMarker(current))) {
 					if (!isInitial(marker)
 					    && !isTerminal(marker))
-						disconnectNextPassageMarker
+						deleteNextPassageMarker
 						    (getPreviousInSequence
 						     (marker), graph);
 					destroyPassageMarker(marker);
@@ -2521,7 +2523,8 @@ static void tourBus(Node * startingPoint)
 
 void correctGraph(Graph * argGraph,
 		  IDnum * argSequenceLengths,
-		  Category * argSequenceCategories)
+		  Category * argSequenceCategories,
+		  boolean conserveLong)
 {
 	IDnum nodes;
 	IDnum index;
@@ -2580,7 +2583,7 @@ void correctGraph(Graph * argGraph,
 	deactivateArcLookupTable(graph);
 
 	concatenateGraph(graph);
-	clipTipsHard(graph);
+	clipTipsHard(graph, conserveLong);
 
 	//Deallocating globals
 	free(times);

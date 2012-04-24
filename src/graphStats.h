@@ -25,7 +25,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 void displayGeneralStatistics(Graph * graph, char *filename, ReadSet * reads);
 
 void exportLongNodeSequences(char *filename, Graph * graph,
-			     Coordinate minLength);
+			     Coordinate minLength, ReadSet * reads, ShortLength * readLengths, IDnum minCov);
 
 Coordinate readCoverage(Node * node);
 
@@ -64,8 +64,9 @@ void logFinalStats(Graph * graph, Coordinate minContigKmerLength, char *director
 void exportUnusedReads(Graph* graph, ReadSet * reads, Coordinate minContigKmerLength, char* filename);
 
 void exportLongNodeMappings(char *filename, Graph * graph, ReadSet * reads,
-			     Coordinate minLength, char * sequencesFilename);
+			     Coordinate minLength, SequencesReader *seqReadInfo);
 
 void removeHighCoverageNodes(Graph * graph, double maxCov, boolean export, Coordinate minLength, char * filename);
 
+void removeLowArcs(Graph * graph, double cutoff);
 #endif

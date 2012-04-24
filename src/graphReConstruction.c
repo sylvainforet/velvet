@@ -25,7 +25,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #include <limits.h>
 #include <sys/time.h>
 
-#ifdef OPENMP
+#ifdef _OPENMP
 #include <omp.h>
 #endif
 
@@ -50,7 +50,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 // Node Locking
 //////////////////////////////////////////////////////////
 
-#ifdef OPENMP
+#ifdef _OPENMP
 
 /* Array of per-node locks */
 
@@ -148,7 +148,7 @@ static RecycleBin *smallNodeListMemory = NULL;
 
 #define BLOCKSIZE 1000
 
-#ifdef OPENMP
+#ifdef _OPENMP
 static void initSmallNodeListMemory(void)
 {
 	int n = omp_get_max_threads();
@@ -163,7 +163,7 @@ static void initSmallNodeListMemory(void)
 
 static SmallNodeList *allocateSmallNodeList()
 {
-#ifdef OPENMP
+#ifdef _OPENMP
 #ifdef DEBUG
 	if (smallNodeListMemory == NULL)
 	{
@@ -184,7 +184,7 @@ static SmallNodeList *allocateSmallNodeList()
 
 static void deallocateSmallNodeList(SmallNodeList * smallNodeList)
 {
-#ifdef OPENMP
+#ifdef _OPENMP
 	deallocatePointer(getRecycleBinInArray(smallNodeListMemory,
 					       omp_get_thread_num()),
 			  smallNodeList);
@@ -197,7 +197,7 @@ static void destroySmallNodeListMemmory(void)
 {
 	if (smallNodeListMemory != NULL)
 	{
-#ifdef OPENMP
+#ifdef _OPENMP
 		destroyRecycleBinArray(smallNodeListMemory);
 #else
 		destroyRecycleBin(smallNodeListMemory);
@@ -212,14 +212,14 @@ static inline void memorizeNode(Node * node, SmallNodeList ** nodePile)
 	list->node = node;
 	list->next = *nodePile;
 	*nodePile = list;
-#ifndef OPENMP
+#ifndef _OPENMP
    	setSingleNodeStatus(node, true);
 #endif
 }
 
 static inline boolean isNodeMemorized(Node * node, SmallNodeList * nodePile)
 {
-#ifdef OPENMP
+#ifdef _OPENMP
 	/* SF TODO There must be a faster way to do this: bit mask, hash table, tree, ... ? */
 	SmallNodeList * list;
 
@@ -240,7 +240,7 @@ static void unMemorizeNodes(SmallNodeList ** nodePile)
 	while (*nodePile) {
 		list = *nodePile;
 		*nodePile = list->next;
-#ifndef OPENMP
+#ifndef _OPENMP
    		setSingleNodeStatus(list->node, false);
 #endif
 		deallocateSmallNodeList(list);
@@ -656,7 +656,7 @@ static void ghostThreadSequenceThroughGraph(TightString * tString,
 	SmallNodeList * nodePile = NULL;
 	Annotation * annotation = annotations;
 
-	Node *node;
+	Node *node = NULL;
 	Node *previousNode = NULL;
 
 	// Neglect any read which will not be short paired
@@ -784,11 +784,11 @@ static void ghostThreadSequenceThroughGraph(TightString * tString,
 		// Fill in graph
 		if (node && !isNodeMemorized(node, nodePile))
 		{
-#ifdef OPENMP
+#ifdef _OPENMP
 			lockNode(node);
 #endif
 			incrementReadStartCount(node, graph);
-#ifdef OPENMP
+#ifdef _OPENMP
 			unLockNode(node);
 #endif
 			memorizeNode(node, &nodePile);
@@ -859,6 +859,7 @@ static void threadSequenceThroughGraph(TightString * tString,
 	}
 
 	// Go through sequence
+	// printf("len %d\n", getLength(tString));
 	while (readNucleotideIndex < getLength(tString)) {
 		nucleotide = getNucleotide(readNucleotideIndex++, tString);
 		pushNucleotide(&word, nucleotide);
@@ -893,8 +894,6 @@ static void threadSequenceThroughGraph(TightString * tString,
 				}
 			} else  {
 				node = NULL;
-				if (previousNode)
-					break;
 			}
 		}
 		// Search for reference-based mapping
@@ -980,7 +979,7 @@ static void threadSequenceThroughGraph(TightString * tString,
 		// Fill in graph
 		if (node)
 		{
-#ifdef OPENMP
+#ifdef _OPENMP
 			lockNode(node);
 #endif
 			kmerIndex = readNucleotideIndex - wordLength;
@@ -1002,7 +1001,7 @@ static void threadSequenceThroughGraph(TightString * tString,
 					incrementVirtualCoverage(node, 1);
 #endif
 				}
-#ifdef OPENMP
+#ifdef _OPENMP
 				unLockNode(node);
 #endif
 			} else {
@@ -1043,11 +1042,12 @@ static void threadSequenceThroughGraph(TightString * tString,
 					incrementVirtualCoverage(node, 1);
 #endif
 				}
-#ifdef OPENMP
+#ifdef _OPENMP
 				lockTwoNodes(node, previousNode);
 #endif
-				createArc(previousNode, node, graph);
-#ifdef OPENMP
+				if (category != REFERENCE)
+					createArc(previousNode, node, graph);
+#ifdef _OPENMP
 				unLockTwoNodes(node, previousNode);
 #endif
 			}
@@ -1057,6 +1057,7 @@ static void threadSequenceThroughGraph(TightString * tString,
 		}
 		index++;
 	}
+	// printKmer(&word);
 
 	if (readTracking && category / 2 < CATEGORIES)
 		unMemorizeNodes(&nodePile);
@@ -1092,7 +1093,7 @@ static void fillUpGraph(ReadSet * reads,
 		activateReadStarts(graph);
 
 	gettimeofday(&start, NULL);
-#ifdef OPENMP
+#ifdef _OPENMP
 	initSmallNodeListMemory();
 	createNodeLocks(graph);
 	#pragma omp parallel for
@@ -1129,10 +1130,10 @@ static void fillUpGraph(ReadSet * reads,
 	createNodeReadStartArrays(graph);
 	gettimeofday(&end, NULL);
 	timersub(&end, &start, &diff);
-	velvetLog(" === Ghost-Threaded in %ld.%06ld s\n", diff.tv_sec, diff.tv_usec);
+	velvetLog(" === Ghost-Threaded in %ld.%06ld s\n", (long) diff.tv_sec, (long) diff.tv_usec);
 
 	gettimeofday(&start, NULL);
-#ifdef OPENMP
+#ifdef _OPENMP
 	int threads = omp_get_max_threads();
 	if (threads > 32)
 		threads = 32;
@@ -1168,9 +1169,9 @@ static void fillUpGraph(ReadSet * reads,
 	}
 	gettimeofday(&end, NULL);
 	timersub(&end, &start, &diff);
-	velvetLog(" === Threaded in %ld.%06ld s\n", diff.tv_sec, diff.tv_usec);
+	velvetLog(" === Threaded in %ld.%06ld s\n", (long) diff.tv_sec, (long) diff.tv_usec);
 
-#ifdef OPENMP
+#ifdef _OPENMP
 	free(nodeLocks);
 	nodeLocks = NULL;
 #endif
@@ -1214,6 +1215,258 @@ Graph *importPreGraph(char *preGraphFilename, ReadSet * reads, char * roadmapFil
 	fillUpGraph(reads, kmerTable, graph, readTracking, double_strand, referenceMappings, referenceMappingCount, referenceCount, roadmapFilename);
 
 	free(referenceMappings);
+
+	return graph;
+}
+
+static void addReadsToGraph(TightString * tString,
+				       KmerOccurenceTable * kmerTable,
+				       Graph * graph,
+				       IDnum seqID, Category category,
+				       boolean readTracking,
+				       boolean double_strand,
+				       boolean second_in_pair)
+{
+	Kmer word;
+	Kmer antiWord;
+	Coordinate readNucleotideIndex;
+	Coordinate kmerIndex;
+	KmerOccurence *kmerOccurence;
+	int wordLength = getWordLength(graph);
+
+	Node *node = NULL;
+	Node *previousNode = NULL;
+	Coordinate coord = 0;
+	Coordinate previousCoord = 0;
+	Nucleotide nucleotide;
+	boolean reversed;
+
+	Coordinate index = 0;
+	SmallNodeList * nodePile = NULL;
+
+	// Neglect any read which will not be short paired
+	if (category / 2 >= CATEGORIES)
+		return;
+		
+	// Neglect any string shorter than WORDLENGTH :
+	if (getLength(tString) < wordLength)
+		return;
+
+	clearKmer(&word);
+	clearKmer(&antiWord);
+
+	// Fill in the initial word : 
+	for (readNucleotideIndex = 0;
+	     readNucleotideIndex < wordLength - 1; readNucleotideIndex++) {
+		nucleotide = getNucleotide(readNucleotideIndex, tString);
+		pushNucleotide(&word, nucleotide);
+		if (double_strand || second_in_pair) {
+#ifdef COLOR
+			reversePushNucleotide(&antiWord, nucleotide);
+#else
+			reversePushNucleotide(&antiWord, 3 - nucleotide);
+#endif
+		}
+	}
+
+	// Go through sequence
+	// printf("len %d\n", getLength(tString));
+	while (readNucleotideIndex < getLength(tString)) {
+		nucleotide = getNucleotide(readNucleotideIndex++, tString);
+		pushNucleotide(&word, nucleotide);
+		if (double_strand || second_in_pair) {
+#ifdef COLOR
+			reversePushNucleotide(&antiWord, nucleotide);
+#else
+			reversePushNucleotide(&antiWord, 3 - nucleotide);
+#endif
+		}
+
+		// Search in table
+		reversed = false;
+		if (double_strand) {
+			if (compareKmers(&word, &antiWord) <= 0) {
+				kmerOccurence =
+					findKmerInKmerOccurenceTable(&word,
+							kmerTable);
+			} else { 
+				kmerOccurence =
+					findKmerInKmerOccurenceTable(&antiWord,
+							kmerTable);
+				reversed = true;
+			}
+		} else {
+			if (!second_in_pair) {
+				kmerOccurence =
+					findKmerInKmerOccurenceTable(&word,
+							kmerTable);
+			} else { 
+				kmerOccurence =
+					findKmerInKmerOccurenceTable(&antiWord,
+							kmerTable);
+				reversed = true;
+			}
+		}
+
+		if (kmerOccurence) {
+			if (!reversed) {
+				node = getNodeInGraph(graph, getKmerOccurenceNodeID(kmerOccurence));
+				coord = getKmerOccurencePosition(kmerOccurence);
+			} else {
+				node = getNodeInGraph(graph, -getKmerOccurenceNodeID(kmerOccurence));
+				coord = getNodeLength(node) - getKmerOccurencePosition(kmerOccurence) - 1;
+			}
+		} else {
+			node = NULL;
+			if (previousNode) 
+				break;
+		}
+
+		// Fill in graph
+		if (node)
+		{
+#ifdef _OPENMP
+			lockNode(node);
+#endif
+			kmerIndex = readNucleotideIndex - wordLength;
+
+			if (previousNode != node || previousCoord != coord -1) {
+				if (!isNodeMemorized(node, nodePile)) {
+					addReadStart(node,
+							seqID,
+							coord,
+							graph,
+							kmerIndex);
+					memorizeNode(node, &nodePile);
+				} else {
+					blurLastShortReadMarker
+						(node, graph);
+				}
+			}
+#ifdef _OPENMP
+			unLockNode(node);
+#endif
+			previousNode = node;
+			previousCoord = coord;
+		}
+		index++;
+	}
+	// printKmer(&word);
+
+	if (category / 2 < CATEGORIES)
+		unMemorizeNodes(&nodePile);
+}
+
+static void fillUpConnectedGraph(ReadSet * reads,
+			KmerOccurenceTable * kmerTable,
+			Graph * graph,
+			boolean readTracking,
+			boolean double_strand)
+{
+	IDnum refCount = 0;   // refs not present in connected graphs
+	IDnum readIndex;
+	struct timeval start, end, diff;
+	
+	resetNodeStatus(graph);
+	// Allocate memory for the read pairs
+	if (!readStartsAreActivated(graph))
+		activateReadStarts(graph);
+
+	gettimeofday(&start, NULL);
+#ifdef _OPENMP
+	initSmallNodeListMemory();
+	createNodeLocks(graph);
+	#pragma omp parallel for
+#endif
+	for (readIndex = refCount; readIndex < reads->readCount; readIndex++)
+	{
+		Category category;
+		boolean second_in_pair;
+
+		if (readIndex % 1000000 == 0)
+			velvetLog("Ghost Threading through reads %ld / %ld\n",
+				  (long) readIndex, (long) reads->readCount);
+
+		category = reads->categories[readIndex];
+		second_in_pair = reads->categories[readIndex] & 1 && isSecondInPair(reads, readIndex);
+
+		// referenceMappings = NULL, referenceMappingCount = 0
+		// refCount = 0, annotations = NULL, annotationCount = 0
+		ghostThreadSequenceThroughGraph(getTightStringInArray(reads->tSequences, readIndex),
+						kmerTable,
+						graph, readIndex + 1,
+						category,
+						readTracking, double_strand,
+						NULL, 0,
+					  	0, NULL, 0,
+						second_in_pair);
+	}
+	createNodeReadStartArrays(graph);
+	gettimeofday(&end, NULL);
+	timersub(&end, &start, &diff);
+	velvetLog(" === Ghost-Threaded in %ld.%06ld s\n", diff.tv_sec, diff.tv_usec);
+
+	gettimeofday(&start, NULL);
+#ifdef _OPENMP
+	int threads = omp_get_max_threads();
+	if (threads > 32)
+		threads = 32;
+
+	#pragma omp parallel for num_threads(threads)
+#endif
+	for (readIndex = 0; readIndex < reads->readCount; readIndex++)
+	{
+		Category category;
+		boolean second_in_pair;
+
+		if (readIndex % 1000000 == 0)
+			velvetLog("Adding reads %li / %li\n",
+				  (long) readIndex, (long) reads->readCount);
+
+		category = reads->categories[readIndex];
+		second_in_pair = reads->categories[readIndex] % 2 && isSecondInPair(reads, readIndex);
+
+		addReadsToGraph(getTightStringInArray(reads->tSequences, readIndex),
+					   kmerTable,
+					   graph, readIndex + 1, category,
+					   readTracking, double_strand, second_in_pair);
+	}
+	gettimeofday(&end, NULL);
+	timersub(&end, &start, &diff);
+	velvetLog(" === Threaded in %ld.%06ld s\n", diff.tv_sec, diff.tv_usec);
+
+#ifdef _OPENMP
+	free(nodeLocks);
+	nodeLocks = NULL;
+#endif
+
+	orderNodeReadStartArrays(graph);
+
+	destroySmallNodeListMemmory();
+
+	destroyKmerOccurenceTable(kmerTable);
+}
+
+Graph *importConnectedGraph(char *connectedGraphFilename, ReadSet * reads, char * roadmapFilename,
+		      boolean readTracking, short int accelerationBits)
+{
+	boolean double_strand = false;
+	Graph *graph = readConnectedGraphFile(connectedGraphFilename, &double_strand);
+
+	if (nodeCount(graph) == 0)
+		return graph;
+
+	if (readTracking) {
+		Coordinate referenceMappingCount = 0;
+		NodeMask * nodeMasks = NULL;
+
+		// Map k-mers to nodes
+		KmerOccurenceTable *kmerTable =
+			referenceGraphKmers(connectedGraphFilename, accelerationBits, graph, doubleStrandedGraph(graph), nodeMasks, referenceMappingCount);
+
+		// Map sequences -> kmers -> nodes
+		fillUpConnectedGraph(reads, kmerTable, graph, readTracking, double_strand);
+	}
 
 	return graph;
 }

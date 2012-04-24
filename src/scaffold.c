@@ -24,7 +24,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #include <math.h>
 #include <sys/time.h>
  
-#ifdef OPENMP
+#ifdef _OPENMP
 #include <omp.h>
 #endif
 
@@ -73,7 +73,7 @@ static Connection **scaffold = NULL;
 static RecycleBin *connectionMemory = NULL;
 static boolean estimated[CATEGORIES + 1];
 
-#ifdef OPENMP
+#ifdef _OPENMP
 
 #define READS_PER_LOCK 32
 
@@ -161,7 +161,7 @@ static inline void unLockTwoNodes(IDnum nodeID, IDnum node2ID)
 static Connection *allocateConnection()
 {
 	Connection *connect;
-#ifdef OPENMP
+#ifdef _OPENMP
 #pragma omp critical
 	{
 #endif
@@ -170,7 +170,7 @@ static Connection *allocateConnection()
 		    newRecycleBin(sizeof(Connection), BLOCK_SIZE);
 
 	connect = allocatePointer(connectionMemory);
-#ifdef OPENMP
+#ifdef _OPENMP
 	}
 #endif
 	connect->destination = NULL;
@@ -320,7 +320,7 @@ static boolean testConnection(IDnum IDA,
 	    UNRELIABLE_CONNECTION_CUTOFF)
 		return false;
 
-	for (cat = 0; cat <= CATEGORIES; cat++)
+	for (cat = 0; cat < CATEGORIES; cat++)
 		if (!shadows[cat] || cat <= PEBBLE_ROUND_NUM)
 			total += expectedNumberOfConnections(IDA, connect, counts, cat);
 
@@ -339,7 +339,7 @@ static IDnum *computeReadToNodeCounts(Coordinate *totalCount)
 
 	velvetLog("Computing read to node mapping array sizes\n");
 
-#ifdef OPENMP
+#ifdef _OPENMP
 	#pragma omp parallel for reduction(+:total)
 #endif
 	for (nodeIndex = 0; nodeIndex < maxNodeIndex; nodeIndex++) {
@@ -362,7 +362,7 @@ static IDnum *computeReadToNodeCounts(Coordinate *totalCount)
 			shortMarker = getShortReadMarkerAtIndex(nodeArray,
 								readIndex);
 			readID = getShortReadMarkerID(shortMarker);
-#ifdef OPENMP
+#ifdef _OPENMP
 			#pragma omp atomic
 #endif
 			readNodeCounts[readID]++;
@@ -446,7 +446,7 @@ static void computePartialReadToNodeMappingShort(IDnum nodeID,
 		shortMarker = getShortReadMarkerAtIndex(nodeArray, index);
 		readIndex = getShortReadMarkerID(shortMarker);
 		readArray = readNodes[readIndex];
-#ifdef OPENMP
+#ifdef _OPENMP
 		lockRead(readIndex);
 #endif
 		readOccurence = &readArray[readNodeCounts[readIndex]];
@@ -456,7 +456,7 @@ static void computePartialReadToNodeMappingShort(IDnum nodeID,
 		readOccurence->offset =
 		    getShortReadMarkerOffset(shortMarker);
 		readNodeCounts[readIndex]++;
-#ifdef OPENMP
+#ifdef _OPENMP
 		unLockRead(readIndex);
 #endif
 	}
@@ -523,7 +523,7 @@ static ReadOccurence **computeReadToNodeMappings(IDnum * readNodeCounts,
 
 	velvetLog("Computing read to node mappings\n");
 
-#ifdef OPENMP
+#ifdef _OPENMP
 	createReadsLocks();
 	#pragma omp parallel for
 #endif
@@ -532,7 +532,7 @@ static ReadOccurence **computeReadToNodeMappings(IDnum * readNodeCounts,
 			computePartialReadToNodeMappingShort(nodeID, readNodes,
 							     readNodeCounts);
 
-#ifdef OPENMP
+#ifdef _OPENMP
 	free(readsLocks);
 	readsLocks = NULL;
 #endif
@@ -1002,7 +1002,7 @@ struct ConnectionStack_st
 	ConnectionStack *next;
 };
 
-#ifdef OPENMP
+#ifdef _OPENMP
 static void initConnectionStackMemory(void)
 {
 	int n = omp_get_max_threads();
@@ -1017,7 +1017,7 @@ static void initConnectionStackMemory(void)
 
 static ConnectionStack *allocateConnectionStack(void)
 {
-#ifdef OPENMP
+#ifdef _OPENMP
 #ifdef DEBUG
 	if (connectionStackMemory == NULL)
 	{
@@ -1039,7 +1039,7 @@ static ConnectionStack *allocateConnectionStack(void)
 
 static void deallocateConnectionStack(ConnectionStack *stack)
 {
-#ifdef OPENMP
+#ifdef _OPENMP
 	deallocatePointer(getRecycleBinInArray(connectionStackMemory,
 					       omp_get_thread_num()),
 			  stack);
@@ -1050,7 +1050,7 @@ static void deallocateConnectionStack(ConnectionStack *stack)
 
 static void destroyConnectionStackMemory(void)
 {
-#ifdef OPENMP
+#ifdef _OPENMP
 	destroyRecycleBinArray(connectionStackMemory);
 #else
 	destroyRecycleBin(connectionStackMemory);
@@ -1118,7 +1118,7 @@ static void setAllConnectionsClean(void)
 	IDnum nodeID;
 	IDnum nodes = nodeCount(graph);
 
-#ifdef OPENMP
+#ifdef _OPENMP
 	#pragma omp parallel for
 #endif
 	for (nodeID = 2 * nodes; nodeID >= 0; nodeID--)
@@ -1218,7 +1218,11 @@ static void createConnection(IDnum nodeID,
 {
 	Connection *connect;
 
-#ifdef OPENMP
+	if (getUniqueness(getNodeInGraph(graph, node2ID)) && node2ID < nodeID) {
+		return;
+	}	
+
+#ifdef _OPENMP
 	lockTwoNodes(nodeID, node2ID);
 #endif
 	connect = findOrCreateConnection(nodeID, node2ID);
@@ -1244,7 +1248,7 @@ static void createConnection(IDnum nodeID,
 					 distance,
 					 variance);
 
-#ifdef OPENMP
+#ifdef _OPENMP
 	unLockTwoNodes(nodeID, node2ID);
 #endif
 }
@@ -1371,11 +1375,11 @@ static void projectFromReadPair(Node * node, ReadOccurence * readOccurence,
 	if (doMatePairs) {
 		Connection *reverseConnect;
 
-#ifdef OPENMP
+#ifdef _OPENMP
 		lockTwoNodes(nodeID, node2ID);
 #endif
 		reverseConnect = findConnection(-nodeID, -node2ID);
-#ifdef OPENMP
+#ifdef _OPENMP
 		unLockTwoNodes(nodeID, node2ID);
 #endif
 
@@ -1419,7 +1423,7 @@ static void projectFromShortRead(Node * node,
 				 IDnum * readPairs, Category * cats,
 				 ReadOccurence ** readNodes,
 				 IDnum * readNodeCounts,
-				 IDnum * lengths,
+				 ShortLength * lengths,
 				 boolean * shadows,
 				 boolean doMatePairs,
 				 Category thisCat)
@@ -1477,7 +1481,7 @@ static void projectFromLongRead(Node * node, PassageMarkerI marker,
 				IDnum * readPairs, Category * cats,
 				ReadOccurence ** readNodes,
 				IDnum * readNodeCounts,
-				IDnum * lengths)
+				ShortLength * lengths)
 {
 	IDnum index;
 	IDnum readIndex = getPassageMarkerSequenceID(marker);
@@ -1522,7 +1526,7 @@ static void projectFromNode(IDnum nodeID,
 			    ReadOccurence ** readNodes,
 			    IDnum * readNodeCounts,
 			    IDnum * readPairs, Category * cats,
-			    boolean * dubious, IDnum * lengths,
+			    boolean * dubious, ShortLength * lengths,
 			    boolean * shadows,
 			    boolean doMatePairs,
 			    Category thisCat)
@@ -1567,7 +1571,7 @@ static Connection **computeNodeToNodeMappings(ReadOccurence ** readNodes,
 					      Category * cats,
 					      boolean * dubious,
 					      boolean * shadows,
-					      IDnum * lengths)
+					      ShortLength * lengths)
 {
 	IDnum nodeID;
 	IDnum nodes = nodeCount(graph);
@@ -1580,7 +1584,7 @@ static Connection **computeNodeToNodeMappings(ReadOccurence ** readNodes,
 	velvetLog("Computing direct node to node mappings\n");
 
 	gettimeofday(&start, NULL);
-#ifdef OPENMP
+#ifdef _OPENMP
 	createNodeLocks(graph);
 
 	int threads = omp_get_max_threads();
@@ -1598,7 +1602,7 @@ static Connection **computeNodeToNodeMappings(ReadOccurence ** readNodes,
 				readPairs, cats, dubious, lengths, shadows, false, 0);
 	}
 
-#ifdef OPENMP
+#ifdef _OPENMP
 	initConnectionStackMemory();
 #endif
 
@@ -1618,7 +1622,7 @@ static Connection **computeNodeToNodeMappings(ReadOccurence ** readNodes,
 			if (!shadows[cat])
 				continue;
 			velvetLog("Scaffolding MP library %i\n", cat);
-#ifdef OPENMP
+#ifdef _OPENMP
 			#pragma omp parallel for
 #endif 
 			for (nodeID = -nodes; nodeID <= nodes; nodeID++)
@@ -1627,7 +1631,7 @@ static Connection **computeNodeToNodeMappings(ReadOccurence ** readNodes,
 						shadows, true, cat);
 		}
 	}
-#ifdef OPENMP
+#ifdef _OPENMP
 	#pragma omp parallel for
 #endif
 	for (nodeID = 2 * nodes; nodeID >= 0; nodeID--)
@@ -1635,13 +1639,13 @@ static Connection **computeNodeToNodeMappings(ReadOccurence ** readNodes,
 
 	destroyConnectionStackMemory();
 
-#ifdef OPENMP
+#ifdef _OPENMP
 	free(nodeLocks);
 	nodeLocks = NULL;
 #endif
 	gettimeofday(&end, NULL);
 	timersub(&end, &start, &diff);
-	velvetLog(" === Nodes Scaffolded in %ld.%06ld s\n", diff.tv_sec, diff.tv_usec);
+	velvetLog(" === Nodes Scaffolded in %ld.%06ld s\n", (long) diff.tv_sec, (long) diff.tv_usec);
 
 	PEBBLE_ROUND_NUM++;
 
@@ -1712,6 +1716,79 @@ static void removeUnreliableConnections(ReadSet * reads, boolean *shadows)
 	free(counts);
 }
 
+void printConnections(ReadSet * reads, boolean * shadows)
+{
+	IDnum maxNodeIndex = nodeCount(graph) * 2 + 1;
+	IDnum index;
+	Connection *connect, *next;
+	Node *node;
+	IDnum **counts = countShortReads(graph, reads);
+	IDnum nodes = nodeCount(graph);
+	Category cat;
+
+	puts("CONNECT IDA IDB dcount pcount dist lengthA lengthB var countA countB coordA coordB real exp distance test");
+
+	for (index = 0; index < maxNodeIndex; index++) {
+		node = getNodeInGraph(graph, index - nodeCount(graph));
+		for (connect = scaffold[index]; connect != NULL;
+		     connect = next) {
+			next = getNextConnection(connect);
+			printf
+			    ("CONNECT %ld %ld %ld %ld %lld %lld %lld %f %ld %ld",
+			     (long) index - nodeCount(graph),
+			     (long) getNodeID(connect->destination),
+			     (long) connect->direct_count,
+			     (long) connect->paired_count,
+			     (long long) getConnectionDistance(connect),
+			     (long long) getNodeLength(node), (long long)
+			     getNodeLength(connect->destination),
+			     connect->variance,
+			     (long) getNodeReadCount(node, graph),
+			     (long) getNodeReadCount(connect->destination,
+						     graph));
+			if (markerCount(node) == 1
+			    && markerCount(connect->destination) == 1)
+				printf(" %lld %lld %lld", (long long)
+				       getPassageMarkerFinish(getMarker
+							      (node)),
+				       (long long)
+				       getPassageMarkerFinish(getMarker
+							      (connect->
+							       destination)),
+				       (long
+					long) (getPassageMarkerFinish
+					       (getMarker(node)) -
+					       getPassageMarkerFinish
+					       (getMarker
+						(connect->destination))));
+			else
+				printf(" ? ? ?");
+			printf(" %ld",
+			       (long) expectedNumberOfConnections(index -
+								  nodeCount
+								  (graph),
+								  connect,
+								  counts,
+								  0));
+			printf(" %lld",
+			       (long long) (getConnectionDistance(connect)
+					    - (getNodeLength(node) +
+					       getNodeLength
+					       (connect->destination)) /
+					    2));
+			if (testConnection(index - nodes, connect, counts, shadows))
+				puts(" OK");
+			else
+				puts(" NG");
+		}
+	}
+
+	for (cat = 0; cat <= CATEGORIES; cat++)
+		if (counts[cat])
+			free(counts[cat]);
+	free(counts);
+}
+
 void buildScaffold(Graph * argGraph,
 		   ReadSet * reads,
 		   boolean * dubious,
@@ -1722,7 +1799,7 @@ void buildScaffold(Graph * argGraph,
 	IDnum *readNodeCounts;
 	ReadOccurence **readNodes;
 	ReadOccurence *readNodesArray = NULL;
-	IDnum *lengths = getSequenceLengths(reads, getWordLength(argGraph));
+	ShortLength *lengths = getSequenceLengths(reads, getWordLength(argGraph));
 	Coordinate totalCount = 0;
 
 	graph = argGraph;
@@ -1743,6 +1820,41 @@ void buildScaffold(Graph * argGraph,
 	free(readNodes);
 	free(readNodeCounts);
 	free(lengths);
+}
+
+//DEBUG
+void printScaffold(Graph * argGraph,
+		   ReadSet * reads,
+		   boolean * dubious,
+		   boolean * shadows)
+{
+	IDnum *readPairs;
+	Category *cats;
+	IDnum *readNodeCounts;
+	ReadOccurence **readNodes;
+	ReadOccurence *readNodesArray = NULL;
+	ShortLength *lengths = getSequenceLengths(reads, getWordLength(argGraph));
+	Coordinate totalCount = 0;
+
+	graph = argGraph;
+	readPairs = reads->mateReads;
+	cats = reads->categories;
+
+	// Prepare primary scaffold
+	readNodeCounts = computeReadToNodeCounts(&totalCount);
+	readNodes = computeReadToNodeMappings(readNodeCounts, reads, totalCount, &readNodesArray);
+
+	estimateMissingInsertLengths(readNodes, readNodeCounts, readPairs, cats);
+
+	scaffold = computeNodeToNodeMappings(readNodes, readNodeCounts,
+				      readPairs, cats, dubious, shadows, lengths);
+	printConnections(reads, shadows);
+
+	free(readNodesArray);
+	free(readNodes);
+	free(readNodeCounts);
+	free(lengths);
+	cleanScaffoldMemory();
 }
 
 void setUnreliableConnectionCutoff(int val)

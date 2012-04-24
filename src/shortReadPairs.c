@@ -597,12 +597,11 @@ static void adjustShortReads(Node * target, Node * source)
 	}
 }
 
-static void adjustLongReads(Node * target, Node * source)
+static void adjustLongReads(Node * target, Coordinate nodeLength)
 {
 	PassageMarkerI marker;
-	Coordinate nodeLength = getNodeLength(source);
 
-	for (marker = getMarker(source); marker != NULL_IDX;
+	for (marker = getMarker(target); marker != NULL_IDX;
 	     marker = getNextInNode(marker))
 		incrementFinishOffset(marker, nodeLength);
 }
@@ -610,24 +609,36 @@ static void adjustLongReads(Node * target, Node * source)
 static boolean goesToNode(PassageMarkerI marker, Node * node)
 {
 	PassageMarkerI current;
+	Node * start = getNode(marker);
 
-	for (current = marker; current != NULL_IDX;
-	     current = getNextInSequence(current))
+	for (current = getNextInSequence(marker); current != NULL_IDX;
+	     current = getNextInSequence(current)) {
 		if (getNode(current) == node)
 			return true;
+		else if (getNode(current) == start)
+			continue;
+		else if (getUniqueness(getNode(current)))
+			return false;
+	}
 
 	return false;
 }
 
 static boolean comesFromNode(PassageMarkerI marker, Node * node)
 {
+	Node *source = getNode(getTwinMarker(marker));
 	Node *target = getTwinNode(node);
 	PassageMarkerI current;
 
-	for (current = getTwinMarker(marker); current != NULL_IDX;
-	     current = getNextInSequence(current))
+	for (current = getNextInSequence(getTwinMarker(marker)); current != NULL_IDX;
+	     current = getNextInSequence(current)) {
 		if (getNode(current) == target)
 			return true;
+		else if (getNode(current) == source) 
+			continue;
+		else if (getUniqueness(getNode(current)))
+			return false;
+	}
 
 	return false;
 }
@@ -645,13 +656,44 @@ static void reconnectPassageMarker(PassageMarkerI marker, Node * node,
 	setPreviousInSequence(current, next);
 	concatenatePassageMarkers(current, marker);
 
-	for (; marker != current; marker = tmpMarker) {
+	// Removing node and all intermediaries
+	while (marker != current) {
 		tmpMarker = getPreviousInSequence(marker);
 		if (*ptr == marker || *ptr == getTwinMarker(marker))
 			*ptr = getNextInNode(*ptr);
 		setNextInSequence(marker, NULL_IDX);
 		setPreviousInSequence(NULL_IDX, marker);
 		destroyPassageMarker(marker);
+		marker = tmpMarker;
+	}
+}
+
+// DEBUG
+void checkNode(Node* node) {
+	PassageMarkerI marker1 = getMarker(node);
+
+	if (marker1 == NULL_IDX)
+		return;
+
+	PassageMarkerI marker2 = getNextInNode(marker1);
+
+	if (marker2 == NULL_IDX)
+		return;
+
+	if (getStartOffset(marker1) == getStartOffset(marker2))
+		abort();
+	if (getFinishOffset(marker1) == getFinishOffset(marker2))
+		abort();
+	printf(">>>> Node %li\n", (long) getNodeID(node));
+	printf("Marker1: %li - %li > %li (%li) \n", (long) getStartOffset(marker1), (long) getPassageMarkerLength(marker1), (long) (getNodeLength(node) - getFinishOffset(marker1)), (long) getFinishOffset(marker1));
+	printf("%s\n", readPassageMarker(marker1));
+	printf("Marker2: %li - %li > %li (%li) \n", (long) getStartOffset(marker2), (long) getPassageMarkerLength(marker2), (long) (getNodeLength(node) - getFinishOffset(marker2)), (long) getFinishOffset(marker2));
+
+	printf("%s\n", readPassageMarker(marker2));
+	if (getStartOffset(marker1) < getNodeLength(node) - getFinishOffset(marker2) 
+	    && getStartOffset(marker2) < getNodeLength(node) - getFinishOffset(marker1)) {
+		//abort();
+		;
 	}
 }
 
@@ -675,6 +717,8 @@ static void concatenateLongReads(Node * node, Node * candidate,
 
 		if (!comesFromNode(marker, node)) {
 			extractPassageMarker(marker);
+			incrementStartOffset(marker,
+					      getNodeLength(node));
 			transposePassageMarker(marker, node);
 			incrementFinishOffset(getTwinMarker(marker),
 					      getNodeLength(node));
@@ -931,7 +975,7 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 					      getNodeID(candidate));
 
 				adjustShortReads(node, candidate);
-				adjustLongReads(node, candidate);
+				adjustLongReads(node, getNodeLength(candidate));
 				absorbExtension(node, candidate);
 			}
 		}

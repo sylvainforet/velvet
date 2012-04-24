@@ -20,7 +20,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 */
 #include <stdlib.h>
 #include <stdio.h>
-#ifdef OPENMP
+#ifdef _OPENMP
 #include <omp.h>
 #endif
 
@@ -170,6 +170,17 @@ void disconnectNextPassageMarker(PassageMarkerI marker, Graph * graph)
 
 	setPreviousInSequence(marker, next);
 	concatenatePassageMarkers(marker, middle);
+	setNextInSequence(middle, NULL_IDX);
+	setPreviousInSequence(NULL_IDX, middle);
+}
+
+void deleteNextPassageMarker(PassageMarkerI marker, Graph * graph)
+{
+	PassageMarkerI middle = getNextInSequence(marker);
+	PassageMarkerI next = getNextInSequence(middle);
+
+	setPreviousInSequence(marker, next);
+	setNextInSequence(marker, next);
 	setNextInSequence(middle, NULL_IDX);
 	setPreviousInSequence(NULL_IDX, middle);
 }
@@ -379,10 +390,10 @@ void transposePassageMarker(PassageMarkerI marker, Node * node)
 
 	markerVal = PM_FI2P (marker);
 	twinMarkerVal = PM_FI2P (markerVal->twinMarker);
-	markerVal->node = node;
-	twinMarkerVal->node = getTwinNode(node);
 	insertPassageMarker(marker, node);
+	markerVal->node = node;
 	insertPassageMarker(markerVal->twinMarker, getTwinNode(node));
+	twinMarkerVal->node = getTwinNode(node);
 }
 
 PassageMarkerI getTwinMarker(PassageMarkerI marker)
@@ -591,13 +602,13 @@ PassageMarkerI newPassageMarker(IDnum seqID, Coordinate start,
 	PassageMarker *markerVal;
 	PassageMarker *twinMarkerVal;
 
-#ifdef OPENMP
+#ifdef _OPENMP
 	#pragma omp critical
 	{
 #endif
 		marker = allocatePassageMarker();
 		twinMarker = allocatePassageMarker();
-#ifdef OPENMP
+#ifdef _OPENMP
 	}
 #endif
 	markerVal = PM_FI2P (marker);

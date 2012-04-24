@@ -50,6 +50,7 @@ void incrementNodeReferenceMarkerCount_pg(PreGraph * preGraph, IDnum preNodeID);
 void allocatePreMarkerSpace_pg(PreGraph * preGraph);
 PreMarker * addPreMarker_pg(PreGraph * preGraph, IDnum nodeID, IDnum seqID, Coordinate * start, PreMarker * previous);
 void concatenateReferenceMarkers_pg(IDnum preNodeAID, IDnum preNodeBID, PreGraph * preGraph, Coordinate totalOffset);
+boolean hasPreMarkers(IDnum nodeID, PreGraph * preGraph);
 
 ////////////////////////////////////////////////////////////
 // PreArc functions
@@ -86,7 +87,7 @@ boolean isLoop_pg(PreArcI preArc);
 PreGraph *emptyPreGraph_pg(IDnum sequenceCount, IDnum referenceCount, int wordLength, boolean double_strand);
 void allocatePreNodeSpace_pg(PreGraph * preGraph, IDnum preNodeCount);
 void addPreNodeToPreGraph_pg(PreGraph * preGraph, Coordinate start,
-			     Coordinate stop, FILE * file,
+			     Coordinate stop, SequencesReader *seqReadInfo,
 			     Kmer * initialKmer, IDnum ID);
 
 // Deallocation

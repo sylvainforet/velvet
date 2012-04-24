@@ -74,12 +74,12 @@ ShortReadMarker *commonNodeReads(Node * nodeA, Node * nodeB, Graph * graph,
 ShortReadMarker *extractBackOfNodeReads(Node * node, Coordinate breakpoint,
 					Graph * graph, IDnum * length,
 					PassageMarkerI sourceMarker,
-					IDnum * sequenceLengths);
+					ShortLength * sequenceLengths);
 ShortReadMarker *extractFrontOfNodeReads(Node * node,
 					 Coordinate breakpoint,
 					 Graph * graph, IDnum * length,
 					 PassageMarkerI sourceMarker,
-					 IDnum * sequenceLengths);
+					 ShortLength * sequenceLengths);
 
 // Short read marker moving around
 void foldSymmetricalNodeReads(Node * node, Graph * graph);
@@ -213,6 +213,7 @@ void resetNodeStatus(Graph * graph);
 Graph *importGraph(char *filename);
 void exportGraph(char *filename, Graph * graph, TightString * sequences, boolean exportSequences);
 Graph *readPreGraphFile(char *preGraphFilename, boolean * double_strand);
+Graph *readConnectedGraphFile(char *connectedGraphFilename, boolean * double_strand);
 
 // Read starts
 void activateReadStarts(Graph * graph);
