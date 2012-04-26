@@ -47,7 +47,11 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 #define REFERENCE 2 * CATEGORIES + 2
 
 /* NULL value for ArrayIdx */
+#ifdef VBIGASSEMBLY
+#define NULL_IDX NULL
+#else
 #define NULL_IDX 0
+#endif /* VBIGASSEMBLY */
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
 #define inline __inline
@@ -97,7 +101,7 @@ typedef int8_t Category;
 #ifndef VBIGASSEMBLY
 typedef uint32_t ArrayIdx;
 #else
-typedef uint64_t ArrayIdx;
+typedef void* ArrayIdx;
 #endif
 
 // Atomic word

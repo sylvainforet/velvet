@@ -27,7 +27,9 @@ Copyright 2009 Sylvain Foret (sylvain.foret@anu.edu.au)
 #endif
 
 #include "globals.h"
+#include "recycleBin.h"
 
+#ifndef VBIGASSEMBLY
 typedef struct AllocArray_st AllocArray;
 typedef struct AllocArrayFreeElement_st AllocArrayFreeElement;
 
@@ -50,12 +52,16 @@ struct AllocArray_st
 	int nbThreads;
 #endif
 };
+#else
+typedef RecycleBin AllocArray;
+#endif
 
 AllocArray* newAllocArray (size_t elementSize, char *name);
 void destroyAllocArray (AllocArray *array);
 ArrayIdx allocArrayAllocate (AllocArray *array);
 void allocArrayFree (AllocArray *array, ArrayIdx idx);
 
+#ifndef VBIGASSEMBLY
 #define DECLARE_FAST_ACCESSORS(name, type, array) \
 /* Fast version, without null pointer checks */ \
 static inline type* name##_FI2P(ArrayIdx idx) \
@@ -72,6 +78,17 @@ static inline type* name##_I2P(ArrayIdx idx) \
 		return name##_FI2P(idx); \
 	return NULL; \
 } 
+#else
+#define DECLARE_FAST_ACCESSORS(name, type, array) \
+static inline type* name##_FI2P(ArrayIdx idx) \
+{ \
+	return (idx); \
+} \
+static inline type* name##_I2P(ArrayIdx idx) \
+{ \
+	return (idx); \
+} 
+#endif
 
 #ifdef _OPENMP
 // For multithreading: thread-specific alloc arrays 

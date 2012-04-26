@@ -38,10 +38,9 @@ Copyright 2009 Sylvain Foret (sylvain.foret@anu.edu.au)
 #endif
 
 #ifndef VBIGASSEMBLY
+
 #define INDEX_LENGTH 32
-#else
-#define INDEX_LENGTH 64
-#endif
+
 
 struct AllocArrayFreeElement_st
 {
@@ -135,7 +134,6 @@ allocArrayAllocate (AllocArray *array)
 		array->currentElements = 0;
 	}
 	array->currentElements++;
-#ifndef VBIGASSEMBLY
 	if (array->maxElements * (array->currentBlocks - 1) + array->currentElements == UINT32_MAX)
 	{
 #ifdef DEBUG
@@ -145,7 +143,6 @@ allocArrayAllocate (AllocArray *array)
 #endif
 		abort();
 	}
-#endif
 
 #ifdef DEBUG
 	array->elementsAllocated++;
@@ -302,4 +299,63 @@ allocArrayArrayFree(AllocArray *array, ArrayIdx idx)
 		array->freeElements = freeElem;
 	}
 }
-#endif
+#endif /* _OPENMP */
+
+#else /* VBIGASSEMBLY */
+
+AllocArray*
+newAllocArray (size_t elementSize, char *name)
+{
+
+	size_t nbNodes = (sysconf (_SC_PAGESIZE) * NB_PAGES_ALLOC) / elementSize;
+	return newRecycleBin (elementSize, nbNodes);
+}
+
+void
+destroyAllocArray (AllocArray *array)
+{
+	destroyRecycleBin (array);
+}
+
+ArrayIdx
+allocArrayAllocate (AllocArray *array)
+{
+	return allocatePointer (array);
+}
+
+void
+allocArrayFree (AllocArray *array, ArrayIdx idx)
+{
+	return deallocatePointer (array, idx);
+}
+
+#ifdef _OPENMP
+
+AllocArray*
+newAllocArrayArray(unsigned int n, size_t elementSize, char * name)
+{
+	size_t nbNodes = (sysconf (_SC_PAGESIZE) * NB_PAGES_ALLOC) / elementSize;
+	return newRecycleBinArray (n, elementSize, nbNodes);
+}
+
+void
+destroyAllocArrayArray(AllocArray * allocArray)
+{
+	destroyRecycleBinArray (allocArray);
+}
+
+ArrayIdx
+allocArrayArrayAllocate (AllocArray *array)
+{
+	return allocatePointer(getRecycleBinInArray(array, omp_get_thread_num()));
+}
+
+void
+allocArrayArrayFree (AllocArray *array, ArrayIdx idx)
+{
+	return deallocatePointer(getRecycleBinInArray(array, omp_get_thread_num()), idx);
+}
+
+#endif /* _OPENMP */
+
+#endif /* VBIGASSEMBLY */
