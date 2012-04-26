@@ -915,9 +915,9 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 			///////////////////////////////////////
 
 			if (isAnchor(candidate)) {
-				velvetFprintf(traceFile, "cat A %d %d\n",
-					      getNodeID(node),
-					      getNodeID(candidate));
+				velvetFprintf(traceFile, "cat A %lld %lld\n",
+					      (long long)getNodeID(node),
+					      (long long)getNodeID(candidate));
 
 				concatenateReadStarts(node, candidate,
 						      graph);
@@ -970,9 +970,9 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 				destroyNode(candidate, graph);
 				return true;
 			} else {
-				velvetFprintf(traceFile, "cat N %d %d\n",
-					      getNodeID(node),
-					      getNodeID(candidate));
+				velvetFprintf(traceFile, "cat N %lld %lld\n",
+					      (long long)getNodeID(node),
+					      (long long)getNodeID(candidate));
 
 				adjustShortReads(node, candidate);
 				adjustLongReads(node, getNodeLength(candidate));
@@ -984,9 +984,9 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 	if (force_jumps && oppositeNode
 	    && abs_ID(getNodeID(oppositeNode)) < abs_ID(getNodeID(node))) {
 
-		velvetFprintf(traceFile, "cat J %d %d\n",
-			      getNodeID(node),
-			      getNodeID(oppositeNode));
+		velvetFprintf(traceFile, "cat J %lld %lld\n",
+			      (long long)getNodeID(node),
+			      (long long)getNodeID(oppositeNode));
 
 		distance -= getNodeLength(node) / 2;
 		distance -= getNodeLength(oppositeNode) / 2;

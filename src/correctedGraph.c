@@ -2673,7 +2673,7 @@ clipWeakArcs(Graph *graph,
 	IDnum index;
 	IDnum nodes = nodeCount(graph);
 
-	velvetLog("Clipping weak arcs with cutoff %d\n", minMultiplicity);
+	velvetLog("Clipping weak arcs with cutoff %lld\n", (long long)minMultiplicity);
 
 	for (index = -nodes; index <= nodes; index++) {
 		Node *node;

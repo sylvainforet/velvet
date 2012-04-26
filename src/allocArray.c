@@ -220,7 +220,7 @@ AllocArray *newAllocArrayArray(unsigned int n,
 	int i;
 
 	allocArray = callocOrExit (n + 1, AllocArray);
-	nbBlocks = (1 << (INDEX_LENGTH - BLOCKS_ALLOC_SHIFT));
+	nbBlocks = (1L << (INDEX_LENGTH - BLOCKS_ALLOC_SHIFT));
 	blocks = callocOrExit(nbBlocks, void*);
 	for (i = 0; i < n; i++)
 		initAllocArrayArray(allocArray + i,
