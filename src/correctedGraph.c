@@ -3094,8 +3094,8 @@ resolveLoop(Node *origin,
 	twinB = getTwinNode(hapB);
 
 	if (getNodeLength(hapA) == 0
-	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
 	    || getNodeLength(hapB) == 0
+	    || getTotalCoverage(hapA) / (Time)getNodeLength(hapA) > MAX_HAP_COV
 	    || getTotalCoverage(hapB) / (Time)getNodeLength(hapB) > MAX_HAP_COV)
 		return;
 

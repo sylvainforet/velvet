@@ -68,7 +68,7 @@ static void printUsage()
 	puts("\t-very_clean <yes|no>\t\t: remove all the intermediary files (no recalculation possible) (default: no)");
 	puts("\t-paired_exp_fraction <double>\t: remove all the paired end connections which less than the specified fraction of the expected count (default: 0.1)");
 	puts("\t-shortMatePaired* <yes|no>\t: for mate-pair libraries, indicate that the library might be contaminated with paired-end reads (default no)");
-	puts("\t-hap_loop <max branch length (int)>,<max haploid cov (float)>,<max diploid cov (float)>,<max divergence (float)>,<max gaps (int)>\t: arguments for the haplotypic loop resolution");
+	puts("\t-hap_loop <max haploid cov (float)>,<max diploid cov (float)>,<max divergence (float)>,<max gaps (float)>,<min matching window (int)>\t: arguments for the haplotypic loop resolution");
 	puts("\t-conserveLong <yes|no>\t\t: preserve sequences with long reads in them (default no)");
 	puts("");
 	puts("Output:");
