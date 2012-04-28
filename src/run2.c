@@ -441,36 +441,7 @@ int main(int argc, char **argv)
 	} else if ((file = fopen(connectedGraphFilename, "r")) != NULL) {
 		fclose(file);
 		if (seqReadInfo->m_bIsBinary) {
-
 			sequences = importCnyReadSet(seqFilename);
-
-#if 0
-			// compare to velvet's version of a seq
-			ReadSet *compareSequences = NULL;
-			compareSeqFilename = mallocOrExit(strlen(directory) + 100, char);
-			strcpy(compareSeqFilename, directory);
-			strcat(compareSeqFilename, "/Sequences");
-			compareSequences = importReadSet(compareSeqFilename);
-			convertSequences(compareSequences);
-			if (sequences->readCount != compareSequences->readCount) {
-				printf("read count mismatch\n");
-				exit(1);
-			}
-			int i;
-			for (i = 0; i < sequences->readCount; i++) {
-				TightString *tString = getTightStringInArray(sequences->tSequences, i);
-				TightString *tStringCmp = getTightStringInArray(compareSequences->tSequences, i);
-				if (getLength(tString) != getLength(tStringCmp)) {
-					printf("sequence %d len mismatch\n", i);
-					exit(1);
-				}
-				if (strcmp(readTightString(tString), readTightString(tStringCmp)) != 0) {
-					printf("sequence %d cmp mismatch\n", i);
-					printf("seq %s != cmp %s\n", readTightString(tString), readTightString(tStringCmp));
-					exit(1);
-				}
-			}
-#endif
 		} else {
 			sequences = importReadSet(seqFilename);
 			convertSequences(sequences);
@@ -484,6 +455,7 @@ int main(int argc, char **argv)
 		sequenceLengths =
 		    getSequenceLengths(sequences, getWordLength(graph));
 		correctGraph(graph, sequenceLengths, sequences->categories, conserveLong);
+		free(sequenceLengths);
 		exportGraph(graphFilename, graph, sequences->tSequences, true);
 	} else if ((file = fopen(preGraphFilename, "r")) != NULL) {
 		fclose(file);
@@ -527,34 +499,6 @@ int main(int argc, char **argv)
 			// pull in sequences first and use in preGraph
 			sequences = importCnyReadSet(seqFilename);
 			seqReadInfo->m_sequences = sequences;
-#if 0
-			// compare to velvet's version of a seq
-			ReadSet *compareSequences = NULL;
-			char *compareSeqFilename = mallocOrExit(strlen(directory) + 100, char);
-			strcpy(compareSeqFilename, directory);
-			strcat(compareSeqFilename, "/Sequences");
-			compareSequences = importReadSet(compareSeqFilename);
-			convertSequences(compareSequences);
-			if (sequences->readCount != compareSequences->readCount) {
-				printf("read count mismatch\n");
-				exit(1);
-			}
-			int i;
-			for (i = 0; i < sequences->readCount; i++) {
-				TightString *tString = getTightStringInArray(sequences->tSequences, i);
-				TightString *tStringCmp = getTightStringInArray(compareSequences->tSequences, i);
-				if (getLength(tString) != getLength(tStringCmp)) {
-					printf("sequence %d len mismatch\n", i);
-					exit(1);
-				}
-				if (strcmp(readTightString(tString), readTightString(tStringCmp)) != 0) {
-					printf("sequence %d cmp mismatch\n", i);
-					printf("seq %s != cmp %s\n", readTightString(tString), readTightString(tStringCmp));
-					exit(1);
-				}
-			}
-			printf("sequence files match!\n");
-#endif
 		}
 		preGraph = newPreGraph_pg(rdmaps, seqReadInfo);
 		concatenatePreGraph_pg(preGraph);
@@ -677,15 +621,15 @@ int main(int argc, char **argv)
 				    hapLoopDivergence,
 				    hapLoopGaps,
 				    hapLoopWindow);
+		clipTipsHard(graph, conserveLong);
+		strcpy(graphFilename, directory);
+		strcat(graphFilename, "/contigs_noscaf.fa");
+		exportLongNodeSequences(graphFilename, graph, minContigKmerLength, sequences, sequenceLengths, coverageMask); 
+		strcpy(graphFilename, directory);
+		strcat(graphFilename, "/Graph3");
+		exportGraph(graphFilename, graph, sequences->tSequences, false);
 		free(sequenceLengths);
 	}
-	clipTipsHard(graph, conserveLong);
-	strcpy(graphFilename, directory);
-	strcat(graphFilename, "/contigs_noscaf.fa");
-	exportLongNodeSequences(graphFilename, graph, minContigKmerLength, sequences, sequenceLengths, coverageMask); 
-	strcpy(graphFilename, directory);
-	strcat(graphFilename, "/Graph3");
-	exportGraph(graphFilename, graph, sequences->tSequences, false);
 
 	if (sequences->readCount > 0 && sequences->categories[0] == REFERENCE)
 		removeLowArcs(graph, coverageCutoff);
