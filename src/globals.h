@@ -38,13 +38,13 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 
 #define VERSION_NUMBER 1
 #define RELEASE_NUMBER 2
-#define UPDATE_NUMBER 03
+#define UPDATE_NUMBER 07
 
 #define MAXLINE 5000 
 
-#define LONG 2 * CATEGORIES
-#define LONG_PAIRED 2 * CATEGORIES + 1
-#define REFERENCE 2 * CATEGORIES + 2
+#define LONG (2 * CATEGORIES)
+#define LONG_PAIRED (2 * CATEGORIES + 1)
+#define REFERENCE (2 * CATEGORIES + 2)
 
 /* NULL value for ArrayIdx */
 #ifdef VBIGASSEMBLY

@@ -192,8 +192,8 @@ static void initAllocArrayArray(AllocArray *array,
 {
 	array->freeElements = NULL;
 	array->elementSize = elementSize;
-	array->blockSize = (1 << BLOCKS_ALLOC_SHIFT) * elementSize;
-	array->maxElements = (1 << BLOCKS_ALLOC_SHIFT);
+	array->blockSize = (((size_t) 1) << BLOCKS_ALLOC_SHIFT) * elementSize;
+	array->maxElements = (((size_t) 1) << BLOCKS_ALLOC_SHIFT);
 	array->maxBlocks = nbBlocks;
 	array->blocks = blocks;
 	array->blocks[thisThread] = callocOrExit(array->blockSize, char);

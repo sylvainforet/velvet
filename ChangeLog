@@ -436,3 +436,14 @@ V 1.2.05
 - Scrubbing comments out of FastQ read names
 - Bug in multiple k-mer settings when kmax is equal to MAXKMERLENGTH
 - Bug when parsing parameters for multiple length k-mers
+
+V 1.2.06
+- Added test framework
+- Added option '-separate' to allow reading paired reads from 2 separate files
+
+V 1.2.07
+- Add file format option '-fmtAuto' to auto-detect compression (using gunzip/bunzip2) and format (only FastA or FastQ for now)
+- Updated MetaVelvet
+- Bug in unit testing
+- Compilation bug
+- Memory corruption when running multiple k-mers

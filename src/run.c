@@ -33,7 +33,7 @@ Copyright 2007, 2008 Daniel Zerbino (zerbino@ebi.ac.uk)
 static void printUsage()
 {
 	puts("Usage:");
-	puts("./velveth directory hash_length {[-file_format][-read_type] filename1 [filename2 ...]} {...} [options]");
+	puts("./velveth directory hash_length {[-file_format][-read_type][-separate|-interleaved] filename1 [filename2 ...]} {...} [options]");
 	puts("");
 	puts("\tdirectory\t: directory name for output files");
 	printf("\thash_length\t: EITHER an odd integer (if even, it will be decremented) <= %i (if above, will be reduced)\n", MAXKMERLENGTH);
@@ -42,8 +42,13 @@ static void printUsage()
 	puts("\tfilename\t: path to sequence file or - for standard input");	
 	puts("");
 	puts("File format options:");
-	puts("\t-fasta\t-fastq\t-raw\t-fasta.gz\t-fastq.gz\t-raw.gz\t-sam\t-bam");
+	puts("\t-fasta\t-fastq\t-raw\t-fasta.gz\t-fastq.gz\t-raw.gz\t-sam\t-bam\t-fmtAuto");
+        puts("\t(Note: -fmtAuto will detect fasta or fastq, and will try the following programs for decompression : gunzip, pbunzip2, bunzip2");
 	puts("");
+        puts("File layout options for paired reads (only for fasta and fastq formats):");
+        puts("\t-interleaved\t: File contains paired reads interleaved in the one file (default)");
+        puts("\t-separate\t: Read 2 separate files for paired reads");
+        puts("");
 	puts("Read type options:");
 	puts("\t-short\t-shortPaired");
 #if CATEGORIES <= 5
@@ -71,6 +76,9 @@ static void printUsage()
 	puts("");
 	puts("- Paired-end short reads (remember to interleave paired reads):");
 	puts("\tvelveth Assem 31 -shortPaired -fasta interleaved.fna");
+	puts("");
+	puts("- Paired-end short reads (using separate files for the paired reads)");
+	puts("\tvelveth Assem 31 -shortPaired -fasta -separate left.fa right.fa");
 	puts("");
 	puts("- Two channels and some long reads:");
 	puts("\tvelveth Assem 43 -short -fastq unmapped.fna -longPaired -fasta SangerReads.fasta");
@@ -198,7 +206,7 @@ int main(int argc, char **argv)
 
 		resetWordFilter(h);
 
-		buf = mallocOrExit(strlen(argv[1]) + 100, char);
+		buf = mallocOrExit(2 * strlen(argv[1]) + 500, char);
 
 		if ( multiple_kmers ) {
 			sprintf(buf,"%s_%d",argv[1],h);
@@ -280,7 +288,7 @@ int main(int argc, char **argv)
 		if (isCreateBinary()) {
 			allSequences = importCnyReadSet(seqFilename);
 		} else {
-		allSequences = importReadSet(seqFilename);
+			allSequences = importReadSet(seqFilename);
 		}
 		velvetLog("%li sequences in total.\n", (long) allSequences->readCount);
 
