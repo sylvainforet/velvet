@@ -86,7 +86,8 @@ int main(int argc, char **argv)
 	Graph *graph;
 	char *directory, *graphFilename, *connectedGraphFilename,
 	    *preGraphFilename, *seqFilename, *roadmapFilename,
-	    *lowCovContigsFilename, *highCovContigsFilename;
+	    *lowCovContigsFilename, *highCovContigsFilename,
+	    *haplotypesFilename;
 	double coverageCutoff = -1;
 	double longCoverageCutoff = -1;
 	double maxCoverageCutoff = -1;
@@ -183,6 +184,7 @@ int main(int argc, char **argv)
 	seqFilename = mallocOrExit(strlen(directory) + 100, char);
 	lowCovContigsFilename = mallocOrExit(strlen(directory) + 100, char);
 	highCovContigsFilename = mallocOrExit(strlen(directory) + 100, char);
+	haplotypesFilename = mallocOrExit(strlen(directory) + 100, char);
 
 	// Argument parsing
 	for (arg_index = 2; arg_index < argc; arg_index++) {
@@ -432,6 +434,9 @@ int main(int argc, char **argv)
 	strcpy(highCovContigsFilename, directory);
 	strcat(highCovContigsFilename, "/highCoverageContigs.fa");
 
+	strcpy(haplotypesFilename, directory);
+	strcat(haplotypesFilename, "/haplotypes.txt");
+
 	// Graph uploading or creation
 	if ((file = fopen(graphFilename, "r")) != NULL) {
 		fclose(file);
@@ -472,23 +477,6 @@ int main(int argc, char **argv)
 		sequenceLengths =
 		    getSequenceLengths(sequences, getWordLength(graph));
 		correctGraph(graph, sequenceLengths, sequences->categories, conserveLong);
-		if (doHapLoop) {
-			correctHapLoopGraph(graph,
-					    sequenceLengths,
-					    maxHapCov,
-					    maxDipCov,
-					    hapLoopDivergence,
-					    hapLoopGaps,
-					    hapLoopWindow);
-			clipWeakArcs(graph, 2); // TODO this should be configurable
-			correctHapLoopGraph(graph,
-					    sequenceLengths,
-					    maxHapCov,
-					    maxDipCov,
-					    hapLoopDivergence,
-					    hapLoopGaps,
-					    hapLoopWindow);
-		}
 		free(sequenceLengths);
 		exportGraph(graphFilename, graph, sequences->tSequences, true);
 	} else if ((file = fopen(roadmapFilename, "r")) != NULL) {
@@ -517,23 +505,6 @@ int main(int argc, char **argv)
 		sequenceLengths =
 		    getSequenceLengths(sequences, getWordLength(graph));
 		correctGraph(graph, sequenceLengths, sequences->categories, conserveLong);
-		if (doHapLoop) {
-			correctHapLoopGraph(graph,
-					    sequenceLengths,
-					    maxHapCov,
-					    maxDipCov,
-					    hapLoopDivergence,
-					    hapLoopGaps,
-					    hapLoopWindow);
-			clipWeakArcs(graph, 2); // TODO this should be configurable
-			correctHapLoopGraph(graph,
-					    sequenceLengths,
-					    maxHapCov,
-					    maxDipCov,
-					    hapLoopDivergence,
-					    hapLoopGaps,
-					    hapLoopWindow);
-		}
 		free(sequenceLengths);
 		exportGraph(graphFilename, graph, sequences->tSequences, true);
 	} else {
@@ -542,6 +513,27 @@ int main(int argc, char **argv)
 		abort();
 #endif 
 		exit(1);
+	}
+	if (doHapLoop) {
+		sequenceLengths = getSequenceLengths(sequences, getWordLength(graph));
+		correctHapLoopGraph(graph,
+				    sequenceLengths,
+				    maxHapCov,
+				    maxDipCov,
+				    hapLoopDivergence,
+				    hapLoopGaps,
+				    hapLoopWindow,
+				    haplotypesFilename);
+		clipWeakArcs(graph, 2); // TODO this should be configurable
+		correctHapLoopGraph(graph,
+				    sequenceLengths,
+				    maxHapCov,
+				    maxDipCov,
+				    hapLoopDivergence,
+				    hapLoopGaps,
+				    hapLoopWindow,
+				    haplotypesFilename);
+		free(sequenceLengths);
 	}
 
 	// Set insert lengths and their standard deviations
@@ -612,15 +604,15 @@ int main(int argc, char **argv)
 	removeHighCoverageNodes(graph, maxCoverageCutoff, exportFilteredNodes, minContigKmerLength, highCovContigsFilename);
 
 	if (doHapLoop) {
-		sequenceLengths =
-		    getSequenceLengths(sequences, getWordLength(graph));
+		sequenceLengths = getSequenceLengths(sequences, getWordLength(graph));
 		correctHapLoopGraph(graph,
 				    sequenceLengths,
 				    maxHapCov,
 				    maxDipCov,
 				    hapLoopDivergence,
 				    hapLoopGaps,
-				    hapLoopWindow);
+				    hapLoopWindow,
+				    haplotypesFilename);
 		clipTipsHard(graph, conserveLong);
 		strcpy(graphFilename, directory);
 		strcat(graphFilename, "/contigs_noscaf.fa");

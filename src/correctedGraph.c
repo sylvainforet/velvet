@@ -2656,6 +2656,7 @@ static Time  MAX_DIP_COV = -1.0;
 static Time  HAP_MAX_DIVERGENCE = 0.2;
 static Time  HAP_MAX_GAPS = 0.1;
 static IDnum HAP_WINDOW = 200;
+static FILE *haplotypesFile = NULL;
 
 typedef struct HapLoopCandidate_st HapLoopCandidate;
 
@@ -2698,6 +2699,47 @@ clipWeakArcs(Graph *graph,
 	concatenateGraph(graph);
 }
 
+/* WARNING: assumes no gaps*/
+static void
+writeHapLoopNodeSeq(FILE *haplotypesFile,
+		    Node *node)
+{
+	TightString *tString;
+	Coordinate position;
+	char nucleotide;
+
+	tString = expandNode(node, WORDLENGTH);
+	for (position = 0; position < getLength(tString); position++) {
+		nucleotide = getNucleotideChar(position, tString);
+		velvetFprintf(haplotypesFile, "%c", nucleotide);
+	}
+	destroyTightString (tString);
+}
+
+static void
+writeHapLoopNodes(FILE *haplotypesFile,
+		  Node *start,
+		  Node *node1,
+		  Node *node2,
+		  Node *end)
+{
+	velvetFprintf(haplotypesFile, "start ");
+	writeHapLoopNodeSeq(haplotypesFile, start);
+	velvetFprintf(haplotypesFile, "\n");
+
+	velvetFprintf(haplotypesFile, "node1 ");
+	writeHapLoopNodeSeq(haplotypesFile, node1);
+	velvetFprintf(haplotypesFile, "\n");
+
+	velvetFprintf(haplotypesFile, "node2 ");
+	writeHapLoopNodeSeq(haplotypesFile, node2);
+	velvetFprintf(haplotypesFile, "\n");
+
+	velvetFprintf(haplotypesFile, "end ");
+	if (end)
+		writeHapLoopNodeSeq(haplotypesFile, end);
+	velvetFprintf(haplotypesFile, "\n");
+}
 
 static void
 extractSequenceHapLoop(PassageMarkerI path, TightString * sequence)
@@ -3133,6 +3175,8 @@ resolveLoop(Node *origin,
 	tmpTime = getNodeTime(hapB) +
 		  ((Time)getNodeLength(hapB)) / ((Time)getMultiplicity(getArc(hapB)));
 
+	writeHapLoopNodes(haplotypesFile, origin, hapA, hapB, dest);
+
 	if (tmpTime > getNodeTime(dest)) {
 		if (!comparePathsHapLoop(dest, hapB))
 			destroyNode(hapB, graph);
@@ -3236,6 +3280,8 @@ hapDeadEnd1(Node *origin)
 	previous[getNodeID(hapB) + nodes] = origin;
 	setNodeTime(origin, 0);
 
+	writeHapLoopNodes(haplotypesFile, origin, hapA, hapB, dest);
+
 	if (deadEndA) {
 		tmpTime = getNodeLength(origin) / (Time)getMultiplicity(arcB);
 		setNodeTime(hapB, tmpTime);
@@ -3308,6 +3354,8 @@ hapDeadEnd2(Node *origin)
 	setNodeTime(hapA, getNodeLength(origin) / (Time)getMultiplicity(arcA));
 	setNodeTime(hapB, getNodeLength(origin) / (Time)getMultiplicity(arcB));
 
+	writeHapLoopNodes(haplotypesFile, origin, hapA, hapB, NULL);
+
 	if (getMultiplicity(arcA) > getMultiplicity(arcB)) {
 		if (!comparePathsDeadEnd(origin, hapA, hapB))
 			destroyNode(hapB, graph);
@@ -3325,7 +3373,8 @@ correctHapLoopGraph(Graph * argGraph,
 		    Time maxDipCov,
 		    Time divergence,
 		    Time gaps,
-		    IDnum window)
+		    IDnum window,
+		    char *haplotypesFilename)
 {
 	IDnum nodes;
 	IDnum index;
@@ -3333,6 +3382,7 @@ correctHapLoopGraph(Graph * argGraph,
 	//Setting global params
 	hapLoopResolution = true;
 	graph = argGraph;
+	WORDLENGTH = getWordLength(graph);
 	sequenceLengths = argSequenceLengths;
 	MAX_HAP_COV = maxHapCov;
 	MAX_DIP_COV = maxDipCov;
@@ -3343,6 +3393,7 @@ correctHapLoopGraph(Graph * argGraph,
 
 	velvetLog("Correcting haploid loops\n");
 
+	haplotypesFile = fopen(haplotypesFilename, "a");
 	nodes = nodeCount(graph);
 
 	// Allocating memory
@@ -3371,6 +3422,8 @@ correctHapLoopGraph(Graph * argGraph,
 		hapDeadEnd1(node);
 		hapDeadEnd2(node);
 	}
+
+	fclose(haplotypesFile);
 
 	deactivateArcLookupTable(graph);
 

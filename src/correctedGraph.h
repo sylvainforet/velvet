@@ -33,7 +33,8 @@ void correctHapLoopGraph(Graph * graph,
 			 Time maxDipCov,
 			 Time divergence,
 			 Time gaps,
-			 IDnum window);
+			 IDnum window,
+			 char *haplotypesFilename);
 void clipWeakArcs(Graph *graph,
 		  IDnum minMultiplicity);
 

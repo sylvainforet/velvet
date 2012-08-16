@@ -46,9 +46,11 @@ error_out:
 
 static int pcloseNoStderr(int pid, FILE* out)
 {
-	int rc, status;
+       	int status;
+
         fclose(out);
-	rc = waitpid(pid, &status, 0);
+	waitpid(pid, &status, 0);
+
 	return status;
 }
 
