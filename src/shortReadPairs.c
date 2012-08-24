@@ -392,8 +392,7 @@ static void absorbExtensionInScaffold(Node * node, Node * source)
 		}
 
 		destinationID = getNodeID(destination);
-		localConnect =
-		    &localScaffold[destinationID + nodeCount(graph)];
+		localConnect = &localScaffold[destinationID + nodeCount(graph)];
 		incrementConnectionDistance(connect, distance_shift);
 		distance = getConnectionDistance(connect);
 		variance = getConnectionVariance(connect);
@@ -503,33 +502,25 @@ static void recenterNode(Node * node, Coordinate oldLength)
 	IDnum nodeID = getNodeID(node);
 	Connection *connect, *next;
 	Coordinate distance_shift = (getNodeLength(node) - oldLength) / 2;
-	Coordinate min_distance =
-	    getNodeLength(node) / 2 - BACKTRACK_CUTOFF;
+	Coordinate min_distance = getNodeLength(node) / 2 - BACKTRACK_CUTOFF;
 	MiniConnection *localConnect;
 
 	//velvetLog("Recentering node\n");
 
-	for (connect = getConnection(node); connect != NULL;
-	     connect = next) {
+	for (connect = getConnection(node); connect != NULL; connect = next) {
 		next = getNextConnection(connect);
 		incrementConnectionDistance(connect, -distance_shift);
 
 		if (getConnectionDistance(connect) < min_distance) {
-			//velvetLog("Unrecording %li\n",
-			//       -getNodeID(getConnectionDestination(connect)));
-			localConnect =
-			    &localScaffold[-getNodeID(getConnectionDestination(connect))
-					   + nodeCount(graph)];
+			localConnect = &localScaffold[-getNodeID(getConnectionDestination(connect)) + nodeCount(graph)];
 			localConnect->frontReference = NULL;
-			unmarkNode(getTwinNode(getConnectionDestination(connect)),
-				   localConnect);
+			unmarkNode(getTwinNode(getConnectionDestination(connect)), localConnect);
 			destroyConnection(connect, nodeID);
 		} else if (getTwinConnection(connect) != NULL)
 			incrementConnectionDistance(getTwinConnection(connect), -distance_shift);
 	}
 
-	for (connect = getConnection(getTwinNode(node)); connect != NULL;
-	     connect = next) {
+	for (connect = getConnection(getTwinNode(node)); connect != NULL; connect = next) {
 		next = getNextConnection(connect);
 		incrementConnectionDistance(connect, distance_shift);
 
@@ -542,8 +533,7 @@ static void recenterLocalScaffold(Node * node, Coordinate oldLength)
 {
 	MiniConnection *localConnect;
 	Coordinate distance_shift = (getNodeLength(node) - oldLength) / 2;
-	Coordinate min_distance =
-	    getNodeLength(node) / 2 - BACKTRACK_CUTOFF;
+	Coordinate min_distance = getNodeLength(node) / 2 - BACKTRACK_CUTOFF;
 	NodeList *nodeList, *next;
 	IDnum node2ID;
 	Node *node2;
@@ -617,7 +607,7 @@ static boolean goesToNode(PassageMarkerI marker, Node * node)
 			return true;
 		else if (getNode(current) == start)
 			continue;
-		else if (getUniqueness(getNode(current)))
+		else if (isAnchor(getNode(current)))
 			return false;
 	}
 
@@ -636,7 +626,7 @@ static boolean comesFromNode(PassageMarkerI marker, Node * node)
 			return true;
 		else if (getNode(current) == source) 
 			continue;
-		else if (getUniqueness(getNode(current)))
+		else if (isAnchor(getNode(current)))
 			return false;
 	}
 
@@ -919,10 +909,8 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 					      (long long)getNodeID(node),
 					      (long long)getNodeID(candidate));
 
-				concatenateReadStarts(node, candidate,
-						      graph);
-				concatenateLongReads(node, candidate,
-						     graph);
+				concatenateReadStarts(node, candidate, graph);
+				concatenateLongReads(node, candidate, graph);
 				absorbExtension(node, candidate);
 
 				// Scaffold changes
@@ -969,6 +957,72 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 				}
 				destroyNode(candidate, graph);
 				return true;
+			} else if (getUniqueness(candidate)) {
+				Connection *connect;
+
+				velvetFprintf(traceFile, "cat U %lld %lld\n",
+					      (long long)getNodeID(node),
+					      (long long)getNodeID(candidate));
+
+				/* We could concatenate, but for now, it's safer just to adjust
+				concatenateReadStarts(node, candidate, graph);
+				concatenateLongReads(node, candidate, graph);
+				*/
+				adjustShortReads(node, candidate);
+				adjustLongReads(node, getNodeLength(candidate));
+				absorbExtension(node, candidate);
+
+				// Read coverage
+				/* Don't do that since we only adjusting reads (and not concatenating)
+#ifndef SINGLE_COV_CAT
+				Category cat;
+				for (cat = 0; cat < CATEGORIES; cat++) {
+					incrementVirtualCoverage(node, cat,
+								 getVirtualCoverage(candidate, cat));
+					incrementOriginalVirtualCoverage(node, cat,
+									 getOriginalVirtualCoverage(candidate, cat));
+				}
+#else
+				incrementVirtualCoverage(node, getVirtualCoverage(candidate));
+#endif
+				*/
+
+				if (getNodeStatus(candidate)) {
+					localConnect = &localScaffold[getNodeID(candidate) + nodeCount(graph)];
+					if (localConnect->frontReference) {
+						destroyConnection(localConnect->frontReference, getNodeID(node));
+						localConnect->frontReference = NULL;
+						printf(">>> 1 %d %d\n", getNodeID(candidate), getNodeID(node));
+					}
+					if (localConnect->backReference) {
+						destroyConnection(localConnect->backReference,  -getNodeID(node));
+						localConnect->backReference = NULL;
+						printf(">>> 2 %d %d\n", getNodeID(candidate), -getNodeID(node));
+					}
+					unmarkNode(candidate, localConnect);
+				}
+				if (getNodeStatus(getTwinNode(candidate))) {
+					localConnect = &localScaffold[-getNodeID(candidate) + nodeCount(graph)];
+					if (localConnect->frontReference) {
+						destroyConnection(localConnect->frontReference, getNodeID(node));
+						localConnect->frontReference = NULL;
+						printf(">>> 3 %d %d\n", getNodeID(candidate), getNodeID(node));
+					}
+					if (localConnect->backReference) {
+						destroyConnection(localConnect->backReference, -getNodeID(node));
+						localConnect->backReference = NULL;
+						printf(">>> 4 %d %d\n", getNodeID(candidate), -getNodeID(node));
+					}
+					unmarkNode(getTwinNode(candidate), localConnect);
+				}
+				while ((connect = getConnection(candidate))) {
+					destroyConnection(connect, getNodeID(candidate));
+				}
+				while ((connect = getConnection(getTwinNode(candidate)))) {
+					destroyConnection(connect, getNodeID(getTwinNode(candidate)));
+				}
+
+				destroyNode(candidate, graph);
 			} else {
 				velvetFprintf(traceFile, "cat N %lld %lld\n",
 					      (long long)getNodeID(node),
@@ -1158,7 +1212,8 @@ void exploitShortReadPairs(Graph *argGraph,
 	boolean modified = true;
 
 	graph = argGraph;
-	traceFile = scaffTraceFile;
+	//traceFile = scaffTraceFile;
+	traceFile = stdout;
 
 	if (!readStartsAreActivated(graph))
 		return;

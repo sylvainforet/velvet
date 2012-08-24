@@ -284,7 +284,7 @@ static boolean goesToNode(PassageMarkerI marker, Node * node)
 			return false;
 		else if (currentNode == node)
 			return true;
-		else if (getUniqueness(currentNode))
+		else if (isAnchor(currentNode))
 			return false;
 	}
 
