@@ -992,12 +992,10 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 					if (localConnect->frontReference) {
 						destroyConnection(localConnect->frontReference, getNodeID(node));
 						localConnect->frontReference = NULL;
-						printf(">>> 1 %d %d\n", getNodeID(candidate), getNodeID(node));
 					}
 					if (localConnect->backReference) {
 						destroyConnection(localConnect->backReference,  -getNodeID(node));
 						localConnect->backReference = NULL;
-						printf(">>> 2 %d %d\n", getNodeID(candidate), -getNodeID(node));
 					}
 					unmarkNode(candidate, localConnect);
 				}
@@ -1006,12 +1004,10 @@ static boolean pushNeighbours(Node * node, Node * oppositeNode,
 					if (localConnect->frontReference) {
 						destroyConnection(localConnect->frontReference, getNodeID(node));
 						localConnect->frontReference = NULL;
-						printf(">>> 3 %d %d\n", getNodeID(candidate), getNodeID(node));
 					}
 					if (localConnect->backReference) {
 						destroyConnection(localConnect->backReference, -getNodeID(node));
 						localConnect->backReference = NULL;
-						printf(">>> 4 %d %d\n", getNodeID(candidate), -getNodeID(node));
 					}
 					unmarkNode(getTwinNode(candidate), localConnect);
 				}
@@ -1212,8 +1208,7 @@ void exploitShortReadPairs(Graph *argGraph,
 	boolean modified = true;
 
 	graph = argGraph;
-	//traceFile = scaffTraceFile;
-	traceFile = stdout;
+	traceFile = scaffTraceFile;
 
 	if (!readStartsAreActivated(graph))
 		return;
