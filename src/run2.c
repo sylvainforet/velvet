@@ -515,6 +515,15 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 	if (doHapLoop) {
+		if (sequences == NULL) {
+			if (seqReadInfo->m_bIsBinary) {
+				sequences = importCnyReadSet(seqFilename);
+			} else {
+				sequences = importReadSet(seqFilename);
+				convertSequences(sequences);
+			}
+			seqReadInfo->m_sequences = sequences;
+		}
 		sequenceLengths = getSequenceLengths(sequences, getWordLength(graph));
 		correctHapLoopGraph(graph,
 				    sequenceLengths,
@@ -574,9 +583,9 @@ int main(int argc, char **argv)
 		if (seqReadInfo->m_bIsBinary) {
 			sequences = importCnyReadSet(seqFilename);
 		} else {
-		sequences = importReadSet(seqFilename);
-		convertSequences(sequences);
-	}
+			sequences = importReadSet(seqFilename);
+			convertSequences(sequences);
+		}
 		seqReadInfo->m_sequences = sequences;
 	}
 
