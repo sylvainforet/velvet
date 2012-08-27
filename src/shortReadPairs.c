@@ -782,6 +782,14 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 			if (getNodeStatus(dest) <= 0)
 				continue;
 
+			/* Add non-anchor unique nodes only once */
+			if (getUniqueness(dest) == 1
+			    && !isAnchor(dest)
+			    && (getNodeStatus(dest) == 2
+				|| getNodeStatus(dest) == 11))
+				continue;
+			    
+
 			if (candidate == NULL
 			    || getNodeStatus(candidate) > getNodeStatus(dest)
 			    || (getNodeStatus(candidate) == getNodeStatus(dest)
@@ -800,6 +808,13 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 					continue;
 
 				if (dest == node || dest == getTwinNode(node))
+					continue;
+
+				/* Add non-anchor unique nodes only once */
+				if (getUniqueness(dest) == 1
+				    && !isAnchor(dest)
+				    && (getNodeStatus(dest) == 2
+					|| getNodeStatus(dest) == 11))
 					continue;
 
 				if (candidate == NULL
