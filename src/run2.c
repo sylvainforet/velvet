@@ -748,6 +748,7 @@ int main(int argc, char **argv)
 	free(roadmapFilename);
 	free(lowCovContigsFilename);
 	free(highCovContigsFilename);
+	free(haplotypesFilename);
 	destroyReadSet(sequences);
 	if (seqReadInfo) {
 		free(seqReadInfo);
