@@ -786,7 +786,13 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 			if (getUniqueness(dest) == 1
 			    && !isAnchor(dest)
 			    && (getNodeStatus(dest) == 2
-				|| getNodeStatus(dest) == 11))
+				|| getNodeStatus(dest) == 11
+				|| getNodeStatus(dest) == -2
+				|| getNodeStatus(dest) == -11
+				|| getNodeStatus(getTwinNode(dest)) == 2
+				|| getNodeStatus(getTwinNode(dest)) == 11
+				|| getNodeStatus(getTwinNode(dest)) == -2
+				|| getNodeStatus(getTwinNode(dest)) == -11))
 				continue;
 			    
 
@@ -814,7 +820,13 @@ static NodeList *pathIsClear(Node * node, Node * oppositeNode,
 				if (getUniqueness(dest) == 1
 				    && !isAnchor(dest)
 				    && (getNodeStatus(dest) == 2
-					|| getNodeStatus(dest) == 11))
+					|| getNodeStatus(dest) == 11
+					|| getNodeStatus(dest) == -2
+					|| getNodeStatus(dest) == -11
+					|| getNodeStatus(getTwinNode(dest)) == 2
+					|| getNodeStatus(getTwinNode(dest)) == 11
+					|| getNodeStatus(getTwinNode(dest)) == -2
+					|| getNodeStatus(getTwinNode(dest)) == -11))
 					continue;
 
 				if (candidate == NULL
