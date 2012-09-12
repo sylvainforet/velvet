@@ -2699,7 +2699,7 @@ clipWeakArcs(Graph *graph,
 	concatenateGraph(graph);
 }
 
-/* WARNING: assumes no gaps*/
+/* WARNING: assumes no gaps */
 static void
 writeHapLoopNodeSeq(FILE *haplotypesFile,
 		    Node *node)
@@ -2708,7 +2708,7 @@ writeHapLoopNodeSeq(FILE *haplotypesFile,
 	Coordinate position;
 	char nucleotide;
 
-	tString = expandNode(node, WORDLENGTH);
+	tString = getNodeTightString(node);
 	for (position = 0; position < getLength(tString); position++) {
 		nucleotide = getNucleotideChar(position, tString);
 		velvetFprintf(haplotypesFile, "%c", nucleotide);

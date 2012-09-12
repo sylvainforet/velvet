@@ -131,6 +131,7 @@ void appendGap(Node * node, Coordinate length, Graph * graph);
 void appendNodeGaps(Node * destination, Node * source, Graph * graph);
 
 // IO
+TightString *getNodeTightString(Node * node);
 TightString *expandNode(Node * node, int WORDLENGTH);
 void appendNodeSequence(Node * node, TightString * sequence,
 			Coordinate writeIndex);

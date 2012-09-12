@@ -2673,6 +2673,20 @@ void DOTNode(Node * node, FILE * outfile)
 	}
 }
 
+TightString *getNodeTightString(Node * node)
+{
+	Nucleotide nucleotide;
+	Coordinate index;
+	TightString *tString = newTightString(node->length);
+
+	for (index = 0; index < node->length; index++) {
+		nucleotide = getNucleotideInDescriptor(node->descriptor, index);
+		writeNucleotideAtPosition(nucleotide, index, tString);
+	}
+
+	return tString;
+}
+
 TightString *expandNode(Node * node, int WORDLENGTH)
 {
 	Nucleotide nucleotide;
